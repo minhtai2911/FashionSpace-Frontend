@@ -2,7 +2,21 @@ import React, { useState, useEffect } from "react";
 import Banner from "../components/Banner";
 import Header from "../components/Header";
 import ProductItem from "../components/ProductItem";
+
+import CheckBox from "../components/CheckBox";
+
+const categories = [
+  "Men",
+  "Women",
+  "Handbags",
+  "T-Shirts",
+  "Coats",
+  "Watches",
+  "Hats",
+];
+
 function Shop() {
+  // Handle slider
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
   const priceGap = 100;
@@ -39,6 +53,8 @@ function Shop() {
     }
   };
 
+  // Load categories
+
   return (
     <div>
       <Header />
@@ -50,26 +66,15 @@ function Shop() {
           <div className="flex flex-col gap-y-3">
             <div>Category</div>
             <div className="flex flex-col gap-y-2 font-normal text-[16px]">
-              <div className="flex gap-x-4 items-center caret-transparent">
-                <input
-                  type="checkbox"
-                  id="-filtered"
-                  name="categories"
-                  value=""
-                  className="focus:ring-0 focus:outline-none bg-gray-50 rounded-[4px] cursor-pointer text-black"
-                />
-                <label htmlFor="-filtered" className="select-none"></label>
-              </div>
-              <div className="flex gap-x-4 items-center caret-transparent">
-                <input
-                  type="checkbox"
-                  id="-filtered"
-                  name="filters"
-                  value=""
-                  className="focus:ring-0 focus:outline-none bg-gray-50 rounded-[4px] cursor-pointer text-black"
-                />
-                <label htmlFor="-filtered" className="select-none"></label>
-              </div>
+              {categories.map((category, index) => (
+                <div
+                  className="flex gap-x-3 items-center caret-transparent"
+                  key={index}
+                >
+                  <CheckBox />
+                  <label className="">{category}</label>
+                </div>
+              ))}
             </div>
           </div>
           <div className="h-[1.5px] bg-[#C9C9C9] opacity-60"></div>
