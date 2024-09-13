@@ -1,0 +1,9 @@
+.checkbox-container {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.checkbox-image {
+  width: 24px;
+  height: 24px;
+}

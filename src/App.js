@@ -1,9 +1,10 @@
-import './App.css';
+import "./App.css";
+
+import Shop from "./pages/Shop";
+import SignUp from "./pages/SignUp";
 
 function App() {
-  return (
-    <div></div>
-  );
+  return <SignUp />;
 }
 
 export default App;

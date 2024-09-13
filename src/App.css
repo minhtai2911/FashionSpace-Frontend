@@ -1,38 +1,51 @@
-.App {
-  text-align: center;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap");
+
+* {
+  font-family: "Roboto Slab", serif;
+  padding: 0;
+  margin: 0;
+  color: #0a0a0a;
 }
 
-.App-logo {
-  height: 40vmin;
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  width: 2px;
+  background-color: #0a0a0a;
+}
+
+input[type="checkbox"] {
+  border-radius: 4px;
+  padding: 4px;
+  background-color: #0a0a0a;
+  height: 20px;
+  width: 20px;
+}
+
+#range-input input {
+  position: absolute;
+  top: -5px;
+  height: 5px;
+  width: 100%;
+  background: none;
   pointer-events: none;
+  appearance: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+input[type="range"]::-webkit-slider-thumb {
+  height: 12px;
+  width: 12px;
+  border-radius: 20px;
+  outline: 2px solid #fff;
+  box-sizing: content-box;
+  background-color: #0a0a0a;
+  pointer-events: auto;
+  -webkit-appearance: none;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
 }
