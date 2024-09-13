@@ -1,28 +1,17 @@
 import CheckBox from "../components/CheckBox";
 
-function SignUp() {
+function SignIn() {
   return (
     <div className="px-40 items-center h-screen flex gap-x-10">
       <div className="flex-1">
-        <p className="font-semibold text-3xl">Sign Up</p>
-        <p className="mt-2">
-          Fill your information below or register with your social account.
-        </p>
-        <div className="mt-8 flex flex-row gap-x-10">
-          <div className="flex-1">
-            <p className="font-medium text-base">Full Name *</p>
-            <input
-              className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-              placeholder="Justin Bieber"
-            ></input>
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-base">Email *</p>
-            <input
-              className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-              placeholder="example@gmail.com"
-            ></input>
-          </div>
+        <p className="font-semibold text-3xl">Sign In</p>
+        <p className="mt-2">Sign in with your exist account</p>
+        <div className="mt-8">
+          <p className="font-medium text-base">Email *</p>
+          <input
+            className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
+            placeholder="example@gmail.com"
+          ></input>
         </div>
 
         <div className="mt-4">
@@ -32,25 +21,21 @@ function SignUp() {
             type="password"
           ></input>
         </div>
-        <div className="mt-4">
-          <p className="font-medium text-base">Confirm Password *</p>
-          <input
-            className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-            type="password"
-          ></input>
-        </div>
-        <div className="mt-4 flex-row gap-x-3 items-center flex">
-          <CheckBox />
-          <p className="text-base">
-            I agree with Terms & Condition and Privacy Policy
-          </p>
+        <div className="mt-4 flex flex-row items-center justify-between">
+          <div className="flex-row gap-x-3 flex">
+            <CheckBox />
+            <p className="text-base">Remember me</p>
+          </div>
+          <a href="#" className="text-base">
+            Forgot password?
+          </a>
         </div>
         <button className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg">
-          Sign Up
+          Sign In
         </button>
         <div className="flex flex-row justify-between items-center gap-x-10 mt-5">
           <div className="flex-1 h-[1px] bg-[#DEDEDE]"></div>
-          <p className="text-[#818181]">or sign up with</p>
+          <p className="text-[#818181]">or sign in with</p>
           <div className="flex-1 h-[1px] bg-[#DEDEDE]"></div>
         </div>
         <button className="mt-5 border border-[#0A0A0A] w-[100%] flex items-center justify-center py-3 rounded-lg">
@@ -79,13 +64,13 @@ function SignUp() {
                 fill="#1976D2"
               />
             </svg>
-            <p className="font-medium">Sign up with Google</p>
+            <p className="font-medium">Sign in with Google</p>
           </div>
         </button>
         <p className="mt-6 text-center">
-          Alreay have an account?{" "}
+          Don't have an account?{" "}
           <a href="#">
-            <u>Sign In</u>
+            <u>Sign Up</u>
           </a>
         </p>
       </div>
@@ -100,4 +85,4 @@ function SignUp() {
   );
 }
 
-export default SignUp;
+export default SignIn;
