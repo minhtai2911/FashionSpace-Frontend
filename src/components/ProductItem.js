@@ -1,6 +1,6 @@
 import React from "react";
 
-function ProductItem({ id, price, name, type, rating, image, usage }) {
+function ProductItem({ id, price, name, category, rating, image, usage }) {
   return (
     <div
       className={`relative grid w-full max-w-60 flex-col overflow-hidden place-items-center rounded-lg border border-gray-100 bg-white shadow-md 
@@ -39,7 +39,7 @@ function ProductItem({ id, price, name, type, rating, image, usage }) {
         )}
         <img
           className="object-cover h-64"
-          src={image ? `/storage/${image}` : "/storage/product_image.png"}
+          src={image ? image : "/storage/product_image.png"}
           alt="product image"
         />
       </a>
@@ -50,7 +50,7 @@ function ProductItem({ id, price, name, type, rating, image, usage }) {
             className="text-[12px] font-medium text-[#616161] my-1"
             id="product-type"
           >
-            {type}
+            {category}
           </h3>
         </a>
         <a href="#">
@@ -74,7 +74,7 @@ function ProductItem({ id, price, name, type, rating, image, usage }) {
             <svg
               aria-hidden="true"
               className="h-5 w-5 text-yellow-300"
-              fill="currentColor"
+              fill="#FFE066"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
             >

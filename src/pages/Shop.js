@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import Banner from "../components/Banner";
 import Header from "../components/Header";
 import ProductItem from "../components/ProductItem";
-
 import CheckBox from "../components/CheckBox";
+import FilterItem from "../components/FilterItem";
+import Review from "../components/Review";
 
 const categories = [
   "Men",
@@ -13,13 +14,16 @@ const categories = [
   "Coats",
   "Watches",
   "Hats",
+  "Shoes",
+  "Bags",
 ];
 
 function Shop() {
-  // Handle slider
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
   const priceGap = 100;
+
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
   useEffect(() => {
     const progress = document.querySelector("#slider #progress");
@@ -53,25 +57,43 @@ function Shop() {
     }
   };
 
-  // Load categories
+  const handleCategoryChange = (category) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((item) => item !== category)
+        : [...prev, category]
+    );
+  };
+
+  const handleRemoveCategory = (categoryToRemove) => {
+    setSelectedCategories((prevCategories) =>
+      prevCategories.filter((category) => category !== categoryToRemove)
+    );
+  };
+
+  const clearAllFilters = () => {
+    setSelectedCategories([]);
+  };
 
   return (
     <div>
-      <Header />
       <Banner />
       <div className="flex gap-x-10 py-10 px-28">
-        <div className="flex flex-col gap-y-4 text-[20px] font-bold">
+        <div className="flex flex-col w-[200px] gap-y-4 text-[20px] font-bold">
           <div className="">Filter Options</div>
           <div className="h-[1.5px] bg-[#C9C9C9] opacity-60"></div>
           <div className="flex flex-col gap-y-3">
             <div>Category</div>
-            <div className="flex flex-col gap-y-2 font-normal text-[16px]">
+            <div className="flex flex-col gap-y-2 font-normal text-[16px] max-h-[200px] overflow-y-auto">
               {categories.map((category, index) => (
                 <div
-                  className="flex gap-x-3 items-center caret-transparent"
+                  className="flex gap-x-2 items-center caret-transparent"
                   key={index}
                 >
-                  <CheckBox />
+                  <CheckBox
+                    isChecked={selectedCategories.includes(category)}
+                    onChange={() => handleCategoryChange(category)}
+                  />
                   <label className="">{category}</label>
                 </div>
               ))}
@@ -139,30 +161,43 @@ function Shop() {
               </div>
             </div>
             <div
-              className="flex gap-5 items-center flex-wrap min-h-10"
+              className="flex flex-wrap items-center gap-2 max-w-full"
               id="filter-container"
             >
-              <div>Active Filter</div>
-
-              <div
-                className="underline cursor-pointer"
-                id="clear-filter"
-                // onClick={() => clearAllFilters()}
-              >
-                Clear All
+              <span className="mr-2">Active Filter:</span>
+              <div className="flex gap-3 flex-wrap">
+                {" "}
+                {selectedCategories.map((category, index) => (
+                  <FilterItem
+                    key={index}
+                    name={category}
+                    onRemove={() => handleRemoveCategory(category)}
+                  />
+                ))}
               </div>
+              {selectedCategories.length > 0 && (
+                <div
+                  className="underline ml-2 cursor-pointer whitespace-nowrap"
+                  onClick={clearAllFilters}
+                >
+                  Clear All
+                </div>
+              )}
             </div>
           </div>
           <div
             className="flex gap-x-7 gap-y-8 flex-wrap min-h-60"
             id="product-container"
           >
-            <ProductItem
-              name="The Black Coat"
-              type="Coat"
-              price="14.99"
-              rating="4"
-              usage="product"
+            <Review
+              user={{
+                avatar: "https://picsum.photos/200",
+                name: "Taylor Swift",
+              }}
+              rating={4}
+              content={
+                "The Baddie Jacket exceeded my expectations! The faux leather looks and feels premium, and the fit is perfect—snug but not too tight. I love how it adds an edgy touch to any outfit, whether I'm dressing up for a night out or keeping it casual. The attention to detail with the zippers and stitching is fantastic. It’s become my go-to jacket!"
+              }
             />
           </div>
         </div>

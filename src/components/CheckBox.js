@@ -1,19 +1,9 @@
-import React, { useState } from "react";
 import Checked from "../assets/icons/checked_checkbox.svg";
 import Unchecked from "../assets/icons/unchecked_checkbox.svg";
 
-function CheckBox() {
-  const [isChecked, setIsChecked] = useState(false);
-
-  const handleCheckboxChange = () => {
-    setIsChecked(!isChecked);
-  };
-
+function CheckBox({ isChecked, onChange }) {
   return (
-    <div
-      className="cursor-pointer inline-block w-6 h-6"
-      onClick={handleCheckboxChange}
-    >
+    <div className="cursor-pointer inline-block w-4 h-4" onClick={onChange}>
       {isChecked ? (
         <img src={Checked} alt="Checked" />
       ) : (

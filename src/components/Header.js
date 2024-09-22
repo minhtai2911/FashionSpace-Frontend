@@ -1,9 +1,10 @@
+import { Link } from "react-router-dom";
 function Header() {
   return (
     <header className="bg-white px-12 py-5 shadow-md min-w-full">
       <div className="mx-auto flex justify-between items-center">
         <div className="brand flex items-center space-x-4">
-          <a href="/" className="flex items-center space-x-4">
+          <Link to="/" className="flex items-center space-x-4">
             <img
               src="{{ asset('storage/black-logo.png') }}"
               alt="Logo"
@@ -12,33 +13,33 @@ function Header() {
             <span className="font-bold text-xl tracking-wide">
               FASHION SPACE
             </span>
-          </a>
+          </Link>
         </div>
         <nav className="flex justify-between items-center align-middle mb-2 w-[38%]">
-          <a
-            href="/home"
+          <Link
+            to="/"
             className="text-[#413e3e] hover:text-red-600 font-semibold relative before:content-[''] before:absolute before:w-0 before:h-0.5 before:bg-red-600 before:transition-all before:duration-300 before:-bottom-1 before:left-1/2 before:transform before:translate-x-[-50%] hover:before:w-full"
           >
             Home
-          </a>
-          <a
-            href="/products"
+          </Link>
+          <Link
+            to="/shop"
             className="text-[#413e3e] hover:text-red-600 font-semibold relative before:content-[''] before:absolute before:w-0 before:h-0.5 before:bg-red-600 before:transition-all before:duration-300 before:-bottom-1 before:left-1/2 before:transform before:translate-x-[-50%] hover:before:w-full"
           >
             Shop
-          </a>
-          <a
-            href="/about"
+          </Link>
+          <Link
+            to="/about"
             className="text-[#413e3e] hover:text-red-600 font-semibold relative before:content-[''] before:absolute before:w-0 before:h-0.5 before:bg-red-600 before:transition-all before:duration-300 before:-bottom-1 before:left-1/2 before:transform before:translate-x-[-50%] hover:before:w-full"
           >
             About Us
-          </a>
-          <a
-            href="/contact"
+          </Link>
+          <Link
+            to="/contact"
             className="text-[#413e3e] hover:text-red-600 font-semibold relative before:content-[''] before:absolute before:w-0 before:h-0.5 before:bg-red-600 before:transition-all before:duration-300 before:-bottom-1 before:left-1/2 before:transform before:translate-x-[-50%] hover:before:w-full"
           >
             Contact Us
-          </a>
+          </Link>
         </nav>
         <div className="flex items-center space-x-4 justify-between w-40">
           <a id="search" className="hover:text-gray-600 cursor-pointer">

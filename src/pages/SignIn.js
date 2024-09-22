@@ -1,6 +1,8 @@
 import CheckBox from "../components/CheckBox";
 
 function SignIn() {
+  const handleSignIn = () => {};
+
   return (
     <div className="px-40 items-center h-screen flex gap-x-10">
       <div className="flex-1">
@@ -30,7 +32,10 @@ function SignIn() {
             Forgot password?
           </a>
         </div>
-        <button className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg">
+        <button
+          className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg"
+          onClick={handleSignIn}
+        >
           Sign In
         </button>
         <div className="flex flex-row justify-between items-center gap-x-10 mt-5">

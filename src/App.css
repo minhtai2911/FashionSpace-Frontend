@@ -49,3 +49,25 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
 }
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: #0a0a0a !important;
+  width: 24px !important;
+  height: 24px !important;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.swiper-button-next {
+  right: 0px !important;
+}
+
+.swiper-button-prev {
+  left: 0px !important;
+}
+
+.swiper-pagination-bullet-active {
+  background-color: #0a0a0a !important;
+}
