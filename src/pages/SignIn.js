@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import CheckBox from "../components/CheckBox";
 
 function SignIn() {
@@ -7,7 +8,7 @@ function SignIn() {
     <div className="px-40 items-center h-screen flex gap-x-10">
       <div className="flex-1">
         <p className="font-semibold text-3xl">Sign In</p>
-        <p className="mt-2">Sign in with your exist account</p>
+        <p className="mt-2">Sign in with your exist account.</p>
         <div className="mt-8">
           <p className="font-medium text-base">Email *</p>
           <input
@@ -24,7 +25,7 @@ function SignIn() {
           ></input>
         </div>
         <div className="mt-4 flex flex-row items-center justify-between">
-          <div className="flex-row gap-x-3 flex">
+          <div className="flex-row gap-x-3 flex items-center">
             <CheckBox />
             <p className="text-base">Remember me</p>
           </div>
@@ -74,9 +75,9 @@ function SignIn() {
         </button>
         <p className="mt-6 text-center">
           Don't have an account?{" "}
-          <a href="#">
+          <Link to="/signup">
             <u>Sign Up</u>
-          </a>
+          </Link>
         </p>
       </div>
       <div className="flex-1">

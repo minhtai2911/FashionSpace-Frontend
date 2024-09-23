@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 function ProductItem({ id, price, name, category, rating, image, usage }) {
   return (
@@ -15,9 +16,9 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
                 : ""
             }`}
     >
-      <a
+      <Link
         className="mx-3 mt-3 flex h-50 overflow-hidden rounded-xl relative z-10"
-        href={`/customer/products/details/${id}`}
+        to={`/products/details/${id}`}
       >
         {usage === "new-arrival" && (
           <img
@@ -42,25 +43,25 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
           src={image ? image : "/storage/product_image.png"}
           alt="product image"
         />
-      </a>
+      </Link>
 
       <div className="mt-2 px-4 pb-3 w-full z-10">
-        <a href="#">
+        <span>
           <h3
             className="text-[12px] font-medium text-[#616161] my-1"
             id="product-type"
           >
             {category}
           </h3>
-        </a>
-        <a href="#">
+        </span>
+        <span>
           <h5
             className="tracking-tight font-bold text-base text-slate-900"
             id="product-name"
           >
             {name}
           </h5>
-        </a>
+        </span>
         <div className="mt-2 mb-3 flex items-center justify-between">
           <p>
             <span
@@ -88,7 +89,7 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
 
         <div className="flex justify-between">
           <a
-            href={`/customer/products/details/${id}`}
+            href={`/products/details/${id}`}
             className="flex items-center justify-center rounded-md bg-stone-950 px-3 py-2 text-center text-[0.6rem] font-medium text-white hover:bg-neutral-600 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out"
           >
             <svg
@@ -107,7 +108,7 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
             Buy now
           </a>
           <a
-            href={`/customer/products/details/${id}`}
+            href={`/products/details/${id}`}
             className="flex items-center justify-center rounded-md bg-neutral-800 px-3 py-2 text-center text-[0.6rem] font-medium text-white hover:bg-neutral-600 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out ml-3"
             data-product-id={id}
           >

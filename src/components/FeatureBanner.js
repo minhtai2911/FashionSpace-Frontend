@@ -4,7 +4,7 @@ import Support from "../assets/icons/support.svg";
 
 function FeatureBanner() {
   return (
-    <div className="flex flex-row items-center justify-evenly py-5">
+    <div className="flex flex-row items-center justify-between py-5 px-10">
       <div className="flex flex-row gap-x-2 items-center">
         <svg
           width="48"

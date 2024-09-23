@@ -6,6 +6,65 @@ import CheckBox from "../components/CheckBox";
 import FilterItem from "../components/FilterItem";
 import Review from "../components/Review";
 
+const products = [
+  {
+    id: 1,
+    name: "Classy Leather Jacket",
+    category: "Jacket",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 2,
+    name: "Basic Necktie",
+    category: "Accessories",
+    price: "70.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 3,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 4,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 5,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 6,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 7,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+];
+
 const categories = [
   "Men",
   "Women",
@@ -21,23 +80,8 @@ const categories = [
 function Shop() {
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
-  const priceGap = 100;
-
   const [selectedCategories, setSelectedCategories] = useState([]);
-
-  useEffect(() => {
-    const progress = document.querySelector("#slider #progress");
-
-    const updateProgress = () => {
-      const minPercentage = (minPrice / 1000) * 100;
-      const maxPercentage = (maxPrice / 1000) * 100;
-
-      progress.style.left = minPercentage + "%";
-      progress.style.right = 100 - maxPercentage + "%";
-    };
-
-    updateProgress();
-  }, [minPrice, maxPrice]);
+  const priceGap = 100;
 
   const handleMinPriceChange = (e) => {
     const value = parseInt(e.target.value);
@@ -75,9 +119,23 @@ function Shop() {
     setSelectedCategories([]);
   };
 
+  useEffect(() => {
+    const progress = document.querySelector("#slider #progress");
+
+    const updateProgress = () => {
+      const minPercentage = (minPrice / 1000) * 100;
+      const maxPercentage = (maxPrice / 1000) * 100;
+
+      progress.style.left = minPercentage + "%";
+      progress.style.right = 100 - maxPercentage + "%";
+    };
+
+    updateProgress();
+  }, [minPrice, maxPrice]);
+
   return (
     <div>
-      <Banner />
+      <Banner title={"Shop"} route={"Home / Shop"} />
       <div className="flex gap-x-10 py-10 px-28">
         <div className="flex flex-col w-[200px] gap-y-4 text-[20px] font-bold">
           <div className="">Filter Options</div>
@@ -186,19 +244,20 @@ function Shop() {
             </div>
           </div>
           <div
-            className="flex gap-x-7 gap-y-8 flex-wrap min-h-60"
+            className="flex gap-x-5 gap-y-5 flex-wrap min-h-60"
             id="product-container"
           >
-            <Review
-              user={{
-                avatar: "https://picsum.photos/200",
-                name: "Taylor Swift",
-              }}
-              rating={4}
-              content={
-                "The Baddie Jacket exceeded my expectations! The faux leather looks and feels premium, and the fit is perfect—snug but not too tight. I love how it adds an edgy touch to any outfit, whether I'm dressing up for a night out or keeping it casual. The attention to detail with the zippers and stitching is fantastic. It’s become my go-to jacket!"
-              }
-            />
+            {products.map((product) => (
+              <ProductItem
+                key={product.id}
+                name={product.name}
+                rating={product.rating}
+                category={product.category}
+                image={product.image}
+                price={product.price}
+                id={product.id}
+              />
+            ))}
           </div>
         </div>
       </div>

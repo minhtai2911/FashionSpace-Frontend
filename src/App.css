@@ -10,6 +10,17 @@
   color: #0a0a0a;
 }
 
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  transition: width 0.1s ease-in-out, height 0.1s ease-in-out;
+}
+
+.nav-icon:hover {
+  width: 30px;
+  height: 30px;
+}
+
 ::-webkit-scrollbar {
   width: 5px;
 }

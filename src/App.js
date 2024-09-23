@@ -1,5 +1,6 @@
 import "./App.css";
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { useLayoutEffect } from "react";
 
 import ForgotPassword from "./pages/ForgotPassword";
 import SetNewPassword from "./pages/SetNewPassword";
@@ -7,15 +8,39 @@ import Shop from "./pages/Shop";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
+import ProductDetails from "./pages/ProductDetails";
+
 import Header from "./components/Header";
 
 function App() {
+  const location = useLocation();
+  const noHeaderRoutes = ["/login", "/signup"];
+
+  useLayoutEffect(() => {
+    switch (location.pathname) {
+      case "/products":
+        document.title = "Shop";
+        break;
+      case "/login":
+        document.title = "Sign In";
+        break;
+      case "/signup":
+        document.title = "Sign Up";
+        break;
+      default:
+        document.title = "Fashion Space";
+    }
+  }, [location]);
+
   return (
     <div>
-      <Header />
+      {!noHeaderRoutes.includes(location.pathname) && <Header />}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/shop" element={<Shop />} />
+        <Route path="/products" element={<Shop />} />
+        <Route path="/login" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/products/details/:id" element={<ProductDetails />} />
       </Routes>
     </div>
   );
