@@ -280,21 +280,56 @@ function ProductDetails() {
             </div>
 
             <div className="flex flex-row gap-x-5 mt-2">
-              <div className="flex items-center justify-between border border-gray-300 rounded-lg w-40">
+              <div className="flex items-center justify-between border border-[#818181] rounded-lg w-40">
                 <button
-                  className="px-3 py-2 text-gray-600 flex-1"
+                  className="px-3 py-2 text-gray-600 flex-1 flex items-center justify-center"
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                 >
-                  -
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M5 12H19"
+                      stroke="#0A0A0A"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
                 </button>
-                <div className="w-px h-8 bg-gray-300"></div>
+                <div className="w-px h-8 bg-[#818181]"></div>
                 <span className="px-3 py-2 text-center flex-1">{quantity}</span>
-                <div className="w-px h-8 bg-gray-300"></div>
+                <div className="w-px h-8 bg-[#818181]"></div>
                 <button
-                  className="px-3 py-2 text-gray-600 flex-1"
+                  className="px-3 py-2 text-gray-600 flex-1 flex items-center justify-center"
                   onClick={() => setQuantity((prev) => prev + 1)}
                 >
-                  +
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 5V19"
+                      stroke="#0A0A0A"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M5 12H19"
+                      stroke="#0A0A0A"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
                 </button>
               </div>
               <button className="px-10 py-3 text-white font-medium bg-black rounded-lg">
