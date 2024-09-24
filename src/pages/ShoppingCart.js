@@ -225,7 +225,8 @@ function ShoppingCart() {
           </div>
           <button
             onClick={handleCheckout}
-            className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full"
+            className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full disabled:bg-[#4A4A4A] disabled:cursor-not-allowed"
+            disabled={products.length === 0}
           >
             Proceed to Checkout
           </button>
