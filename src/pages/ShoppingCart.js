@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Banner from "../components/Banner";
 
 function ShoppingCart() {
@@ -21,6 +22,7 @@ function ShoppingCart() {
     },
   ];
 
+  const navigate = useNavigate();
   const [products, setProducts] = useState(initialProducts);
   const [quantities, setQuantities] = useState(
     initialProducts.reduce((acc, product) => {
@@ -56,9 +58,22 @@ function ShoppingCart() {
     (acc, product) => acc + product.price * quantities[product.id],
     0
   );
-  const shipping = 0; // Assuming free shipping
-  const taxes = subTotal * 0.1; // Assuming 10% tax rate
+  const shipping = 0;
+  const taxes = subTotal * 0.1;
   const totalPrice = subTotal + taxes;
+
+  const orderSummary = {
+    items: products,
+    totalItems,
+    subTotal,
+    shipping,
+    taxes,
+    totalPrice,
+  };
+
+  const handleCheckout = () => {
+    navigate("/cart/checkout", { state: { orderSummary } });
+  };
 
   return (
     <div>
@@ -208,7 +223,10 @@ function ShoppingCart() {
             <p className="text-[#4A4A4A]">Total</p>
             <p className="font-semibold">${totalPrice.toFixed(2)}</p>
           </div>
-          <button className="px-10 py-3 text-white font-medium bg-black rounded-lg">
+          <button
+            onClick={handleCheckout}
+            className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full"
+          >
             Proceed to Checkout
           </button>
         </div>

@@ -12,6 +12,7 @@ import ProductDetails from "./pages/ProductDetails";
 
 import Header from "./components/Header";
 import ShoppingCart from "./pages/ShoppingCart";
+import Checkout from "./pages/Checkout";
 
 function App() {
   const location = useLocation();
@@ -31,6 +32,9 @@ function App() {
       case "/cart":
         document.title = "Shopping Cart";
         break;
+      case "/cart/checkout":
+        document.title = "Checkout";
+        break;
       default:
         document.title = "Fashion Space";
     }
@@ -45,6 +49,7 @@ function App() {
         <Route path="/login" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/cart" element={<ShoppingCart />} />
+        <Route path="/cart/checkout" element={<Checkout />} />
         <Route path="/products/details/:id" element={<ProductDetails />} />
       </Routes>
     </div>
