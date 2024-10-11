@@ -8,9 +8,9 @@ import Review from "../components/Review";
 import Pagination from "../components/Pagination";
 import Slider from "../components/Slider";
 import FeatureBanner from "../components/FeatureBanner";
+import { REVIEWS_PER_PAGE } from "../utils/Constants";
 
 // Example data
-const REVIEWS_PER_PAGE = 4;
 const colors = ["black", "red", "green", "blue", "yellow"];
 const sizes = ["S", "M", "L", "XL"];
 const reviews = [

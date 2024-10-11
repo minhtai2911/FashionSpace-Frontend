@@ -34,7 +34,7 @@ function FeatureBanner() {
         <div className="flex flex-col justify-around">
           <p className="text-sm font-medium">Free Shipping</p>
           <p className="text-[#818181] text-xs">
-            Free shipping for orders above $180
+            Free shipping for orders above $300
           </p>
         </div>
       </div>

@@ -222,9 +222,11 @@ function Checkout() {
               ${orderSummary.totalPrice.toFixed(2)}
             </p>
           </div>
-          <button className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full">
-            Continue to Payment
-          </button>
+          <Link to="/order-completed">
+            <button className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full">
+              Continue to Payment
+            </button>
+          </Link>
         </div>
       </div>
     </div>

@@ -58,9 +58,9 @@ function ShoppingCart() {
     (acc, product) => acc + product.price * quantities[product.id],
     0
   );
-  const shipping = 0;
+  const shipping = subTotal > 300 ? 0 : subTotal / 50;
   const taxes = subTotal * 0.1;
-  const totalPrice = subTotal + taxes;
+  const totalPrice = subTotal + taxes + shipping;
 
   const orderSummary = {
     items: products,

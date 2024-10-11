@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Banner from "../components/Banner";
-import Header from "../components/Header";
 import ProductItem from "../components/ProductItem";
 import CheckBox from "../components/CheckBox";
 import FilterItem from "../components/FilterItem";
-import Review from "../components/Review";
+import Pagination from "../components/Pagination";
+import { PRODUCTS_PER_PAGE } from "../utils/Constants";
 
 const products = [
   {
@@ -63,6 +63,78 @@ const products = [
     rating: 4.8,
     image: "https://picsum.photos/200",
   },
+  {
+    id: 8,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 9,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 10,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 11,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 12,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 13,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 14,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 15,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
+  {
+    id: 16,
+    name: "Mini Skirt",
+    category: "Skirt",
+    price: "75.00",
+    rating: 4.8,
+    image: "https://picsum.photos/200",
+  },
 ];
 
 const categories = [
@@ -81,6 +153,7 @@ function Shop() {
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const priceGap = 100;
 
   const handleMinPriceChange = (e) => {
@@ -132,6 +205,11 @@ function Shop() {
 
     updateProgress();
   }, [minPrice, maxPrice]);
+
+  const currentProducts = products.slice(
+    (currentPage - 1) * PRODUCTS_PER_PAGE,
+    currentPage * PRODUCTS_PER_PAGE
+  );
 
   return (
     <div>
@@ -224,7 +302,6 @@ function Shop() {
             >
               <span className="mr-2">Active Filter:</span>
               <div className="flex gap-3 flex-wrap">
-                {" "}
                 {selectedCategories.map((category, index) => (
                   <FilterItem
                     key={index}
@@ -247,7 +324,7 @@ function Shop() {
             className="flex gap-x-5 gap-y-5 flex-wrap min-h-60"
             id="product-container"
           >
-            {products.map((product) => (
+            {currentProducts.map((product) => (
               <ProductItem
                 key={product.id}
                 name={product.name}
@@ -259,6 +336,11 @@ function Shop() {
               />
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(products.length / PRODUCTS_PER_PAGE)}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

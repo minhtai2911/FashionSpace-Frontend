@@ -1,6 +1,7 @@
 import "./App.css";
 import { Routes, Route, useLocation } from "react-router-dom";
-import { useLayoutEffect } from "react";
+import { useContext, useLayoutEffect } from "react";
+import { AuthContext } from "./context/AuthContext";
 
 import ForgotPassword from "./pages/ForgotPassword";
 import SetNewPassword from "./pages/SetNewPassword";
@@ -9,13 +10,17 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
 import ProductDetails from "./pages/ProductDetails";
-
-import Header from "./components/Header";
 import ShoppingCart from "./pages/ShoppingCart";
 import Checkout from "./pages/Checkout";
+import OrderCompleted from "./pages/OrderCompleted";
+import Account from "./pages/Account";
+
+import Header from "./components/Header";
+import LoadingOverlay from "./components/LoadingOverlay";
 
 function App() {
   const location = useLocation();
+  const { isLoading } = useContext(AuthContext);
   const noHeaderRoutes = ["/login", "/signup"];
 
   useLayoutEffect(() => {
@@ -35,6 +40,12 @@ function App() {
       case "/cart/checkout":
         document.title = "Checkout";
         break;
+      case "/order-completed":
+        document.title = "Order Completed";
+        break;
+      case "/account":
+        document.title = "Account";
+        break;
       default:
         document.title = "Fashion Space";
     }
@@ -51,7 +62,10 @@ function App() {
         <Route path="/cart" element={<ShoppingCart />} />
         <Route path="/cart/checkout" element={<Checkout />} />
         <Route path="/products/details/:id" element={<ProductDetails />} />
+        <Route path="/order-completed" element={<OrderCompleted />} />
+        <Route path="/account" element={<Account />} />
       </Routes>
+      {isLoading && <LoadingOverlay />}
     </div>
   );
 }
