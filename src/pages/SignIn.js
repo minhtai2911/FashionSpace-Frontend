@@ -1,12 +1,12 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "../services/axiosConfig";
 import CheckBox from "../components/CheckBox";
 import Spinner from "../components/Spinner";
+import { jwtDecode } from "jwt-decode";
 
 function SignIn() {
-  const { setIsAuthenticated, setUser, login } = useContext(AuthContext);
+  const { login, setUser } = useContext(AuthContext);
 
   const [data, setData] = useState({
     email: "",
@@ -24,12 +24,11 @@ function SignIn() {
     e.preventDefault();
     try {
       const user = await login(data.email, data.password);
-      console.log("User: ", user);
+      setUser(jwtDecode(user.accessToken));
     } catch (error) {
       setError(
         error.response?.data?.message || error.message || "An error occurred"
       );
-      console.log(error);
     }
   };
 
@@ -69,9 +68,9 @@ function SignIn() {
                 <CheckBox />
                 <p className="text-base">Remember me</p>
               </div>
-              <a href="#" className="text-base">
+              <Link to="/forgot-password" className="text-base">
                 Forgot password?
-              </a>
+              </Link>
             </div>
             <button
               type="submit"

@@ -14,6 +14,7 @@ import ShoppingCart from "./pages/ShoppingCart";
 import Checkout from "./pages/Checkout";
 import OrderCompleted from "./pages/OrderCompleted";
 import Account from "./pages/Account";
+import VerifyCode from "./pages/VerifyCode";
 
 import Header from "./components/Header";
 import LoadingOverlay from "./components/LoadingOverlay";
@@ -21,7 +22,13 @@ import LoadingOverlay from "./components/LoadingOverlay";
 function App() {
   const location = useLocation();
   const { isLoading } = useContext(AuthContext);
-  const noHeaderRoutes = ["/login", "/signup"];
+  const noHeaderRoutes = [
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/verify-code",
+    "/set-password",
+  ];
 
   useLayoutEffect(() => {
     switch (location.pathname) {
@@ -46,6 +53,15 @@ function App() {
       case "/account":
         document.title = "Account";
         break;
+      case "/forgot-password":
+        document.title = "Forgot Password";
+        break;
+      case "/verify-code":
+        document.title = "Verify Code";
+        break;
+      case "/set-password":
+        document.title = "Set New Password";
+        break;
       default:
         document.title = "Fashion Space";
     }
@@ -63,7 +79,10 @@ function App() {
         <Route path="/cart/checkout" element={<Checkout />} />
         <Route path="/products/details/:id" element={<ProductDetails />} />
         <Route path="/order-completed" element={<OrderCompleted />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-code" element={<VerifyCode />} />
         <Route path="/account" element={<Account />} />
+        <Route path="/set-password" element={<SetNewPassword />} />
       </Routes>
       {isLoading && <LoadingOverlay />}
     </div>

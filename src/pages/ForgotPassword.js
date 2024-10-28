@@ -1,4 +1,66 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import useAxios from "../services/useAxios";
+import axios from "axios";
+
 function ForgotPassword() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState(null);
+  const authTokens = localStorage.getItem("authTokens")
+    ? JSON.parse(localStorage.getItem("authTokens"))
+    : null;
+  const api = useAxios();
+  const handleSubmit = async () => {
+    if (!email) {
+      setError("Please enter your email!");
+      return;
+    }
+
+    try {
+      const response = await api.post(
+        "/auth/checkEmail",
+        { email: email },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = response.data;
+      if (response.status === 200) {
+        const otpResponse = await api.post(
+          "/auth/generateOTP",
+          { email: email },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const { otp } = otpResponse.data;
+        if (otpResponse.status === 200) {
+          const sendMail = await api.post(
+            "/auth/sendOTP",
+            { email: email, OTP: otp },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (sendMail.status === 200) {
+            navigate("/verify-code", { state: { email } });
+          }
+        }
+      } else {
+        setError(data.message);
+      }
+    } catch (error) {
+      setError("Something went wrong. Please try again!");
+    }
+  };
+
   return (
     <div className="px-40 items-center h-screen flex gap-x-10">
       <div className="flex-1">
@@ -9,16 +71,22 @@ function ForgotPassword() {
           <input
             className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
             placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           ></input>
         </div>
-        <button className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg">
+        {error && <p className="text-red-500">{error}</p>}
+        <button
+          onClick={handleSubmit}
+          className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg"
+        >
           Submit
         </button>
         <p className="mt-6 text-center">
           Remember password?{" "}
-          <a href="#">
+          <Link to="/login">
             <u>Sign In</u>
-          </a>
+          </Link>
         </p>
       </div>
       <div className="flex-1">

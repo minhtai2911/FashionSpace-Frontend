@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "../services/axiosConfig";
 import CheckBox from "../components/CheckBox";
 import Spinner from "../components/Spinner";
+import { AuthContext } from "../context/AuthContext";
 
 function SignUp() {
+  const { signup } = useContext(AuthContext);
   const [data, setData] = useState({
     fullName: "",
     email: "",
@@ -27,20 +28,8 @@ function SignUp() {
       return;
     }
     try {
-      setIsLoading(true);
-      const response = await axios.post(
-        "http://localhost:8000/api/v1/auth/signup",
-        JSON.stringify({
-          full_name: data.fullName,
-          email: data.email,
-          password: data.password,
-        }),
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      setIsLoading(false);
-      navigate("/login");
+      console.log({ data });
+      const response = await signup(data.email, data.fullName, data.password);
     } catch (error) {
       setIsLoading(false);
       console.error("Registration error:", error);

@@ -1,140 +1,105 @@
 import { createContext, useState, useEffect } from "react";
-import axios from "../services/axiosConfig";
 import { useNavigate } from "react-router-dom";
+import instance from "../services/axiosConfig";
 import { jwtDecode } from "jwt-decode";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [authTokens, setAuthTokens] = useState(() =>
+    localStorage.getItem("authTokens")
+      ? JSON.parse(localStorage.getItem("authTokens"))
+      : null
+  );
+  const [user, setUser] = useState(() =>
+    localStorage.getItem("authTokens")
+      ? jwtDecode(localStorage.getItem("authTokens"))
+      : null
+  );
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
-  const checkAuth = async () => {
-    const accessToken = localStorage.getItem("token");
-    const refreshToken = localStorage.getItem("refreshToken");
-
-    if (!accessToken && !refreshToken) {
-      setIsAuthenticated(false);
-      setUser(null);
-      return;
-    }
-
-    try {
-      if (accessToken) {
-        const decodedToken = jwtDecode(accessToken);
-        const currentTime = Date.now() / 1000;
-
-        if (decodedToken.exp > currentTime) {
-          setIsAuthenticated(true);
-          setUser(decodedToken);
-          return;
-        }
-      }
-
-      if (refreshToken) {
-        const newAccessToken = await refreshAccessToken();
-        if (newAccessToken) {
-          const decodedToken = jwtDecode(newAccessToken);
-          setIsAuthenticated(true);
-          setUser(decodedToken);
-          return;
-        }
-      }
-
-      setIsAuthenticated(false);
-      setUser(null);
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-    } catch (error) {
-      console.error("Auth check failed:", error);
-      setIsAuthenticated(false);
-      setUser(null);
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-    }
-  };
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const refreshAccessToken = async () => {
-    try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) {
-        return null;
-      }
-
-      const response = await axios.post(
-        "http://localhost:8000/api/v1/auth/refreshToken",
-        { refreshToken }
-      );
-      const newAccessToken = response.data.accessToken;
-      localStorage.setItem("token", newAccessToken);
-      return newAccessToken;
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      return null;
-    }
-  };
-
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      await axios.post("http://localhost:8000/api/v1/auth/logout");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      setIsAuthenticated(false);
-      setUser(null);
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      setIsLoading(false);
-      navigate("/");
-    }
-  };
 
   const login = async (email, password) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:8000/api/v1/auth/login",
+      const response = await instance.post(
+        "/auth/login",
+        { email, password },
         {
-          email,
-          password,
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
       const { accessToken, refreshToken, ...data } = response.data;
-      localStorage.setItem("token", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
+      setUser(jwtDecode(accessToken));
+      localStorage.setItem(
+        "authTokens",
+        JSON.stringify({ accessToken, refreshToken })
+      );
+      localStorage.setItem("user", JSON.stringify(jwtDecode(accessToken)));
+
       setIsAuthenticated(true);
-      setUser(data);
-      setIsLoading(false);
       navigate("/");
-      return data;
+      return response.data;
     } catch (error) {
       setIsLoading(false);
       throw error;
     }
   };
 
+  const signup = async (email, full_name, password) => {
+    setIsLoading(true);
+    try {
+      const response = await instance.post(
+        "/auth/signup",
+        { email, full_name, password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log(response);
+      navigate("/login");
+    } catch (error) {
+      setIsLoading(false);
+      console.log(error.message);
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    setAuthTokens(null);
+    setUser(null);
+    localStorage.clear();
+    navigate("/login");
+  };
+
+  const contextData = {
+    user: user,
+    authTokens: authTokens,
+    setAuthTokens: setAuthTokens,
+    isAuthenticated: isAuthenticated,
+    setUser: setUser,
+    login: login,
+    signup: signup,
+    logout: logout,
+  };
+
+  useEffect(() => {
+    if (authTokens) {
+      setUser(jwtDecode(authTokens?.accessToken));
+      setIsAuthenticated(true);
+    }
+    setIsLoading(false);
+  }, [authTokens, isLoading]);
+
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        setIsAuthenticated,
-        user,
-        setUser,
-        logout,
-        login,
-        isLoading,
-        setIsLoading,
-        checkAuth,
-      }}
-    >
-      {children}
+    <AuthContext.Provider value={contextData}>
+      {isLoading ? null : children}
     </AuthContext.Provider>
   );
 };

@@ -131,7 +131,7 @@ function Header() {
               </button>
 
               <div
-                className={`absolute left-4 -translate-x-1/2 mt-3 z-10 ${
+                className={`absolute left-4 -translate-x-1/2 mt-3 z-20 ${
                   isDropdownOpen ? "block" : "hidden"
                 } bg-white rounded-lg shadow-[0_1px_3px_0_rgba(0,0,0,0.3)] w-32`}
               >
