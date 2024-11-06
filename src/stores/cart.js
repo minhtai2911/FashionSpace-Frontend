@@ -34,6 +34,23 @@ const cartSlice = createSlice({
       }
       localStorage.setItem("carts", JSON.stringify(state.items));
     },
+    mergeCart(state, action) {
+      const guestCart = action.payload;
+      guestCart.forEach((item) => {
+        const indexProductId = state.items.findIndex(
+          (cartItem) =>
+            cartItem.productId === item.productId &&
+            cartItem.size === item.size &&
+            cartItem.color === item.color
+        );
+        if (indexProductId >= 0) {
+          state.items[indexProductId].quantity += item.quantity;
+        } else {
+          state.items.push(item);
+        }
+      });
+      localStorage.setItem("carts", JSON.stringify(state.items));
+    },
     changeQuantity(state, action) {
       const { productId, quantity, size, color } = action.payload;
       const indexProductId = state.items.findIndex(
@@ -64,6 +81,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, changeQuantity, removeItem, clearCart } =
+export const { addToCart, mergeCart, changeQuantity, removeItem, clearCart } =
   cartSlice.actions;
 export default cartSlice.reducer;

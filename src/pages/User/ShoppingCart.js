@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { removeItem, clearCart } from "../../stores/cart.js";
+import { removeItem, clearCart, mergeCart } from "../../stores/cart.js";
 
 import CartItem from "../../components/CartItem.js";
 import Banner from "../../components/Banner";
@@ -13,6 +13,14 @@ function ShoppingCart() {
   const navigate = useNavigate();
 
   const [selectedItems, setSelectedItems] = useState({});
+
+  useEffect(() => {
+    const guestCart = JSON.parse(localStorage.getItem("guestCarts")) || [];
+    if (guestCart.length > 0) {
+      dispatch(mergeCart(guestCart));
+      localStorage.removeItem("guestCarts");
+    }
+  }, [dispatch]);
 
   const selectedCartItems = carts.filter(
     (product) => selectedItems[product.productId]

@@ -7,18 +7,7 @@ import CheckBox from "../../components/CheckBox";
 import FilterItem from "../../components/FilterItem";
 import Pagination from "../../components/Pagination";
 import { PRODUCTS_PER_PAGE } from "../../utils/Constants";
-
-const categories = [
-  "Men",
-  "Women",
-  "Handbags",
-  "T-Shirts",
-  "Coats",
-  "Watches",
-  "Hats",
-  "Shoes",
-  "Bags",
-];
+import { categories } from "../../data/categories";
 
 function Shop() {
   const [minPrice, setMinPrice] = useState(0);

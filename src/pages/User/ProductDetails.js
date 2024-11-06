@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import { AuthContext } from "../../context/AuthContext";
 
 import Banner from "../../components/Banner";
 import Color from "../../components/Color";
@@ -158,6 +159,7 @@ const relatedProducts = [
 ];
 
 function ProductDetails() {
+  const { isAuthenticated } = useContext(AuthContext);
   const { id } = useParams();
   const dispatch = useDispatch();
   const carts = useSelector((store) => store.cart.items);
@@ -187,17 +189,34 @@ function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    dispatch(
-      addToCart({
-        productId: parseInt(id),
-        name: product.name,
-        price: product.price,
-        quantity: quantity,
-        size: selectedSize,
-        color: selectedColor,
-        image: mainImage,
-      })
-    );
+    const productData = {
+      productId: parseInt(id),
+      name: product.name,
+      price: product.price,
+      quantity: quantity,
+      size: selectedSize,
+      color: selectedColor,
+      image: mainImage,
+    };
+
+    if (isAuthenticated) {
+      dispatch(addToCart(productData));
+    } else {
+      const guestCart = JSON.parse(localStorage.getItem("guestCarts")) || [];
+      const existingProductIndex = guestCart.findIndex(
+        (item) =>
+          item.productId === productData.productId &&
+          item.size === productData.size &&
+          item.color === productData.color
+      );
+
+      if (existingProductIndex >= 0) {
+        guestCart[existingProductIndex].quantity += productData.quantity;
+      } else {
+        guestCart.push(productData);
+      }
+      localStorage.setItem("guestCarts", JSON.stringify(guestCart));
+    }
   };
 
   useEffect(() => {
