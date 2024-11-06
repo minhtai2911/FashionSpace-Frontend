@@ -1,9 +1,18 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 function Header() {
   const { isAuthenticated, logout } = useContext(AuthContext);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [totalQuantity, setTotalQuantity] = useState(0);
+  const carts = useSelector((store) => store.cart.items);
+
+  useEffect(() => {
+    let total = 0;
+    carts.forEach((cart) => (total += cart.quantity));
+    setTotalQuantity(total);
+  });
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -112,7 +121,7 @@ function Header() {
               />
             </svg>
             <span className="absolute left-1/2 bottom-1/2 inline-block w-5 h-5 bg-red-600 text-white text-[10px] font-bold rounded-full text-center leading-5">
-              {0}
+              {totalQuantity}
             </span>
           </Link>
 

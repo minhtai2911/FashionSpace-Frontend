@@ -3,21 +3,27 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { useContext, useLayoutEffect } from "react";
 import { AuthContext } from "./context/AuthContext";
 
-import ForgotPassword from "./pages/ForgotPassword";
-import SetNewPassword from "./pages/SetNewPassword";
-import Shop from "./pages/Shop";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
-import Home from "./pages/Home";
-import ProductDetails from "./pages/ProductDetails";
-import ShoppingCart from "./pages/ShoppingCart";
-import Checkout from "./pages/Checkout";
-import OrderCompleted from "./pages/OrderCompleted";
-import Account from "./pages/Account";
-import VerifyCode from "./pages/VerifyCode";
+import ForgotPassword from "./pages/User/ForgotPassword";
+import SetNewPassword from "./pages/User/SetNewPassword";
+import Shop from "./pages/User/Shop";
+import SignIn from "./pages/User/SignIn";
+import SignUp from "./pages/User/SignUp";
+import Home from "./pages/User/Home";
+import ProductDetails from "./pages/User/ProductDetails";
+import ShoppingCart from "./pages/User/ShoppingCart";
+import Checkout from "./pages/User/Checkout";
+import OrderCompleted from "./pages/User/OrderCompleted";
+import Account from "./pages/User/Account";
+import VerifyCode from "./pages/User/VerifyCode";
+import Analysis from "./pages/Admin/Analysis";
+import Products from "./pages/Admin/Products";
+import Categories from "./pages/Admin/Categories";
+import Dashboard from "./pages/Admin/Dashboard";
+import Admin from "./pages/Admin/Admin";
 
 import Header from "./components/Header";
 import LoadingOverlay from "./components/LoadingOverlay";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   const location = useLocation();
@@ -28,6 +34,7 @@ function App() {
     "/forgot-password",
     "/verify-code",
     "/set-password",
+    "/admin",
   ];
 
   useLayoutEffect(() => {
@@ -83,6 +90,7 @@ function App() {
         <Route path="/verify-code" element={<VerifyCode />} />
         <Route path="/account" element={<Account />} />
         <Route path="/set-password" element={<SetNewPassword />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
       {isLoading && <LoadingOverlay />}
     </div>

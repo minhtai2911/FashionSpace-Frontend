@@ -11,6 +11,10 @@ module.exports = {
           },
         },
       },
+      fontFamily: {
+        lato: "Lato",
+        manrope: "Manrope",
+      },
     },
   },
   plugins: [],

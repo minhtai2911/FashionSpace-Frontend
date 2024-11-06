@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Banner from "../components/Banner";
+import Banner from "../../components/Banner";
 
 const apiUrl =
   "https://vietnam-administrative-division-json-server-swart.vercel.app";
@@ -11,6 +11,8 @@ const apiEndpointCommune = apiUrl + "/commune/?idDistrict=";
 function Checkout() {
   const location = useLocation();
   const { orderSummary } = location.state;
+
+  console.log(orderSummary);
 
   const [districts, setDistricts] = useState([]);
   const [communes, setCommunes] = useState([]);

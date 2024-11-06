@@ -2,6 +2,7 @@ import { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import instance from "../services/axiosConfig";
 import { jwtDecode } from "jwt-decode";
+import useAxios from "../services/useAxios";
 
 export const AuthContext = createContext();
 
@@ -49,12 +50,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (email, full_name, password) => {
+  const signup = async (email, fullName, phone, password) => {
     setIsLoading(true);
     try {
       const response = await instance.post(
         "/auth/signup",
-        { email, full_name, password },
+        { email, fullName, phone, password },
         {
           headers: {
             "Content-Type": "application/json",
@@ -62,7 +63,32 @@ export const AuthProvider = ({ children }) => {
         }
       );
       console.log(response);
-      navigate("/login");
+      if (response.status === 201) {
+        const otpResponse = await instance.post(
+          "/auth/generateOTP",
+          { email: email },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const { otp } = otpResponse.data;
+        if (otpResponse.status === 200) {
+          const sendMail = await instance.post(
+            "/auth/sendOTP",
+            { email: email, OTP: otp },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (sendMail.status === 200) {
+            navigate("/verify-code", { state: { email } });
+          }
+        }
+      }
     } catch (error) {
       setIsLoading(false);
       console.log(error.message);

@@ -1,8 +1,8 @@
 import { useState, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import CheckBox from "../components/CheckBox";
-import Spinner from "../components/Spinner";
+import CheckBox from "../../components/CheckBox";
+import Spinner from "../../components/Spinner";
 import { jwtDecode } from "jwt-decode";
 
 function SignIn() {
@@ -125,7 +125,7 @@ function SignIn() {
           <img
             className="object-contain w-full h-auto"
             style={{ maxHeight: "calc(100vh - 64px)" }}
-            src={require("../assets/images/products/women/jackets/baddie_jacket_1.jpg")}
+            src={require("../../assets/images/products/women/jackets/baddie_jacket_1.jpg")}
           ></img>
         </div>
       </div>

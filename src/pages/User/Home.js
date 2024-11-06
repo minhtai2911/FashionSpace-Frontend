@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import FeatureBanner from "../components/FeatureBanner";
-import BannerClothes from "../assets/images/banner_clothes.jpg";
-import ProductItem from "../components/ProductItem";
-import Slider from "../components/Slider";
+import FeatureBanner from "../../components/FeatureBanner";
+import BannerClothes from "../../assets/images/banner_clothes.jpg";
+import ProductItem from "../../components/ProductItem";
+import Slider from "../../components/Slider";
 
 const products = [
   {

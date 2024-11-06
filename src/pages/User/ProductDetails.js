@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Banner from "../components/Banner";
-import Color from "../components/Color";
-import Rating from "../components/Rating";
-import Size from "../components/Size";
-import Review from "../components/Review";
-import Pagination from "../components/Pagination";
-import Slider from "../components/Slider";
-import FeatureBanner from "../components/FeatureBanner";
-import { REVIEWS_PER_PAGE } from "../utils/Constants";
+import { useSelector, useDispatch } from "react-redux";
+
+import Banner from "../../components/Banner";
+import Color from "../../components/Color";
+import Rating from "../../components/Rating";
+import Size from "../../components/Size";
+import Review from "../../components/Review";
+import Pagination from "../../components/Pagination";
+import Slider from "../../components/Slider";
+import FeatureBanner from "../../components/FeatureBanner";
+import { REVIEWS_PER_PAGE } from "../../utils/Constants";
+import { addToCart } from "../../stores/cart";
 
 // Example data
 const colors = ["black", "red", "green", "blue", "yellow"];
@@ -156,6 +159,9 @@ const relatedProducts = [
 
 function ProductDetails() {
   const { id } = useParams();
+  const dispatch = useDispatch();
+  const carts = useSelector((store) => store.cart.items);
+  console.log(carts);
 
   const [product, setProduct] = useState(null);
   const [selectedColor, setSelectedColor] = useState("black");
@@ -167,14 +173,31 @@ function ProductDetails() {
 
   const fetchProductById = (productId) => {
     return {
-      id: productId,
-      category: "Jackets",
-      name: "Baddie Jacket",
-      rating: 3.4,
+      id: 1,
+      name: "Classy Leather Jacket",
+      category: "Jacket",
       price: "75.00",
+      rating: 4.8,
+      color: "black",
+      size: "S",
+      image: "https://picsum.photos/200",
       description:
         "The Baddie Jacket is a stylish and edgy outerwear piece designed for bold, confident individuals. Crafted with premium materials, it features a sleek, modern fit that elevates any outfit. Perfect for making a statement, the Baddie Jacket combines comfort and fashion, offering a versatile look for day or night.",
     };
+  };
+
+  const handleAddToCart = () => {
+    dispatch(
+      addToCart({
+        productId: parseInt(id),
+        name: product.name,
+        price: product.price,
+        quantity: quantity,
+        size: selectedSize,
+        color: selectedColor,
+        image: mainImage,
+      })
+    );
   };
 
   useEffect(() => {
@@ -200,7 +223,6 @@ function ProductDetails() {
 
   // Submit review
   const handleSubmit = () => {};
-
   const percentage = Math.round((product.rating / 5) * 100);
 
   return (
@@ -332,7 +354,10 @@ function ProductDetails() {
                   </svg>
                 </button>
               </div>
-              <button className="px-10 py-3 text-white font-medium bg-black rounded-lg">
+              <button
+                className="px-10 py-3 text-white font-medium bg-black rounded-lg"
+                onClick={handleAddToCart}
+              >
                 Add to Cart
               </button>
               <button className="px-10 py-3 text-white font-medium bg-black rounded-lg">

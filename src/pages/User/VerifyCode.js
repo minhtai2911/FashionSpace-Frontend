@@ -1,18 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import useAxios from "../services/useAxios";
+import useAxios from "../../services/useAxios";
 import axios from "axios";
 
 function VerifyCode() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [timer, setTimer] = useState(10);
   const authTokens = localStorage.getItem("authTokens")
     ? JSON.parse(localStorage.getItem("authTokens"))
     : null;
   const location = useLocation();
   const { email } = location.state;
   const api = useAxios();
+
+  useEffect(() => {
+    if (timer > 0) {
+      const countdown = setInterval(() => setTimer((prev) => prev - 1), 1000);
+      return () => clearInterval(countdown);
+    }
+  }, [timer]);
 
   const handleChange = (index, value) => {
     if (value === "" || /^[0-9]$/.test(value)) {
@@ -50,7 +58,16 @@ function VerifyCode() {
       console.log(error);
     }
   };
-  const handleResendCode = async () => {};
+  const handleResendCode = async () => {
+    try {
+      await api.post("/auth/resendOTP", { email });
+      setTimer(60);
+      setError("");
+    } catch (error) {
+      console.log(error);
+      setError("Failed to resend code. Please try again.");
+    }
+  };
 
   return (
     <div className="px-40 items-center h-screen flex gap-x-10">
@@ -59,6 +76,11 @@ function VerifyCode() {
         <p className="mt-2">
           Please enter the code we sent to email <b>{email}</b>
         </p>
+        <div className="mt-2 flex flex-row gap-x-2">
+          <p>
+            The verification code will expire in: <b>{timer}s</b>
+          </p>
+        </div>
         <div className="mt-4">
           <div className="flex flex-row justify-between gap-x-5">
             {code.map((digit, index) => (
@@ -84,7 +106,7 @@ function VerifyCode() {
         </button>
         <p className="mt-6 text-center">
           Didn't receive verification code?{" "}
-          <button onClick={handleResendCode}>
+          <button onClick={handleResendCode} disabled={timer > 0}>
             <u>Resend code</u>
           </button>
         </p>
@@ -93,7 +115,7 @@ function VerifyCode() {
         <img
           className="object-contain w-full h-auto"
           style={{ maxHeight: "calc(100vh - 64px)" }}
-          src={require("../assets/images/products/women/jackets/baddie_jacket_1.jpg")}
+          src={require("../../assets/images/products/women/jackets/baddie_jacket_1.jpg")}
         ></img>
       </div>
     </div>

@@ -1,14 +1,15 @@
 import { useEffect, useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import CheckBox from "../components/CheckBox";
-import Spinner from "../components/Spinner";
-import { AuthContext } from "../context/AuthContext";
+import CheckBox from "../../components/CheckBox";
+import Spinner from "../../components/Spinner";
+import { AuthContext } from "../../context/AuthContext";
 
 function SignUp() {
   const { signup } = useContext(AuthContext);
   const [data, setData] = useState({
     fullName: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -28,8 +29,12 @@ function SignUp() {
       return;
     }
     try {
-      console.log({ data });
-      const response = await signup(data.email, data.fullName, data.password);
+      const response = await signup(
+        data.email,
+        data.fullName,
+        data.phone,
+        data.password
+      );
     } catch (error) {
       setIsLoading(false);
       console.error("Registration error:", error);
@@ -52,31 +57,39 @@ function SignUp() {
       <div className="px-40 items-center h-screen flex gap-x-10 relative">
         <div className="flex-1">
           <p className="font-semibold text-3xl">Sign Up</p>
-          <p className="mt-2">
-            Fill your information below or register with your social account.
-          </p>
           <form onSubmit={handleSubmit}>
             {error && <p className="text-red-500">{error}</p>}
-            <div className="mt-8 flex flex-row gap-x-10">
+            <div className="flex-1 mt-4">
+              <p className="font-medium text-base">Full Name *</p>
+              <input
+                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
+                placeholder="Enter your name"
+                name="fullName"
+                value={data.fullName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="mt-4 flex flex-row gap-x-10">
               <div className="flex-1">
-                <p className="font-medium text-base">Full Name *</p>
+                <p className="font-medium text-base">Email *</p>
                 <input
                   className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-                  placeholder="Justin Bieber"
-                  name="fullName"
-                  value={data.fullName}
+                  placeholder="Enter your email"
+                  name="email"
+                  type="email"
+                  value={data.email}
                   onChange={handleChange}
                   required
                 />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-base">Email *</p>
+                <p className="font-medium text-base">Phone *</p>
                 <input
                   className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-                  placeholder="example@gmail.com"
-                  name="email"
-                  type="email"
-                  value={data.email}
+                  placeholder="Enter your phone"
+                  name="phone"
+                  value={data.phone}
                   onChange={handleChange}
                   required
                 />
@@ -113,17 +126,17 @@ function SignUp() {
             </div>
             <button
               type="submit"
-              className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg"
+              className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-4 text-white font-semibold text-lg"
             >
               Sign Up
             </button>
           </form>
-          <div className="flex flex-row justify-between items-center gap-x-10 mt-5">
+          <div className="flex flex-row justify-between items-center gap-x-10 mt-4">
             <div className="flex-1 h-[1px] bg-[#DEDEDE]"></div>
             <p className="text-[#818181]">or sign up with</p>
             <div className="flex-1 h-[1px] bg-[#DEDEDE]"></div>
           </div>
-          <button className="mt-5 border border-[#0A0A0A] w-[100%] flex items-center justify-center py-3 rounded-lg">
+          <button className="mt-4 border border-[#0A0A0A] w-[100%] flex items-center justify-center py-3 rounded-lg">
             <div className="flex flex-row gap-x-3 items-center">
               <svg
                 width="32"
@@ -152,7 +165,7 @@ function SignUp() {
               <p className="font-medium">Sign up with Google</p>
             </div>
           </button>
-          <p className="mt-6 text-center">
+          <p className="mt-4 text-center">
             Alreay have an account?{" "}
             <Link to="/login">
               <u>Sign In</u>
@@ -163,7 +176,7 @@ function SignUp() {
           <img
             className="object-contain w-full h-auto"
             style={{ maxHeight: "calc(100vh - 64px)" }}
-            src={require("../assets/images/products/women/jackets/baddie_jacket_1.jpg")}
+            src={require("../../assets/images/products/women/jackets/baddie_jacket_1.jpg")}
           ></img>
         </div>
       </div>

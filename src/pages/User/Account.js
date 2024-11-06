@@ -1,14 +1,14 @@
 import { useContext, useState, useRef, useEffect } from "react";
-import useAxios from "../services/useAxios";
-import { AuthContext } from "../context/AuthContext";
+import useAxios from "../../services/useAxios";
+import { AuthContext } from "../../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 
-import Banner from "../components/Banner";
+import Banner from "../../components/Banner";
 
 function PersonalInformation({ user }) {
   let api = useAxios();
   const [data, setData] = useState({
-    fullName: user?.full_name || "",
+    fullName: user?.fullName || "",
     email: user?.email || "",
   });
 
@@ -42,7 +42,7 @@ function PersonalInformation({ user }) {
       const response = await api.put(
         `/user/${user._id}`,
         {
-          full_name: data.fullName,
+          fullName: data.fullName,
           email: data.email,
         },
         {
@@ -57,7 +57,7 @@ function PersonalInformation({ user }) {
         console.log("User data updated successfully");
         const updatedUser = {
           ...user,
-          full_name: data.fullName,
+          fullName: data.fullName,
           email: data.email,
         };
         localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -74,7 +74,7 @@ function PersonalInformation({ user }) {
   useEffect(() => {
     if (user) {
       setData({
-        fullName: user.full_name || "",
+        fullName: user.fullName || "",
         email: user.email || "",
       });
     }
