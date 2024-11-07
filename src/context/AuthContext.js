@@ -43,6 +43,21 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       return response.data;
     } catch (error) {
+      if (error.status === 400) {
+        const id = error.response.data.data._id;
+        const sendMailResponse = await instance.post(
+          "/auth/sendMailVerifyAccount",
+          {
+            email: email,
+            id: id,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
       setIsLoading(false);
       throw error;
     }
@@ -53,6 +68,19 @@ export const AuthProvider = ({ children }) => {
       const response = await instance.post(
         "/auth/signup",
         { email, fullName, phone, password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const id = response.data.data._id;
+      const sendMailResponse = await instance.post(
+        "/auth/sendMailVerifyAccount",
+        {
+          email: email,
+          id: id,
+        },
         {
           headers: {
             "Content-Type": "application/json",
@@ -76,6 +104,7 @@ export const AuthProvider = ({ children }) => {
     user: user,
     authTokens: authTokens,
     setAuthTokens: setAuthTokens,
+    setIsAuthenticated: setIsAuthenticated,
     isAuthenticated: isAuthenticated,
     setUser: setUser,
     login: login,

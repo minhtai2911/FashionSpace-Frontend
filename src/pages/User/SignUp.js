@@ -47,7 +47,6 @@ function SignUp() {
         data.phone,
         data.password
       );
-      const email = data.email;
     } catch (error) {
       setIsLoading(false);
       console.error("Registration error:", error);

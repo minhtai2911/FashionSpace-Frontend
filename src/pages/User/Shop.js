@@ -52,7 +52,15 @@ function Shop() {
     );
   };
 
+  const resetPrice = () => {
+    setMinPrice(0);
+    setMaxPrice(1000);
+    setTempMinPrice(0);
+    setTempMaxPrice(1000);
+  };
+
   const clearAllFilters = () => {
+    resetPrice();
     setSelectedCategories([]);
   };
 
@@ -222,16 +230,17 @@ function Shop() {
                     onRemove={() => handleRemoveCategory(category)}
                   />
                 ))}
-                <FilterItem
-                  key="price-range"
-                  name={`Price: $${minPrice} - $${maxPrice}`}
-                  onRemove={() => {
-                    setMinPrice(0);
-                    setMaxPrice(1000);
-                  }}
-                />
+                {(minPrice !== 0 || maxPrice !== 1000) && (
+                  <FilterItem
+                    key="price-range"
+                    name={`Price: $${minPrice} - $${maxPrice}`}
+                    onRemove={resetPrice}
+                  />
+                )}
               </div>
-              {selectedCategories.length > 0 && (
+              {(selectedCategories.length > 0 ||
+                minPrice !== 0 ||
+                maxPrice !== 1000) && (
                 <div
                   className="underline ml-2 cursor-pointer whitespace-nowrap"
                   onClick={clearAllFilters}

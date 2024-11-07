@@ -23,7 +23,6 @@ import Dashboard from "./pages/Admin/Dashboard";
 import Admin from "./pages/Admin/Admin";
 
 import Header from "./components/Header";
-import LoadingOverlay from "./components/LoadingOverlay";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -31,7 +30,6 @@ function App() {
   const noHeaderRoutes = [
     "/login",
     "/signup",
-    "/verify",
     "/forgot-password",
     "/verify-code",
     "/set-password",
@@ -55,7 +53,7 @@ function App() {
       case "/cart":
         document.title = "Shopping Cart";
         break;
-      case "/cart/checkout":
+      case "/checkout":
         document.title = "Checkout";
         break;
       case "/order-completed":
@@ -80,7 +78,8 @@ function App() {
 
   return (
     <div>
-      {!noHeaderRoutes.includes(location.pathname) && <Header />}
+      {!noHeaderRoutes.includes(location.pathname) && <Header /> &&
+        !location.pathname.startsWith("/verify") && <Header />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Shop />} />
