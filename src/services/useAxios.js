@@ -42,7 +42,7 @@ const useAxios = () => {
 
       req.headers.Authorization = `Bearer ${newAccessToken}`;
     } else {
-      console.error("No auth tokens");
+      console.log("No auth tokens");
     }
     return req;
   });

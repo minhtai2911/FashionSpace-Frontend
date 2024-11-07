@@ -4,6 +4,7 @@ import CheckBox from "../../components/CheckBox";
 import Spinner from "../../components/Spinner";
 import { AuthContext } from "../../context/AuthContext";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import useAxios from "../../services/useAxios";
 
 function SignUp() {
   const { signup } = useContext(AuthContext);
@@ -18,6 +19,7 @@ function SignUp() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const api = useAxios();
 
   const handleChange = (e) => {
     setData({ ...data, [e.target.name]: e.target.value });
@@ -25,19 +27,52 @@ function SignUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const passwordPattern =
+      /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+    if (!passwordPattern.test(data.password)) {
+      setError(
+        "Password must be at least 8 characters long, contain at least one number and one special character."
+      );
+      return;
+    }
     if (data.password !== data.confirmPassword) {
       setError("Password don't match");
       return;
     }
     try {
+      setIsLoading(true);
       const response = await signup(
         data.email,
         data.fullName,
         data.phone,
         data.password
       );
-
-      console.log(response.data);
+      const email = data.email;
+      const otpResponse = await api.post(
+        "/auth/generateOTP",
+        { email: email },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const { otp } = otpResponse.data;
+      if (otpResponse.status === 200) {
+        const sendMail = await api.post(
+          "/auth/sendOTP",
+          { email: email, OTP: otp },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (sendMail.status === 200) {
+          setIsLoading(false);
+          navigate("/verify-code", { state: { email } });
+        }
+      }
     } catch (error) {
       setIsLoading(false);
       console.error("Registration error:", error);
@@ -193,7 +228,7 @@ function SignUp() {
           ></img>
         </div>
       </div>
-      {isLoading && <LoadingOverlay content={"Validate..."} />}
+      {isLoading && <LoadingOverlay content={"Signing up..."} />}
     </>
   );
 }

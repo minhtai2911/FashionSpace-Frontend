@@ -12,11 +12,11 @@ import Pagination from "../../components/Pagination";
 import Slider from "../../components/Slider";
 import FeatureBanner from "../../components/FeatureBanner";
 import { REVIEWS_PER_PAGE } from "../../utils/Constants";
+import { colors } from "../../data/colors";
+import { sizes } from "../../data/sizes";
 import { addToCart } from "../../stores/cart";
 
 // Example data
-const colors = ["black", "red", "green", "blue", "yellow"];
-const sizes = ["S", "M", "L", "XL"];
 const reviews = [
   {
     user: {

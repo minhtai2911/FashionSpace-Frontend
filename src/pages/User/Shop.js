@@ -7,12 +7,14 @@ import CheckBox from "../../components/CheckBox";
 import FilterItem from "../../components/FilterItem";
 import Pagination from "../../components/Pagination";
 import { PRODUCTS_PER_PAGE } from "../../utils/Constants";
+import { SORT_BY } from "../../utils/Constants";
 import { categories } from "../../data/categories";
 
 function Shop() {
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [sortCriteria, setSortCriteria] = useState(SORT_BY[0].value);
   const [currentPage, setCurrentPage] = useState(1);
   const priceGap = 100;
 
@@ -66,7 +68,33 @@ function Shop() {
     updateProgress();
   }, [minPrice, maxPrice]);
 
-  const currentProducts = products.slice(
+  const filteredProducts = products.filter((product) => {
+    const isInPriceRange =
+      product.price >= minPrice && product.price <= maxPrice;
+    const isInSelectedCategories =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(product.category);
+    return isInPriceRange && isInSelectedCategories;
+  });
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortCriteria) {
+      case "price_asc":
+        return a.price - b.price;
+      case "price_desc":
+        return b.price - a.price;
+      case "rating_asc":
+        return a.rating - b.rating;
+      case "rating_desc":
+        return b.rating - a.rating;
+      case "name":
+        return a.name.localeCompare(b.name);
+      default:
+        return 0;
+    }
+  });
+
+  const currentProducts = sortedProducts.slice(
     (currentPage - 1) * PRODUCTS_PER_PAGE,
     currentPage * PRODUCTS_PER_PAGE
   );
@@ -140,19 +168,31 @@ function Shop() {
           <div className="flex flex-col gap-y-5">
             <div className="flex justify-between items-center">
               <div>
-                Showing <span id="start-result"></span>-
-                <span id="end-result"></span> of{" "}
-                <span id="total-results"></span> results
+                {filteredProducts.length > 0 ? (
+                  <div>
+                    Showing {(currentPage - 1) * PRODUCTS_PER_PAGE + 1} -{" "}
+                    {Math.min(
+                      currentPage * PRODUCTS_PER_PAGE,
+                      filteredProducts.length
+                    )}{" "}
+                    of {filteredProducts.length} results
+                  </div>
+                ) : (
+                  <div>Showing 0 - 0 of 0 result</div>
+                )}
               </div>
               <div>
                 Sort by:
                 <select
-                  name=""
-                  id="sorting"
+                  value={sortCriteria}
+                  onChange={(e) => setSortCriteria(e.target.value)}
                   className="border-[#0A0A0A] border-[1px] p-2 ml-2"
                 >
-                  <option value="price">Price</option>
-                  <option value="name">Name</option>
+                  {SORT_BY.map((criteria) => (
+                    <option key={criteria.value} value={criteria.value}>
+                      {criteria.title}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -169,6 +209,14 @@ function Shop() {
                     onRemove={() => handleRemoveCategory(category)}
                   />
                 ))}
+                <FilterItem
+                  key="price-range"
+                  name={`Price: $${minPrice} - $${maxPrice}`}
+                  onRemove={() => {
+                    setMinPrice(0);
+                    setMaxPrice(1000);
+                  }}
+                />
               </div>
               {selectedCategories.length > 0 && (
                 <div
@@ -184,23 +232,33 @@ function Shop() {
             className="flex gap-x-5 gap-y-5 flex-wrap min-h-60"
             id="product-container"
           >
-            {currentProducts.map((product) => (
-              <ProductItem
-                key={product.id}
-                name={product.name}
-                rating={product.rating}
-                category={product.category}
-                image={product.image}
-                price={product.price}
-                id={product.id}
-              />
-            ))}
+            {currentProducts.length > 0 ? (
+              currentProducts.map((product) => (
+                <ProductItem
+                  key={product.id}
+                  name={product.name}
+                  rating={product.rating}
+                  category={product.category}
+                  image={product.image}
+                  price={product.price}
+                  id={product.id}
+                />
+              ))
+            ) : (
+              <div className="text-center w-full text-3xl font-bold">
+                <p>No products found matching your filters.</p>
+              </div>
+            )}
           </div>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={Math.ceil(products.length / PRODUCTS_PER_PAGE)}
-            onPageChange={setCurrentPage}
-          />
+          {currentProducts.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(
+                filteredProducts.length / PRODUCTS_PER_PAGE
+              )}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
       </div>
     </div>

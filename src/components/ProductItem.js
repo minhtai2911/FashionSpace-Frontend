@@ -68,7 +68,7 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
               className="text-base font-bold text-slate-900"
               id="product-price"
             >
-              ${price}
+              ${price.toFixed(2)}
             </span>
           </p>
           <div className="flex items-center">

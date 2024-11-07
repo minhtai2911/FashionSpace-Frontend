@@ -49,7 +49,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = async (email, fullName, phone, password) => {
-    setIsLoading(true);
     try {
       const response = await instance.post(
         "/auth/signup",
@@ -60,35 +59,7 @@ export const AuthProvider = ({ children }) => {
           },
         }
       );
-      console.log(response);
-      if (response.status === 201) {
-        const otpResponse = await instance.post(
-          "/auth/generateOTP",
-          { email: email },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const { otp } = otpResponse.data;
-        if (otpResponse.status === 200) {
-          const sendMail = await instance.post(
-            "/auth/sendOTP",
-            { email: email, OTP: otp },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          if (sendMail.status === 200) {
-            navigate("/verify-code", { state: { email } });
-          }
-        }
-      }
     } catch (error) {
-      setIsLoading(false);
       console.log(error.message);
       throw error;
     }

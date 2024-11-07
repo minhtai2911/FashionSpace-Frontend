@@ -1,6 +1,4 @@
 export const categories = [
-  "Men",
-  "Women",
   "Handbags",
   "T-Shirts",
   "Coats",

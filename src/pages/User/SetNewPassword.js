@@ -51,7 +51,7 @@ function SetNewPassword() {
       );
       if (response.status === 200) {
         console.log("Password reset successfully!");
-        navigate("/");
+        navigate("/login");
       }
     } catch (error) {
       setError("Failed to reset password. Please try again.");

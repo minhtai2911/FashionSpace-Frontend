@@ -47,7 +47,7 @@ instance.interceptors.request.use(async (req) => {
     );
     req.headers.Authorization = `Bearer ${accessToken}`;
   } else {
-    console.error("No auth tokens found");
+    console.log("No auth tokens found");
   }
 
   return req;
