@@ -48,31 +48,6 @@ function SignUp() {
         data.password
       );
       const email = data.email;
-      const otpResponse = await api.post(
-        "/auth/generateOTP",
-        { email: email },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const { otp } = otpResponse.data;
-      if (otpResponse.status === 200) {
-        const sendMail = await api.post(
-          "/auth/sendOTP",
-          { email: email, OTP: otp },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        if (sendMail.status === 200) {
-          setIsLoading(false);
-          navigate("/verify-code", { state: { email } });
-        }
-      }
     } catch (error) {
       setIsLoading(false);
       console.error("Registration error:", error);

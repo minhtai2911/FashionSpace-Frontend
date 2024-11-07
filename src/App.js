@@ -15,6 +15,7 @@ import Checkout from "./pages/User/Checkout";
 import OrderCompleted from "./pages/User/OrderCompleted";
 import Account from "./pages/User/Account";
 import VerifyCode from "./pages/User/VerifyCode";
+import EmailVerify from "./pages/User/EmailVerify";
 import Analysis from "./pages/Admin/Analysis";
 import Products from "./pages/Admin/Products";
 import Categories from "./pages/Admin/Categories";
@@ -30,6 +31,7 @@ function App() {
   const noHeaderRoutes = [
     "/login",
     "/signup",
+    "/verify",
     "/forgot-password",
     "/verify-code",
     "/set-password",
@@ -46,6 +48,9 @@ function App() {
         break;
       case "/signup":
         document.title = "Sign Up";
+        break;
+      case "/verify":
+        document.title = "Verify Email";
         break;
       case "/cart":
         document.title = "Shopping Cart";
@@ -81,6 +86,7 @@ function App() {
         <Route path="/products" element={<Shop />} />
         <Route path="/login" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/verify/:id" element={<EmailVerify />} />
         <Route path="/cart" element={<ShoppingCart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/products/details/:id" element={<ProductDetails />} />

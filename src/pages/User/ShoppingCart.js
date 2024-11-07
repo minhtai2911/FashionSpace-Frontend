@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { AuthContext } from "../../context/AuthContext.js";
 import { removeItem, clearCart, mergeCart } from "../../stores/cart.js";
+import { FREE_SHIPPING } from "../../utils/Constants.js";
 
 import CartItem from "../../components/CartItem.js";
 import Banner from "../../components/Banner";
@@ -36,7 +37,7 @@ function ShoppingCart() {
     (acc, product) => acc + product.price * product.quantity,
     0
   );
-  const shipping = subTotal > 500 || subTotal === 0 ? 0 : 5;
+  const shipping = subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : 5;
   const taxes = subTotal * 0.1;
   const totalPrice = subTotal + shipping + taxes;
 

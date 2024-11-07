@@ -32,3 +32,4 @@ export const PAYMENT_METHOD = [
     title: "Cash on Delivery",
   },
 ];
+export const FREE_SHIPPING = 300;

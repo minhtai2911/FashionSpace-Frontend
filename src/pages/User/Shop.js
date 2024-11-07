@@ -13,6 +13,8 @@ import { categories } from "../../data/categories";
 function Shop() {
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
+  const [tempMinPrice, setTempMinPrice] = useState(minPrice);
+  const [tempMaxPrice, setTempMaxPrice] = useState(maxPrice);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [sortCriteria, setSortCriteria] = useState(SORT_BY[0].value);
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,18 +23,18 @@ function Shop() {
   const handleMinPriceChange = (e) => {
     const value = parseInt(e.target.value);
     if (maxPrice - value >= priceGap) {
-      setMinPrice(value);
+      setTempMinPrice(value);
     } else {
-      setMinPrice(maxPrice - priceGap);
+      setTempMinPrice(maxPrice - priceGap);
     }
   };
 
   const handleMaxPriceChange = (e) => {
     const value = parseInt(e.target.value);
     if (value - minPrice >= priceGap) {
-      setMaxPrice(value);
+      setTempMaxPrice(value);
     } else {
-      setMaxPrice(minPrice + priceGap);
+      setTempMaxPrice(minPrice + priceGap);
     }
   };
 
@@ -58,15 +60,20 @@ function Shop() {
     const progress = document.querySelector("#slider #progress");
 
     const updateProgress = () => {
-      const minPercentage = (minPrice / 1000) * 100;
-      const maxPercentage = (maxPrice / 1000) * 100;
+      const minPercentage = (tempMinPrice / 1000) * 100;
+      const maxPercentage = (tempMaxPrice / 1000) * 100;
 
       progress.style.left = minPercentage + "%";
       progress.style.right = 100 - maxPercentage + "%";
     };
 
     updateProgress();
-  }, [minPrice, maxPrice]);
+  }, [tempMinPrice, tempMaxPrice]);
+
+  const applyFilters = () => {
+    setMinPrice(tempMinPrice);
+    setMaxPrice(tempMaxPrice);
+  };
 
   const filteredProducts = products.filter((product) => {
     const isInPriceRange =
@@ -131,9 +138,9 @@ function Shop() {
                 id="price"
                 className="flex font-normal text-[#4A4A4A] text-base"
               >
-                <span>${minPrice}</span>
+                <span>${tempMinPrice}</span>
                 <div className="ml-1 mr-1">-</div>
-                <span>${maxPrice}</span>
+                <span>${tempMaxPrice}</span>
               </div>
             </div>
             <div id="slider" className="relative h-[5px] bg-[#C9C9C9] rounded">
@@ -149,7 +156,7 @@ function Shop() {
                 min="0"
                 max="1000"
                 step="10"
-                value={minPrice}
+                value={tempMinPrice}
                 onChange={handleMinPriceChange}
               />
               <input
@@ -158,10 +165,16 @@ function Shop() {
                 min="0"
                 max="1000"
                 step="10"
-                value={maxPrice}
+                value={tempMaxPrice}
                 onChange={handleMaxPriceChange}
               />
             </div>
+            <button
+              onClick={applyFilters}
+              className="px-10 py-2 text-white font-medium text-base bg-black rounded-lg w-full mt-6"
+            >
+              Apply
+            </button>
           </div>
         </div>
         <div className="flex flex-col ml-20 gap-y-10 w-full">

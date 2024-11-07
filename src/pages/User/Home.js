@@ -3,65 +3,7 @@ import FeatureBanner from "../../components/FeatureBanner";
 import BannerClothes from "../../assets/images/banner_clothes.jpg";
 import ProductItem from "../../components/ProductItem";
 import Slider from "../../components/Slider";
-
-const products = [
-  {
-    id: 1,
-    name: "Classy Leather Jacket",
-    category: "Jacket",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 2,
-    name: "Basic Necktie",
-    category: "Accessories",
-    price: "70.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 3,
-    name: "Mini Skirt",
-    category: "Skirt",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 4,
-    name: "Mini Skirt",
-    category: "Skirt",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 5,
-    name: "Mini Skirt",
-    category: "Skirt",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 6,
-    name: "Mini Skirt",
-    category: "Skirt",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 7,
-    name: "Mini Skirt",
-    category: "Skirt",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-];
+import { products } from "../../data/products";
 
 function Home() {
   return (

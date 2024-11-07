@@ -37,6 +37,7 @@ function SignIn() {
         navigate("/");
       }
     } catch (error) {
+      console.log(error);
       setError(
         error.response?.data?.message || error.message || "An error occurred"
       );
