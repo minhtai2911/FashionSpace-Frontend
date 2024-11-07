@@ -1,7 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
+
 import Banner from "../../components/Banner";
+import { PAYMENT_METHOD } from "../../utils/Constants";
 
 const apiUrl =
   "https://vietnam-administrative-division-json-server-swart.vercel.app";
@@ -18,6 +20,7 @@ function Checkout() {
   const [communes, setCommunes] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState("0");
   const [selectedDistrict, setSelectedDistrict] = useState("0");
+  const [paymentMethod, setPaymentMethod] = useState("MOMO");
 
   useEffect(() => {
     if (selectedProvince !== "0") {
@@ -58,14 +61,18 @@ function Checkout() {
         <div className="flex flex-col gap-y-6 w-[800px]">
           <p className="font-medium text-2xl">Billing Details</p>
           <div>
-            <p className="text-base">Full Name *</p>
+            <p className="text-base">
+              Full Name <b className="text-red-500">*</b>
+            </p>
             <input
               className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
               placeholder="Taylor Swift"
             ></input>
           </div>
           <div>
-            <p className="text-base">Email *</p>
+            <p className="text-base">
+              Email <b className="text-red-500">*</b>
+            </p>
             <input
               type="email"
               className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
@@ -73,7 +80,9 @@ function Checkout() {
             ></input>
           </div>
           <div>
-            <p className="text-base">Phone *</p>
+            <p className="text-base">
+              Phone <b className="text-red-500">*</b>
+            </p>
             <input
               className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
               type="number"
@@ -81,7 +90,9 @@ function Checkout() {
             ></input>
           </div>
           <div>
-            <p className="text-base">City/Province *</p>
+            <p className="text-base">
+              City/Province <b className="text-red-500">*</b>
+            </p>
             <select
               id="city-province"
               class="w-[100%] border rounded px-3 py-2.5 mt-2 text-sm"
@@ -192,43 +203,65 @@ function Checkout() {
             </select>
           </div>
         </div>
-        <div className="flex-1 border border-[#818181] rounded-lg p-5 flex flex-col gap-y-4 h-fit">
-          <p className="font-bold text-xl">Order Summary</p>
-          <hr className="border-[#818181]" />
-          <div className="flex flex-col gap-y-2">
-            <div className="flex flex-row justify-between">
-              <p className="text-[#4A4A4A]">Items</p>
-              <p className="font-semibold">{orderSummary.totalItems}</p>
+        <div className="flex flex-col h-fit gap-y-10">
+          <div className="flex-1 border border-[#818181] rounded-lg p-5 flex flex-col gap-y-4">
+            <p className="font-bold text-xl">Order Summary</p>
+            <hr className="border-[#818181]" />
+            <div className="flex flex-col gap-y-2">
+              <div className="flex flex-row justify-between">
+                <p className="text-[#4A4A4A]">Items</p>
+                <p className="font-semibold">{orderSummary.totalItems}</p>
+              </div>
+              <div className="flex flex-row justify-between">
+                <p className="text-[#4A4A4A]">Sub Total</p>
+                <p className="font-semibold">
+                  ${orderSummary.subTotal.toFixed(2)}
+                </p>
+              </div>
+              <div className="flex flex-row justify-between">
+                <p className="text-[#4A4A4A]">Shipping</p>
+                <p className="font-semibold">
+                  ${orderSummary.shipping.toFixed(2)}
+                </p>
+              </div>
+              <div className="flex flex-row justify-between">
+                <p className="text-[#4A4A4A]">Taxes</p>
+                <p className="font-semibold">
+                  ${orderSummary.taxes.toFixed(2)}
+                </p>
+              </div>
             </div>
+            <hr className="border-[#818181]" />
             <div className="flex flex-row justify-between">
-              <p className="text-[#4A4A4A]">Sub Total</p>
+              <p className="text-[#4A4A4A]">Total</p>
               <p className="font-semibold">
-                ${orderSummary.subTotal.toFixed(2)}
+                ${orderSummary.totalPrice.toFixed(2)}
               </p>
             </div>
-            <div className="flex flex-row justify-between">
-              <p className="text-[#4A4A4A]">Shipping</p>
-              <p className="font-semibold">
-                ${orderSummary.shipping.toFixed(2)}
-              </p>
-            </div>
-            <div className="flex flex-row justify-between">
-              <p className="text-[#4A4A4A]">Taxes</p>
-              <p className="font-semibold">${orderSummary.taxes.toFixed(2)}</p>
-            </div>
           </div>
-          <hr className="border-[#818181]" />
-          <div className="flex flex-row justify-between">
-            <p className="text-[#4A4A4A]">Total</p>
-            <p className="font-semibold">
-              ${orderSummary.totalPrice.toFixed(2)}
-            </p>
+          <div className="flex-1 border border-[#818181] rounded-lg p-5 flex flex-col gap-y-4">
+            <p className="font-bold text-xl">Payment Method</p>
+            <hr className="border-[#818181]" />
+            <div className="flex flex-col gap-y-2">
+              {PAYMENT_METHOD.map((method, index) => (
+                <div className="flex flex-row ml-2" key={index}>
+                  <input
+                    type="radio"
+                    checked={paymentMethod === method.value}
+                    onChange={() => setPaymentMethod(method.value)}
+                    value={method.value}
+                  />
+                  <label className="ml-2">{method.title}</label>
+                </div>
+              ))}
+            </div>
+            <hr className="border-[#818181]" />
+            <Link to="/order-completed">
+              <button className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full">
+                Continue to Payment
+              </button>
+            </Link>
           </div>
-          <Link to="/order-completed">
-            <button className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full">
-              Continue to Payment
-            </button>
-          </Link>
         </div>
       </div>
     </div>

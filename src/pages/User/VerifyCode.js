@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAxios from "../../services/useAxios";
 import axios from "axios";
@@ -7,13 +7,14 @@ function VerifyCode() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
-  const [timer, setTimer] = useState(10);
+  const [timer, setTimer] = useState(60);
   const authTokens = localStorage.getItem("authTokens")
     ? JSON.parse(localStorage.getItem("authTokens"))
     : null;
   const location = useLocation();
   const { email } = location.state;
   const api = useAxios();
+  const inputRef = useRef(null);
 
   useEffect(() => {
     if (timer > 0) {
@@ -21,6 +22,12 @@ function VerifyCode() {
       return () => clearInterval(countdown);
     }
   }, [timer]);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const handleChange = (index, value) => {
     if (value === "" || /^[0-9]$/.test(value)) {
@@ -52,7 +59,8 @@ function VerifyCode() {
         OTP: verificationCode,
       });
       if (response.status === 200) {
-        navigate("/set-password");
+        const { refreshToken } = response.data.data;
+        navigate("/set-password", { state: { refreshToken } });
       }
     } catch (error) {
       console.log(error);
@@ -87,6 +95,7 @@ function VerifyCode() {
               <input
                 key={index}
                 id={`input-${index}`}
+                ref={index === 0 ? inputRef : null}
                 className="px-5 py-3 mt-2 border text-center rounded-lg text-2xl w-20 h-20"
                 type="number"
                 maxLength={1}

@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import { AuthContext } from "../../context/AuthContext.js";
 import { removeItem, clearCart, mergeCart } from "../../stores/cart.js";
 
 import CartItem from "../../components/CartItem.js";
@@ -8,6 +9,7 @@ import Banner from "../../components/Banner";
 import CheckBox from "../../components/CheckBox.js";
 
 function ShoppingCart() {
+  const { isAuthenticated } = useContext(AuthContext);
   const carts = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -65,7 +67,11 @@ function ShoppingCart() {
 
   const handleCheckout = () => {
     if (selectedCartItems.length > 0) {
-      navigate("/cart/checkout", { state: { orderSummary } });
+      if (!isAuthenticated) {
+        navigate("/login", { state: { orderSummary } });
+      } else {
+        navigate("/checkout", { state: { orderSummary } });
+      }
     }
   };
 

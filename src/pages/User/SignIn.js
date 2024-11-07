@@ -1,12 +1,15 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import CheckBox from "../../components/CheckBox";
 import Spinner from "../../components/Spinner";
 import { jwtDecode } from "jwt-decode";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 function SignIn() {
   const { login, setUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [data, setData] = useState({
     email: "",
@@ -25,6 +28,14 @@ function SignIn() {
     try {
       const user = await login(data.email, data.password);
       setUser(jwtDecode(user.accessToken));
+      const state = location.state;
+      if (state && state.orderSummary) {
+        navigate("/checkout", {
+          state: { orderSummary: state.orderSummary },
+        });
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       setError(
         error.response?.data?.message || error.message || "An error occurred"
@@ -37,14 +48,14 @@ function SignIn() {
       <div className="px-40 items-center h-screen flex gap-x-10">
         <div className="flex-1">
           <p className="font-semibold text-3xl">Sign In</p>
-          <p className="mt-2">Sign in with your exist account.</p>
 
           <form onSubmit={handleSubmit}>
-            <div className="mt-8">
-              <p className="font-medium text-base">Email *</p>
+            <div className="mt-4">
+              <p className="font-medium text-base">
+                Email <b className="text-red-500">*</b>
+              </p>
               <input
                 className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-                placeholder="example@gmail.com"
                 name="email"
                 type="email"
                 value={data.email}
@@ -53,7 +64,9 @@ function SignIn() {
               ></input>
             </div>
             <div className="mt-4">
-              <p className="font-medium text-base">Password *</p>
+              <p className="font-medium text-base">
+                Password <b className="text-red-500">*</b>
+              </p>
               <input
                 className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
                 type="password"
@@ -80,12 +93,12 @@ function SignIn() {
             </button>
           </form>
 
-          <div className="flex flex-row justify-between items-center gap-x-10 mt-5">
+          <div className="flex flex-row justify-between items-center gap-x-10 mt-4">
             <div className="flex-1 h-[1px] bg-[#DEDEDE]"></div>
             <p className="text-[#818181]">or sign in with</p>
             <div className="flex-1 h-[1px] bg-[#DEDEDE]"></div>
           </div>
-          <button className="mt-5 border border-[#0A0A0A] w-[100%] flex items-center justify-center py-3 rounded-lg">
+          <button className="mt-4 border border-[#0A0A0A] w-[100%] flex items-center justify-center py-3 rounded-lg">
             <div className="flex flex-row gap-x-3 items-center">
               <svg
                 width="32"
@@ -114,7 +127,7 @@ function SignIn() {
               <p className="font-medium">Sign in with Google</p>
             </div>
           </button>
-          <p className="mt-6 text-center">
+          <p className="mt-4 text-center">
             Don't have an account?{" "}
             <Link to="/signup">
               <u>Sign Up</u>
@@ -129,12 +142,7 @@ function SignIn() {
           ></img>
         </div>
       </div>
-      {isLoading && (
-        <div className="absolute justify-center w-full h-full flex flex-col gap-y-5 items-center left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 backdrop-blur-sm">
-          <Spinner />
-          <p className="text-2xl font-bold">Loading...</p>
-        </div>
-      )}
+      {isLoading && <LoadingOverlay content={"Logging in..."} />}
     </>
   );
 }

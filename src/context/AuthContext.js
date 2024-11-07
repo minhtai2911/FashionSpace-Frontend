@@ -40,9 +40,7 @@ export const AuthProvider = ({ children }) => {
         JSON.stringify({ accessToken, refreshToken })
       );
       localStorage.setItem("user", JSON.stringify(jwtDecode(accessToken)));
-
       setIsAuthenticated(true);
-      navigate("/");
       return response.data;
     } catch (error) {
       setIsLoading(false);
@@ -101,7 +99,6 @@ export const AuthProvider = ({ children }) => {
     setAuthTokens(null);
     setUser(null);
     localStorage.clear();
-    navigate("/login");
   };
 
   const contextData = {

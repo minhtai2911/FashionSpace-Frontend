@@ -27,7 +27,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   const location = useLocation();
-  const { isLoading } = useContext(AuthContext);
   const noHeaderRoutes = [
     "/login",
     "/signup",
@@ -83,7 +82,7 @@ function App() {
         <Route path="/login" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/cart" element={<ShoppingCart />} />
-        <Route path="/cart/checkout" element={<Checkout />} />
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="/products/details/:id" element={<ProductDetails />} />
         <Route path="/order-completed" element={<OrderCompleted />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -92,7 +91,6 @@ function App() {
         <Route path="/set-password" element={<SetNewPassword />} />
         <Route path="/admin" element={<Admin />} />
       </Routes>
-      {isLoading && <LoadingOverlay />}
     </div>
   );
 }

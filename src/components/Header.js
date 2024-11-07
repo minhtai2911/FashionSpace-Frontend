@@ -1,13 +1,19 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+
+import { products } from "../data/products";
 function Header() {
   const { isAuthenticated, logout } = useContext(AuthContext);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [totalQuantity, setTotalQuantity] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const carts = useSelector((store) => store.cart.items);
+  const modalRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let total = 0;
@@ -25,6 +31,7 @@ function Header() {
 
   const closeSearchModal = () => {
     setIsSearchModalOpen(false);
+    setSearchQuery("");
   };
 
   useEffect(() => {
@@ -40,9 +47,37 @@ function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        closeSearchModal();
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    window.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSearchModalOpen]);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredProducts = searchQuery
+    ? products.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.category.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
   return (
     <>
-      <header className="bg-white px-40 py-4 shadow-md min-w-full">
+      <header className="bg-white px-40 py-4 shadow-md min-w-full z-[50]">
         <div className="mx-auto flex justify-between items-center">
           <div className="brand flex items-center space-x-4">
             <Link to="/" className="flex items-center space-x-4 outline-none">
@@ -152,7 +187,7 @@ function Header() {
             </Link>
 
             {isAuthenticated ? (
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
                   className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-gray-600"
                   type="button"
@@ -164,7 +199,6 @@ function Header() {
                     alt="user photo"
                   />
                 </button>
-
                 <div
                   className={`absolute left-4 -translate-x-1/2 mt-3 z-20 ${
                     isDropdownOpen ? "block" : "hidden"
@@ -216,6 +250,7 @@ function Header() {
                     <button
                       onClick={() => {
                         logout();
+                        navigate("/");
                         toggleDropdown();
                       }}
                       className="block w-full flex flex-row gap-x-2 text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#f3f4f6]"
@@ -287,10 +322,11 @@ function Header() {
       {isSearchModalOpen && (
         <div
           id="search-modal"
-          className="h-[100vh] w-[100vw] fixed flex justify-center items-start pt-[10rem] z-[100]"
+          className="h-[100vh] w-[100vw] fixed top-0 flex justify-center items-start pt-[10rem] z-[100]"
           style={{ backdropFilter: "blur(6px)" }}
         >
           <div
+            ref={modalRef}
             className="w-[60%] flex items-center p-[1rem] bg-white rounded"
             style={{ boxShadow: "0 1rem 1rem rgba(0, 0, 0, .2)" }}
           >
@@ -298,16 +334,55 @@ function Header() {
               <div className="flex rounded overflow-hidden w-full">
                 <label htmlFor="search-input" className="flex items-center">
                   <svg width="20" height="20" viewBox="0 0 20 20">
-                    {/* Search Icon SVG */}
+                    <path
+                      d="M14.386 14.386l4.0877 4.0877-4.0877-4.0877c-2.9418 2.9419-7.7115 2.9419-10.6533 0-2.9419-2.9418-2.9419-7.7115 0-10.6533 2.9418-2.9419 7.7115-2.9419 10.6533 0 2.9419 2.9418 2.9419 7.7115 0 10.6533z"
+                      stroke="#64748b"
+                      fill="none"
+                      stroke-width="2"
+                      fill-rule="evenodd"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </label>
                 <input
                   id="search-input"
                   className="w-full border-none focus:ring-0 focus:outline-none ml-[.75rem] mr-[1rem]"
                   type="text"
-                  placeholder="Search product"
+                  value={searchQuery}
+                  placeholder="Search product..."
+                  onChange={handleSearchChange}
                   autoComplete="off"
                 />
+              </div>
+              <div
+                className="absolute mt-16 w-[80%] overflow-y-auto max-h-[300px] rounded-md bg-white"
+                style={{ boxShadow: "0 1rem 1rem rgba(0, 0, 0, .2)" }}
+              >
+                {filteredProducts.map((product) => (
+                  <div key={product.id}>
+                    <Link
+                      to={`/products/details/${product.id}`}
+                      onClick={closeSearchModal}
+                    >
+                      <div className="flex items-center px-3 py-2 hover:bg-gray-100">
+                        <img
+                          // src={product.images[0].image_path}
+                          alt={product.name}
+                          className="w-10 h-10 rounded-full"
+                        />
+                        <div className="ml-3">
+                          <p className="text-sm font-semibold">
+                            {product.name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            ${product.price}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                ))}
               </div>
               <button
                 onClick={closeSearchModal}
