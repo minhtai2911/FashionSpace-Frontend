@@ -14,8 +14,6 @@ function Checkout() {
   const location = useLocation();
   const { orderSummary } = location.state;
 
-  console.log(orderSummary);
-
   const [districts, setDistricts] = useState([]);
   const [communes, setCommunes] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState("0");
@@ -67,16 +65,6 @@ function Checkout() {
             <input
               className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
               placeholder="Taylor Swift"
-            ></input>
-          </div>
-          <div>
-            <p className="text-base">
-              Email <b className="text-red-500">*</b>
-            </p>
-            <input
-              type="email"
-              className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-              placeholder="Enter email address"
             ></input>
           </div>
           <div>
@@ -202,6 +190,15 @@ function Checkout() {
               ))}
             </select>
           </div>
+          <div>
+            <p className="text-base">
+              Street <b className="text-red-500">*</b>
+            </p>
+            <input
+              className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
+              placeholder="Enter street address"
+            ></input>
+          </div>
         </div>
         <div className="flex flex-col h-fit gap-y-10">
           <div className="flex-1 border border-[#818181] rounded-lg p-5 flex flex-col gap-y-4">
@@ -256,7 +253,7 @@ function Checkout() {
               ))}
             </div>
             <hr className="border-[#818181]" />
-            <Link to="/order-completed">
+            <Link to="/order-completed" state={{ orderSummary }}>
               <button className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full">
                 Continue to Payment
               </button>

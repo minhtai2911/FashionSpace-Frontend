@@ -23,6 +23,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     setIsLoading(true);
+    if (isAuthenticated) {
+      return;
+    }
+
     try {
       const response = await instance.post(
         "/auth/login",
@@ -34,6 +38,7 @@ export const AuthProvider = ({ children }) => {
         }
       );
       const { accessToken, refreshToken, ...data } = response.data;
+      setAuthTokens({ accessToken, refreshToken });
       setUser(jwtDecode(accessToken));
       localStorage.setItem(
         "authTokens",
@@ -93,11 +98,57 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setAuthTokens(null);
-    setUser(null);
-    localStorage.clear();
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      if (authTokens) {
+        const tokenResponse = await instance.post(
+          "/auth/refreshToken",
+          {
+            refreshToken: authTokens.refreshToken,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const accessToken = tokenResponse.data.accessToken;
+        const response = await instance.post(
+          "/auth/logout",
+          {},
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+        console.log(response);
+        if (response.status === 200) {
+          setIsAuthenticated(false);
+          setAuthTokens(null);
+          setUser(null);
+          localStorage.removeItem("authTokens");
+          localStorage.removeItem("user");
+        }
+      }
+    } catch (error) {
+      console.log(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getRoleName = async (id) => {
+    try {
+      const response = await instance.get(`/userRole/${id}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      return response.data.roleName;
+    } catch (error) {}
   };
 
   const contextData = {
@@ -106,6 +157,7 @@ export const AuthProvider = ({ children }) => {
     setAuthTokens: setAuthTokens,
     setIsAuthenticated: setIsAuthenticated,
     isAuthenticated: isAuthenticated,
+    getRoleName: getRoleName,
     setUser: setUser,
     login: login,
     signup: signup,
@@ -118,7 +170,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
     }
     setIsLoading(false);
-  }, [authTokens, isLoading]);
+  }, [authTokens]);
 
   return (
     <AuthContext.Provider value={contextData}>

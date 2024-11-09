@@ -40,11 +40,13 @@ function CartItem(props) {
     );
   };
 
+  console.log(detail);
+
   return (
     <>
       <td className="flex items-center space-x-4 py-2">
         <img
-          src={detail.image}
+          src={detail.image ? detail.image : ""}
           alt="Product"
           className="h-24 w-24 object-cover"
         />

@@ -19,84 +19,104 @@ import { addToCart } from "../../stores/cart";
 // Example data
 const reviews = [
   {
+    id: 1,
     user: {
       avatar: "https://picsum.photos/100",
       name: "John Doe",
     },
     rating: 4.5,
     content: "This is a great product. I love it.",
+    createdDate: "20/10/2024",
   },
   {
+    id: 2,
     user: {
       avatar: "https://picsum.photos/100",
       name: "Jane Doe",
     },
     rating: 3.5,
     content: "This is a good product. I like it.",
+    createdDate: "20/10/2024",
   },
   {
+    id: 3,
     user: {
       avatar: "https://picsum.photos/100",
       name: "John Smith",
     },
     rating: 2.5,
     content: "This is a bad product. I don't like it.",
+    createdDate: "20/10/2024",
   },
   {
+    id: 4,
     user: {
       avatar: "https://picsum.photos/100",
       name: "John Smith",
     },
     rating: 2.5,
     content: "This is a bad product. I don't like it.",
+    createdDate: "20/10/2024",
   },
   {
+    id: 5,
     user: {
       avatar: "https://picsum.photos/100",
       name: "John Smith",
     },
     rating: 2.5,
     content: "This is a bad product. I don't like it.",
+    createdDate: "20/10/2024",
   },
   {
+    id: 6,
     user: {
       avatar: "https://picsum.photos/100",
       name: "John Smith",
     },
     rating: 2.5,
     content: "This is a bad product. I don't like it.",
+    createdDate: "20/10/2024",
   },
   {
+    id: 7,
     user: {
       avatar: "https://picsum.photos/100",
       name: "John Smith",
     },
     rating: 2.5,
     content: "This is a bad product. I don't like it.",
+    createdDate: "20/10/2024",
   },
   {
+    id: 8,
     user: {
       avatar: "https://picsum.photos/100",
       name: "John Smith",
     },
     rating: 2.5,
     content: "This is a bad product. I don't like it.",
+    createdDate: "20/10/2024",
   },
   {
+    id: 9,
     user: {
       avatar: "https://picsum.photos/100",
       name: "John Smith",
     },
     rating: 2.5,
     content: "This is a bad product. I don't like it.",
+    createdDate: "20/10/2024",
   },
   {
+    id: 10,
     user: {
       avatar: "https://picsum.photos/100",
       name: "John Smith",
     },
     rating: 2.5,
     content: "This is a bad product. I don't like it.",
+    createdDate: "20/10/2024",
   },
 ];
 const relatedProducts = [
@@ -163,7 +183,10 @@ function ProductDetails() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const carts = useSelector((store) => store.cart.items);
-  console.log(carts);
+  const [replies, setReplies] = useState({});
+  const [submittedReplies, setSubmittedReplies] = useState({});
+  const [showInput, setShowInput] = useState({});
+  const [showAllReplies, setShowAllReplies] = useState({});
 
   const [product, setProduct] = useState(null);
   const [selectedColor, setSelectedColor] = useState("black");
@@ -186,6 +209,25 @@ function ProductDetails() {
       description:
         "The Baddie Jacket is a stylish and edgy outerwear piece designed for bold, confident individuals. Crafted with premium materials, it features a sleek, modern fit that elevates any outfit. Perfect for making a statement, the Baddie Jacket combines comfort and fashion, offering a versatile look for day or night.",
     };
+  };
+
+  const handleReplySubmit = (reviewId) => {
+    const replyContent = replies[reviewId] || "";
+    if (replyContent) {
+      setSubmittedReplies((prev) => ({
+        ...prev,
+        [reviewId]: [...(prev[reviewId] || []), replyContent],
+      }));
+      setReplies((prev) => ({ ...prev, [reviewId]: "" }));
+      setShowInput((prev) => ({ ...prev, [reviewId]: false }));
+    }
+  };
+
+  const handleReply = (reviewId) => {
+    setShowInput((prev) => ({
+      ...prev,
+      [reviewId]: !prev[reviewId],
+    }));
   };
 
   const handleAddToCart = () => {
@@ -453,12 +495,96 @@ function ProductDetails() {
               )}
               {activeTab === "review" && (
                 <div className="flex flex-col gap-y-4">
-                  {currentReviews.map((review, index) => (
-                    <div key={index}>
-                      <Review {...review} />
-                      {index < currentReviews.length - 1 && (
-                        <hr className="mt-4 border-gray-300" />
+                  {currentReviews.map((review) => (
+                    <div key={review.id} className="mt-5">
+                      <Review
+                        {...review}
+                        onReply={() => handleReply(review.id)}
+                        showInput={showInput[review.id]}
+                      />
+
+                      {showInput[review.id] && (
+                        <div className="flex flex-row mt-5 items-center gap-x-2 ml-14">
+                          <input
+                            className="rounded-lg px-5 py-2 text-sm border-[2px] border-[#0A0A0A]"
+                            placeholder="Write your reply..."
+                            value={replies[review.id] || ""}
+                            onChange={(e) =>
+                              setReplies({
+                                ...replies,
+                                [review.id]: e.target.value,
+                              })
+                            }
+                          />
+                          <button
+                            className="rounded-lg bg-[#0A0A0A] px-5 py-2 text-white disabled:bg-[#4A4A4A] disabled:cursor-not-allowed"
+                            disabled={replies[review.id] === ""}
+                            onClick={() => handleReplySubmit(review.id)}
+                          >
+                            Reply
+                          </button>
+                        </div>
                       )}
+                      {submittedReplies[review.id] && (
+                        <div className="mt-10">
+                          {showAllReplies[review.id]
+                            ? submittedReplies[review.id].map((reply) => (
+                                <div
+                                  key={reply.id}
+                                  className="ml-14 mt-2 text-gray-600"
+                                >
+                                  <Review
+                                    user={reply.user}
+                                    rating={reply.rating}
+                                    content={reply}
+                                  />
+                                </div>
+                              ))
+                            : submittedReplies[review.id]
+                                .slice(0, 1)
+                                .map((reply) => (
+                                  <div
+                                    key={reply.id}
+                                    className="ml-14 mt-2 text-gray-600"
+                                  >
+                                    <Review
+                                      user={reply.user}
+                                      rating={reply.rating}
+                                      content={reply}
+                                    />
+                                  </div>
+                                ))}
+                          {submittedReplies[review.id].length > 1 &&
+                            !showAllReplies[review.id] && (
+                              <button
+                                className="ml-14 mt-5 text-[#4A4A4A] text-sm"
+                                onClick={() =>
+                                  setShowAllReplies((prev) => ({
+                                    ...prev,
+                                    [review.id]: true,
+                                  }))
+                                }
+                              >
+                                View more{" "}
+                                {submittedReplies[review.id].length - 1} replies
+                              </button>
+                            )}
+                          {showAllReplies[review.id] && (
+                            <button
+                              className="ml-14 mt-5 text-[#4A4A4A] text-sm"
+                              onClick={() =>
+                                setShowAllReplies((prev) => ({
+                                  ...prev,
+                                  [review.id]: false,
+                                }))
+                              }
+                            >
+                              Hide replies
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      {/* Reply input field */}
                     </div>
                   ))}
                   {/* Pagination */}
@@ -472,10 +598,14 @@ function ProductDetails() {
                       Add Your Review
                     </h1>
                     <div>
-                      <p className="text-lg mb-2">Rating *</p>
+                      <p className="text-lg mb-2">
+                        Rating <b className="text-red-500">*</b>
+                      </p>
                     </div>
                     <div className="w-full">
-                      <p className="text-lg mb-2">Review</p>
+                      <p className="text-lg mb-2">
+                        Review <b className="text-red-500">*</b>
+                      </p>
                       <textarea
                         className="rounded-lg px-5 py-3 w-full border-[2px] border-[#0A0A0A] resize-none"
                         placeholder="Write here..."

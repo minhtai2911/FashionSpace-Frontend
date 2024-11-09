@@ -31,7 +31,6 @@ const EmailVerify = () => {
           }
         );
         const accessToken = tokenResponse.data.accessToken;
-        console.log(accessToken);
         setUser(jwtDecode(accessToken));
         localStorage.setItem(
           "authTokens",
@@ -48,21 +47,25 @@ const EmailVerify = () => {
     };
     verifyEmailUrl();
 
-    const timer = setInterval(() => {
-      setRedirectTimer((prev) => prev - 1);
-    }, 1000);
+    let timer;
+    let redirectTimeout;
+    if (!error) {
+      timer = setInterval(() => {
+        setRedirectTimer((prev) => prev - 1);
+      }, 1000);
 
-    const redirectTimeout = setTimeout(() => {
-      navigate("/");
-    }, 5000);
+      redirectTimeout = setTimeout(() => {
+        navigate("/");
+      }, 5000);
+    }
 
     return () => {
       clearInterval(timer);
       clearTimeout(redirectTimeout);
     };
-  }, [param, navigate]);
+  }, []);
 
-  return validUrl ? (
+  return validUrl && !error ? (
     <div className="w-screen h-screen flex flex-col justify-center items-center">
       <svg
         width="80"

@@ -33,3 +33,10 @@ export const PAYMENT_METHOD = [
   },
 ];
 export const FREE_SHIPPING = 300;
+export const SHIPPING_RATE = 0.05;
+export const TAX_RATE = 0.1;
+export const ROLE_NAME = {
+  EMPLOYEE: "Employee",
+  ADMIN: "Admin",
+  USER: "User",
+};

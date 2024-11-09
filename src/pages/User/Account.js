@@ -382,16 +382,47 @@ function PasswordManager() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const passwordPattern =
+      /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+    if (!passwordPattern.test(newPassword)) {
+      setError(
+        "Password must be at least 8 characters long, contain at least one number and one special character."
+      );
+      return;
+    }
     if (newPassword !== confirmNewPassword) {
       setError("New passwords do not match.");
       return;
     }
 
     try {
-      const response = await api.put(`/user/${user._id}/update-password`, {
-        currentPassword,
-        newPassword,
-      });
+      const authTokens = localStorage.getItem("authTokens")
+        ? JSON.parse(localStorage.getItem("authTokens"))
+        : null;
+      const refreshToken = authTokens.refreshToken;
+      const tokenResponse = await api.post(
+        "/auth/refreshToken",
+        { refreshToken: refreshToken },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const accessToken = tokenResponse.data.accessToken;
+      const id = user.id;
+      const response = await api.post(
+        `/auth/resetPassword`,
+        {
+          password: currentPassword,
+          newPassword: newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
       if (response.status === 200) {
         setSuccess("Password updated successfully.");
@@ -408,7 +439,9 @@ function PasswordManager() {
     <div className="w-[600px]">
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block text-base font-medium mb-1">Password *</label>
+          <label className="block text-base font-medium mb-1">
+            Password <b className="text-red-500">*</b>
+          </label>
           <input
             type="password"
             className="px-5 py-3 border rounded-lg w-full"
@@ -419,7 +452,7 @@ function PasswordManager() {
         </div>
         <div className="mb-4">
           <label className="block text-base font-medium mb-1">
-            New Password *
+            New Password <b className="text-red-500">*</b>
           </label>
           <input
             type="password"
@@ -431,7 +464,7 @@ function PasswordManager() {
         </div>
         <div className="mb-4">
           <label className="block text-base font-medium mb-1">
-            Confirm New Password *
+            Confirm New Password <b className="text-red-500">*</b>
           </label>
           <input
             type="password"

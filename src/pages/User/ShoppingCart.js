@@ -25,6 +25,8 @@ function ShoppingCart() {
     }
   }, [dispatch]);
 
+  console.log(carts);
+
   const selectedCartItems = carts.filter(
     (product) => selectedItems[product.productId]
   );
