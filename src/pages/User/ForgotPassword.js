@@ -1,22 +1,49 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAxios from "../../services/useAxios";
 import axios from "axios";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import toast from "react-hot-toast";
 
 function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const authTokens = localStorage.getItem("authTokens")
     ? JSON.parse(localStorage.getItem("authTokens"))
     : null;
   const api = useAxios();
+
+  const sendOtpAndNavigate = async () => {
+    const otpResponse = await api.post(
+      "/auth/generateOTP",
+      { email: email },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const { otp } = otpResponse.data;
+
+    if (otpResponse.status === 200) {
+      const sendMail = await api.post(
+        "/auth/sendOTP",
+        { email: email, OTP: otp },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (sendMail.status === 200) {
+        navigate("/verify-code", { state: { email } });
+      }
+    }
+  };
+
   const handleSubmit = async () => {
-    setIsLoading(true);
     if (!email) {
-      setError("Please enter your email!");
+      toast.error("Please enter your email!", { duration: 2000 });
       return;
     }
 
@@ -32,42 +59,28 @@ function ForgotPassword() {
       );
       const data = response.data;
       if (response.status === 200) {
-        const otpResponse = await api.post(
-          "/auth/generateOTP",
-          { email: email },
+        toast.promise(
+          sendOtpAndNavigate(),
           {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
+            loading: "Sending OTP...",
+            success: "OTP sent successfully",
+            error: "Failed to send OTP",
+          },
+          { duration: 3000 }
         );
-        const { otp } = otpResponse.data;
-        if (otpResponse.status === 200) {
-          const sendMail = await api.post(
-            "/auth/sendOTP",
-            { email: email, OTP: otp },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          if (sendMail.status === 200) {
-            setIsLoading(false);
-            navigate("/verify-code", { state: { email } });
-          }
-        }
       } else {
-        setError(data.message);
+        toast.error(response.data.message, { duration: 2000 });
       }
     } catch (error) {
-      setError("Something went wrong. Please try again!");
+      console.log(error);
+      toast.error(error.response.data.message, {
+        duration: 2000,
+      });
     }
   };
 
   return (
     <>
-      {isLoading && <LoadingOverlay content={"Sending email..."} />}
       <div className="px-40 items-center h-screen flex gap-x-10">
         <div className="flex-1">
           <p className="font-semibold text-3xl">Forgot Password?</p>
@@ -85,7 +98,6 @@ function ForgotPassword() {
               onChange={(e) => setEmail(e.target.value)}
             ></input>
           </div>
-          {error && <p className="text-red-500">{error}</p>}
           <button
             onClick={handleSubmit}
             className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg"

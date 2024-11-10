@@ -1,23 +1,73 @@
 import { useState, useContext } from "react";
-import { AuthContext } from "../../context/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Toaster, toast } from "react-hot-toast";
+
+import { AuthContext } from "../../context/AuthContext";
 import CheckBox from "../../components/CheckBox";
 import Spinner from "../../components/Spinner";
 import { jwtDecode } from "jwt-decode";
 import LoadingOverlay from "../../components/LoadingOverlay";
+import useAxios from "../../services/useAxios";
 
 function SignIn() {
-  const { login, setUser } = useContext(AuthContext);
+  const { setUser, isAuthenticated, setIsAuthenticated, setAuthTokens } =
+    useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
-
+  const api = useAxios();
   const [data, setData] = useState({
     email: "",
     password: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+
+  const login = async (email, password) => {
+    if (isAuthenticated) {
+      return;
+    }
+
+    try {
+      const response = await api.post(
+        "/auth/login",
+        { email, password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      toast.success("Login successfully", { duration: 1000 });
+      const { accessToken, refreshToken, ...data } = response.data;
+
+      setUser(jwtDecode(accessToken));
+      setAuthTokens({ accessToken, refreshToken });
+      setIsAuthenticated(true);
+
+      localStorage.setItem("user", JSON.stringify(jwtDecode(accessToken)));
+    } catch (error) {
+      setIsAuthenticated(false);
+      if (error.status === 400) {
+        toast.error("Your account hasn't been verified");
+        const id = error.response.data.data._id;
+        const sendMailResponse = await api.post(
+          "/auth/sendMailVerifyAccount",
+          {
+            email: email,
+            id: id,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      } else {
+        toast.error(error.response.data.message);
+      }
+      throw error;
+    }
+  };
 
   const handleChange = (e) => {
     setData({ ...data, [e.target.name]: e.target.value });
@@ -25,9 +75,12 @@ function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!data.email || !data.password) {
+      toast.error("Please fill in all fields", { duration: 2000 });
+      return;
+    }
     try {
-      const user = await login(data.email, data.password);
-      setUser(jwtDecode(user.accessToken));
+      await login(data.email, data.password);
       const state = location.state;
       if (state && state.orderSummary) {
         navigate("/checkout", {
@@ -36,32 +89,27 @@ function SignIn() {
       } else {
         navigate("/");
       }
-    } catch (error) {
-      console.log(error);
-      setError(
-        error.response?.data?.message || error.message || "An error occurred"
-      );
+    } catch (err) {
+      console.log(err);
     }
   };
 
   return (
-    <>
+    <div>
       <div className="px-40 items-center h-screen flex gap-x-10">
         <div className="flex-1">
           <p className="font-semibold text-3xl">Sign In</p>
-
           <form onSubmit={handleSubmit}>
             <div className="mt-4">
               <p className="font-medium text-base">
                 Email <b className="text-red-500">*</b>
               </p>
               <input
-                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
+                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
                 name="email"
                 type="email"
                 value={data.email}
                 onChange={handleChange}
-                required
               ></input>
             </div>
             <div className="mt-4">
@@ -69,12 +117,11 @@ function SignIn() {
                 Password <b className="text-red-500">*</b>
               </p>
               <input
-                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
+                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
                 type="password"
                 name="password"
                 value={data.password}
                 onChange={handleChange}
-                required
               ></input>
             </div>
             <div className="mt-4 flex flex-row items-center justify-between">
@@ -143,8 +190,7 @@ function SignIn() {
           ></img>
         </div>
       </div>
-      {isLoading && <LoadingOverlay content={"Logging in..."} />}
-    </>
+    </div>
   );
 }
 

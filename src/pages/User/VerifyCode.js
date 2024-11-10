@@ -2,10 +2,10 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAxios from "../../services/useAxios";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 function VerifyCode() {
   const navigate = useNavigate();
-  const [error, setError] = useState("");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(60);
   const authTokens = localStorage.getItem("authTokens")
@@ -59,21 +59,40 @@ function VerifyCode() {
         OTP: verificationCode,
       });
       if (response.status === 200) {
+        toast.success("Verify successfully", { duration: 2000 });
         const { refreshToken } = response.data.data;
         navigate("/set-password", { state: { refreshToken } });
       }
     } catch (error) {
-      console.log(error);
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
   const handleResendCode = async () => {
     try {
-      await api.post("/auth/resendOTP", { email });
+      const otpResponse = await api.post(
+        "/auth/generateOTP",
+        { email: email },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const { otp } = otpResponse.data;
+      await toast.promise(
+        api.post("/auth/sendOTP", { email: email, OTP: otp }),
+        {
+          loading: "Sending OTP...",
+          success: "OTP sent successfully",
+          error: "Failed to send OTP",
+        }
+      );
       setTimer(60);
-      setError("");
     } catch (error) {
       console.log(error);
-      setError("Failed to resend code. Please try again.");
+      toast.error(error?.response?.data?.message || "An error occured", {
+        duration: 2000,
+      });
     }
   };
 
@@ -85,9 +104,13 @@ function VerifyCode() {
           Please enter the code we sent to email <b>{email}</b>
         </p>
         <div className="mt-2 flex flex-row gap-x-2">
-          <p>
-            The verification code will expire in: <b>{timer}s</b>
-          </p>
+          {timer > 0 ? (
+            <p>
+              The verification code will expire in: <b>{timer}s</b>
+            </p>
+          ) : (
+            <p>The verification code has been expired</p>
+          )}
         </div>
         <div className="mt-4">
           <div className="flex flex-row justify-between gap-x-5">
@@ -106,7 +129,6 @@ function VerifyCode() {
             ))}
           </div>
         </div>
-        {error && <p className="text-red-500">{error}</p>}
         <button
           onClick={handleSubmit}
           className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg"
@@ -115,8 +137,12 @@ function VerifyCode() {
         </button>
         <p className="mt-6 text-center">
           Didn't receive verification code?{" "}
-          <button onClick={handleResendCode} disabled={timer > 0}>
-            <u>Resend code</u>
+          <button
+            className="cursor-pointer disabled:cursor-not-allowed"
+            onClick={handleResendCode}
+            disabled={timer > 0}
+          >
+            <u className="hover:text-[#818181]">Resend code</u>
           </button>
         </p>
       </div>

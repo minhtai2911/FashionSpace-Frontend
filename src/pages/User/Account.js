@@ -4,16 +4,52 @@ import { AuthContext } from "../../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 
 import Banner from "../../components/Banner";
+import toast from "react-hot-toast";
 
 function PersonalInformation({ user }) {
   let api = useAxios();
   const [data, setData] = useState({
+    avatarPath: user?.avatarPath || "https://picsum.photos/200",
     fullName: user?.fullName || "",
-    email: user?.email || "",
+    phone: user?.phone || "",
   });
 
+  const fetchUserData = async (userId) => {
+    const authTokens = localStorage.getItem("authTokens")
+      ? JSON.parse(localStorage.getItem("authTokens"))
+      : null;
+    try {
+      if (authTokens) {
+        const tokenResponse = await api.post(
+          "/auth/refreshToken",
+          {
+            refreshToken: authTokens.refreshToken,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const accessToken = tokenResponse.data.accessToken;
+        const response = await api.get(`/user/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        return response.data;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleChange = (e) => {
-    setData({ ...data, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   const fileInputRef = useRef(null);
@@ -39,52 +75,72 @@ function PersonalInformation({ user }) {
       ? JSON.parse(localStorage.getItem("authTokens"))
       : null;
     try {
-      const response = await api.put(
-        `/user/${user._id}`,
+      const tokenResponse = await api.post(
+        "/auth/refreshToken",
         {
-          fullName: data.fullName,
-          email: data.email,
+          refreshToken: authTokens.refreshToken,
         },
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${authTokens?.accessToken}`,
           },
         }
       );
-
-      if (response.status === 200) {
-        console.log("User data updated successfully");
-        const updatedUser = {
-          ...user,
+      const accessToken = tokenResponse.data.accessToken;
+      const response = await api.put(
+        `/user/${user.id}`,
+        {
           fullName: data.fullName,
-          email: data.email,
+          phone: data.phone,
+          avatarPath: data.avatarPath,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log(response.data);
+      if (response.status === 200) {
+        toast.success("Update information successfully", { duration: 2000 });
+        const updatedUser = {
+          ...data,
+          avatarPath: data.avatarPath,
+          fullName: data.fullName,
+          phone: data.phone,
         };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
+        console.log(updatedUser);
         setData(updatedUser);
       }
     } catch (error) {
-      console.error(
-        "Error updating user data:",
-        error.response ? error.response.data : error.message
-      );
+      toast.error(error?.response?.data?.message || "An error occured", {
+        duration: 2000,
+      });
     }
   };
 
   useEffect(() => {
-    if (user) {
-      setData({
-        fullName: user.fullName || "",
-        email: user.email || "",
-      });
-    }
+    const getUserData = async () => {
+      if (user) {
+        const userData = await fetchUserData(user.id);
+        if (userData) {
+          setData({
+            avatarPath: userData.avatarPath || "",
+            fullName: userData.fullName || "",
+            phone: userData.phone || "",
+          });
+        }
+      }
+    };
+    getUserData();
   }, [user]);
 
   return (
     <div className="w-[600px]">
       <div className="mb-6 relative w-24 h-24">
         <img
-          src={data.avatar}
+          src={data.avatarPath}
           alt="Profile"
           className="w-full h-full rounded-full object-cover"
         />
@@ -131,25 +187,10 @@ function PersonalInformation({ user }) {
             Full Name
           </label>
           <input
-            type="text"
-            id="fullName"
             name="fullName"
             value={data.fullName}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-base font-medium mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={data.email}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-3 py-2 border rounded-md border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
           />
         </div>
         <div className="mb-6">
@@ -160,12 +201,10 @@ function PersonalInformation({ user }) {
             Phone Number
           </label>
           <input
-            type="tel"
-            id="phoneNumber"
-            name="phoneNumber"
-            value={data.phoneNumber}
+            name="phone"
+            value={data.phone}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-3 py-2 border border-[#E5E7EB] rounded-md focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
           />
         </div>
         <button
@@ -377,21 +416,24 @@ function PasswordManager() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const passwordPattern =
       /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      toast.error("Please fill in all fields", { duration: 2000 });
+      return;
+    }
     if (!passwordPattern.test(newPassword)) {
-      setError(
-        "Password must be at least 8 characters long, contain at least one number and one special character."
+      toast.error(
+        "Password must be at least 8 characters long, contain at least one number and one special character",
+        { duration: 2000 }
       );
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      setError("New passwords do not match.");
+      toast.error("New passwords do not match", { duration: 2000 });
       return;
     }
 
@@ -425,13 +467,15 @@ function PasswordManager() {
       );
 
       if (response.status === 200) {
-        setSuccess("Password updated successfully.");
+        toast.success("Update password successfully", { duration: 2000 });
         setCurrentPassword("");
         setNewPassword("");
         setConfirmNewPassword("");
       }
     } catch (error) {
-      setError(error.response?.data?.message || "An error occurred.");
+      toast.error(error.response?.data?.message || "An error occurred", {
+        duration: 2000,
+      });
     }
   };
 
@@ -474,8 +518,6 @@ function PasswordManager() {
             required
           />
         </div>
-        {error && <p className="text-red-500">{error}</p>}
-        {success && <p className="text-green-500">{success}</p>}
         <button
           type="submit"
           className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800"

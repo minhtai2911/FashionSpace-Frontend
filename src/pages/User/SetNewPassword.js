@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAxios from "../../services/useAxios";
+import toast from "react-hot-toast";
 
 function SetNewPassword() {
   const location = useLocation();
@@ -8,20 +9,29 @@ function SetNewPassword() {
   const { refreshToken } = location.state;
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
   const api = useAxios();
 
   const handleResetPassword = async () => {
     const passwordPattern =
       /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+    if (!password || !confirmPassword) {
+      toast.error("Please fill in all fields", { duration: 2000 });
+      return;
+    }
+
     if (!passwordPattern.test(password)) {
-      setError(
-        "Password must be at least 8 characters long, contain at least one number and one special character."
+      toast.error(
+        "Password must be at least 8 characters long, contain at least one number and one special character",
+        {
+          duration: 2000,
+        }
       );
       return;
     }
+
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      toast.error("Passwords do not match", { duration: 2000 });
       return;
     }
 
@@ -50,22 +60,20 @@ function SetNewPassword() {
         }
       );
       if (response.status === 200) {
-        console.log("Password reset successfully!");
+        toast.success("Password reset successfully!", { duration: 2000 });
         navigate("/login");
       }
     } catch (error) {
-      setError("Failed to reset password. Please try again.");
-      console.log(error);
+      toast.error(error?.response?.data?.message || "An error occurred!", {
+        duration: 2000,
+      });
     }
-
-    setError("");
   };
 
   return (
     <div className="px-40 items-center h-screen flex gap-x-10">
       <div className="flex-1">
         <p className="font-semibold text-3xl">Set new password</p>
-        {error && <p className="text-red-500 mt-2">{error}</p>}
         <div className="mt-8">
           <p className="font-medium text-base">
             Password <b className="text-red-500">*</b>

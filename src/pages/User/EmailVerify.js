@@ -6,7 +6,8 @@ import useAxios from "../../services/useAxios";
 import Error from "../Error";
 
 const EmailVerify = () => {
-  const { setIsAuthenticated, setUser } = useContext(AuthContext);
+  const { setIsAuthenticated, setUser, setAuthTokens } =
+    useContext(AuthContext);
   const [validUrl, setValidUrl] = useState(true);
   const [redirectTimer, setRedirectTimer] = useState(5);
   const [error, setError] = useState(null);
@@ -32,15 +33,15 @@ const EmailVerify = () => {
         );
         const accessToken = tokenResponse.data.accessToken;
         setUser(jwtDecode(accessToken));
+        setAuthTokens({ accessToken, refreshToken });
+        setIsAuthenticated(true);
         localStorage.setItem(
           "authTokens",
           JSON.stringify({ accessToken, refreshToken })
         );
         localStorage.setItem("user", JSON.stringify(jwtDecode(accessToken)));
-        setIsAuthenticated(true);
         setValidUrl(true);
       } catch (error) {
-        console.log(error);
         setError(error);
         setValidUrl(false);
       }

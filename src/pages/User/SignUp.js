@@ -5,6 +5,7 @@ import Spinner from "../../components/Spinner";
 import { AuthContext } from "../../context/AuthContext";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import useAxios from "../../services/useAxios";
+import toast from "react-hot-toast";
 
 function SignUp() {
   const { signup } = useContext(AuthContext);
@@ -15,9 +16,8 @@ function SignUp() {
     password: "",
     confirmPassword: "",
   });
+  const [termsAndConditions, setTermsAndConditions] = useState(false);
 
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const api = useAxios();
 
@@ -25,22 +25,45 @@ function SignUp() {
     setData({ ...data, [e.target.name]: e.target.value });
   };
 
+  const handleCheckboxChange = () => {
+    setTermsAndConditions(!termsAndConditions);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const passwordPattern =
       /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+    if (
+      !data.fullName ||
+      !data.email ||
+      !data.phone ||
+      !data.password ||
+      !data.confirmPassword
+    ) {
+      toast.error("Please fill in all fields", { duration: 2000 });
+      return;
+    }
     if (!passwordPattern.test(data.password)) {
-      setError(
-        "Password must be at least 8 characters long, contain at least one number and one special character."
+      toast.error(
+        "Password must be at least 8 characters long, contain at least one number and one special character",
+        {
+          duration: 2000,
+        }
       );
       return;
     }
     if (data.password !== data.confirmPassword) {
-      setError("Password don't match");
+      toast.error("Passwords do not match", { duration: 2000 });
+      return;
+    }
+    if (!termsAndConditions) {
+      toast.error("Please agree to the terms and conditions", {
+        duration: 2000,
+      });
       return;
     }
     try {
-      setIsLoading(true);
       const response = await signup(
         data.email,
         data.fullName,
@@ -48,19 +71,9 @@ function SignUp() {
         data.password
       );
     } catch (error) {
-      setIsLoading(false);
-      console.error("Registration error:", error);
-      if (!error?.response) {
-        setError("No server response");
-      } else if (error.response?.status === 400) {
-        setError("Email taken");
-      } else {
-        setError(
-          `Registration failed: ${
-            error.response?.data?.message || error.message
-          }`
-        );
-      }
+      toast.error(error?.response?.data?.message || "An error occured", {
+        duration: 2000,
+      });
     }
   };
 
@@ -70,18 +83,16 @@ function SignUp() {
         <div className="flex-1">
           <p className="font-semibold text-3xl">Sign Up</p>
           <form onSubmit={handleSubmit}>
-            {error && <p className="text-red-500">{error}</p>}
             <div className="flex-1 mt-4">
               <p className="font-medium text-base">
                 Full Name <b className="text-red-500">*</b>
               </p>
               <input
-                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
+                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] "
                 placeholder="Enter your name"
                 name="fullName"
                 value={data.fullName}
                 onChange={handleChange}
-                required
               />
             </div>
             <div className="mt-4 flex flex-row gap-x-10">
@@ -90,13 +101,12 @@ function SignUp() {
                   Email <b className="text-red-500">*</b>
                 </p>
                 <input
-                  className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
+                  className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
                   placeholder="Enter your email"
                   name="email"
                   type="email"
                   value={data.email}
                   onChange={handleChange}
-                  required
                 />
               </div>
               <div className="flex-1">
@@ -109,7 +119,6 @@ function SignUp() {
                   name="phone"
                   value={data.phone}
                   onChange={handleChange}
-                  required
                 />
               </div>
             </div>
@@ -118,12 +127,11 @@ function SignUp() {
                 Password <b className="text-red-500">*</b>
               </p>
               <input
-                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
+                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
                 type="password"
                 name="password"
                 value={data.password}
                 onChange={handleChange}
-                required
               />
             </div>
             <div className="mt-4">
@@ -131,16 +139,18 @@ function SignUp() {
                 Confirm Password <b className="text-red-500">*</b>
               </p>
               <input
-                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
+                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
                 type="password"
                 name="confirmPassword"
                 value={data.confirmPassword}
                 onChange={handleChange}
-                required
               />
             </div>
             <div className="mt-4 flex-row gap-x-3 items-center flex">
-              <CheckBox />
+              <CheckBox
+                isChecked={termsAndConditions}
+                onChange={handleCheckboxChange}
+              />
               <p className="text-base">
                 I agree with <u className="cursor-pointer">Terms & Condition</u>{" "}
                 and <u className="cursor-pointer">Privacy Policy</u>
@@ -202,7 +212,6 @@ function SignUp() {
           ></img>
         </div>
       </div>
-      {isLoading && <LoadingOverlay content={"Signing up..."} />}
     </>
   );
 }

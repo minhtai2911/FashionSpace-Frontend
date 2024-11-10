@@ -2,6 +2,7 @@ import "./App.css";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useContext, useLayoutEffect } from "react";
 import { AuthContext } from "./context/AuthContext";
+import { Toaster } from "react-hot-toast";
 
 import ForgotPassword from "./pages/User/ForgotPassword";
 import SetNewPassword from "./pages/User/SetNewPassword";

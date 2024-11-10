@@ -497,13 +497,9 @@ function ProductDetails() {
                 <div className="flex flex-col gap-y-4">
                   {currentReviews.map((review) => (
                     <div key={review.id} className="mt-5">
-                      <Review
-                        {...review}
-                        onReply={() => handleReply(review.id)}
-                        showInput={showInput[review.id]}
-                      />
+                      <Review {...review} />
 
-                      {showInput[review.id] && (
+                      {/* {showInput[review.id] && (
                         <div className="flex flex-row mt-5 items-center gap-x-2 ml-14">
                           <input
                             className="rounded-lg px-5 py-2 text-sm border-[2px] border-[#0A0A0A]"
@@ -583,7 +579,7 @@ function ProductDetails() {
                             </button>
                           )}
                         </div>
-                      )}
+                      )} */}
                       {/* Reply input field */}
                     </div>
                   ))}
