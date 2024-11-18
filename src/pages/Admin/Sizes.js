@@ -3,46 +3,61 @@ import { Table, Modal } from "flowbite-react";
 
 import Search from "../../components/Search";
 
-import { createCategory, getAllCategories } from "../../data/categories";
+import { getAllSizes, createSize } from "../../data/sizes";
+import { getCategoryById, getAllCategories } from "../../data/categories";
 
-export default function Categories() {
-  const [categories, setCategories] = useState([]);
+export default function Sizes() {
+  const [sizes, setSizes] = useState([]);
   const [openModal, setOpenModal] = useState(false);
-  const [category, setCategory] = useState("");
-  const [gender, setGender] = useState("");
+  const [size, setSize] = useState("");
+  const [categoryId, setCategoryId] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   function onCloseModal() {
     setOpenModal(false);
   }
 
-  const handleCreateCategory = async () => {
+  async function fetchSizes() {
     try {
-      const createdCategory = await createCategory(category, gender);
-      setCategories([...categories, createdCategory]);
-      setCategory("");
+      const fetchedSizes = await getAllSizes();
+      const fetchedCategories = await getAllCategories();
+      const updatedSizes = await Promise.all(
+        fetchedSizes.map(async (size) => {
+          const category = await getCategoryById(size.categoryId);
+          return {
+            ...size,
+            category: category.name,
+          };
+        })
+      );
+      setSizes(updatedSizes);
+      setCategories(fetchedCategories);
+    } catch (error) {
+      console.error("Error fetching sizes:", error);
+    }
+  }
+
+  const handleCreateSize = async () => {
+    try {
+      await createSize(categoryId, size);
+      fetchSizes();
+      setSize("");
       setOpenModal(false);
     } catch (error) {
-      console.error("Error creating category:", error);
+      console.error("Error creating size:", error);
     }
   };
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const fetchedCategories = await getAllCategories();
-        setCategories(fetchedCategories);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
-    fetchCategories();
+    fetchSizes();
   }, []);
+
+  console.log(sizes);
 
   return (
     <>
       <div className="p-10 w-9/12">
-        <p className="font-extrabold text-xl">Categories</p>
+        <p className="font-extrabold text-xl">Sizes</p>
         <div className="bg-white rounded-lg mt-10 p-5 flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
@@ -187,22 +202,22 @@ export default function Categories() {
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">
-                <Table.HeadCell>Category ID</Table.HeadCell>
-                <Table.HeadCell>Category Name</Table.HeadCell>
-                <Table.HeadCell>Gender</Table.HeadCell>
+                <Table.HeadCell>Size ID</Table.HeadCell>
+                <Table.HeadCell>Category</Table.HeadCell>
+                <Table.HeadCell>Size Name</Table.HeadCell>
                 <Table.HeadCell>Action</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
-                {categories.map((category) => (
+                {sizes.map((size) => (
                   <Table.Row
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
-                    key={category._id}
+                    key={size._id}
                   >
                     <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      {category._id}
+                      {size._id}
                     </Table.Cell>
-                    <Table.Cell>{category.name}</Table.Cell>
-                    <Table.Cell>{category.gender}</Table.Cell>
+                    <Table.Cell>{size.category}</Table.Cell>
+                    <Table.Cell>{size.size}</Table.Cell>
                     <Table.Cell>
                       <div className="flex flex-row gap-x-3">
                         <a
@@ -263,7 +278,7 @@ export default function Categories() {
           className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10"
           onClick={() => setOpenModal(true)}
         >
-          New Category
+          New Size
         </button>
       </div>
       <Modal show={openModal} size="lg" onClose={onCloseModal} popup>
@@ -271,36 +286,43 @@ export default function Categories() {
         <Modal.Body className="px-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Categories / Create
+              Sizes / Create
             </h3>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope font-semibold">
-                Category Name<b className="text-[#EF0606]">*</b>
+                Category <b className="text-[#EF0606]">*</b>
               </p>
-              <input
-                id="category"
-                value={category}
+              <select
+                id="categoryId"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
-                onChange={(e) => setCategory(e.target.value)}
                 required
-              />
+              >
+                <option value="">Choose category</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name} {/* Display category name */}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope font-semibold">
-                Gender <b className="text-[#EF0606]">*</b>
+                Size <b className="text-[#EF0606]">*</b>
               </p>
               <input
-                id="gender"
-                value={gender}
+                id="size"
+                value={size}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
-                onChange={(e) => setGender(e.target.value)}
+                onChange={(e) => setSize(e.target.value)}
                 required
               />
             </div>
             <div className="w-full flex justify-center">
               <button
                 className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
-                onClick={handleCreateCategory}
+                onClick={handleCreateSize}
               >
                 Create Category
               </button>

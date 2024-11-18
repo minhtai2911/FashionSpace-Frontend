@@ -1,6 +1,7 @@
 import { useContext, useState, useEffect } from "react";
 import { Badge } from "flowbite-react";
-import { HiCalendar } from "react-icons/hi";
+
+import { CalendarDays } from "lucide-react";
 
 import { AuthContext } from "../context/AuthContext";
 import { ROLE_NAME } from "../utils/Constants";
@@ -23,7 +24,7 @@ function Review({
         <div className="flex flex-col gap-y-1">
           <div className="flex flex-row gap-x-3 items-center">
             <p className="text-sm font-medium">{user?.name}</p>
-            <Badge color="gray" icon={HiCalendar}>
+            <Badge color="gray" icon={CalendarDays}>
               {createdDate}
             </Badge>
           </div>

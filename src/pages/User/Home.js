@@ -1,11 +1,21 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import FeatureBanner from "../../components/FeatureBanner";
 import BannerClothes from "../../assets/images/banner_clothes.jpg";
 import ProductItem from "../../components/ProductItem";
 import Slider from "../../components/Slider";
-import { products } from "../../data/products";
+import { getAllProducts } from "../../data/products";
 
 function Home() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const products = await getAllProducts();
+      setProducts(products);
+    };
+    fetchProducts();
+  }, []);
+
   return (
     <div>
       <div className="relative">

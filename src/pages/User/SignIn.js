@@ -1,34 +1,30 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import Cookies from "js-cookie";
 import { Toaster, toast } from "react-hot-toast";
 
 import { AuthContext } from "../../context/AuthContext";
 import CheckBox from "../../components/CheckBox";
-import Spinner from "../../components/Spinner";
 import { jwtDecode } from "jwt-decode";
-import LoadingOverlay from "../../components/LoadingOverlay";
-import useAxios from "../../services/useAxios";
+import instance from "../../services/axiosConfig";
 
 function SignIn() {
-  const { setUser, isAuthenticated, setIsAuthenticated, setAuthTokens } =
+  const { setUser, isAuthenticated, setIsAuthenticated } =
     useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
-  const api = useAxios();
   const [data, setData] = useState({
     email: "",
     password: "",
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  if (isAuthenticated) {
+    navigate("/");
+  }
 
   const login = async (email, password) => {
-    if (isAuthenticated) {
-      return;
-    }
-
     try {
-      const response = await api.post(
+      const response = await instance.post(
         "/auth/login",
         { email, password },
         {
@@ -41,16 +37,17 @@ function SignIn() {
       const { accessToken, refreshToken, ...data } = response.data;
 
       setUser(jwtDecode(accessToken));
-      setAuthTokens({ accessToken, refreshToken });
       setIsAuthenticated(true);
 
-      localStorage.setItem("user", JSON.stringify(jwtDecode(accessToken)));
+      Cookies.set("accessToken", accessToken);
+      Cookies.set("refreshToken", refreshToken);
+      Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
     } catch (error) {
       setIsAuthenticated(false);
       if (error.status === 400) {
         toast.error("Your account hasn't been verified");
         const id = error.response.data.data._id;
-        const sendMailResponse = await api.post(
+        const sendMailResponse = await instance.post(
           "/auth/sendMailVerifyAccount",
           {
             email: email,
@@ -67,6 +64,10 @@ function SignIn() {
       }
       throw error;
     }
+  };
+
+  const loginWithGoogle = async () => {
+    window.open("http://localhost:8000/api/v1/auth/google", "_self");
   };
 
   const handleChange = (e) => {
@@ -93,6 +94,18 @@ function SignIn() {
       console.log(err);
     }
   };
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("error")) {
+      const errorType = urlParams.get("error");
+      if (errorType === "auth") {
+        toast.error("Authentication failed. Please try again.", {
+          duration: 2000,
+        });
+      }
+    }
+  });
 
   return (
     <div>
@@ -129,7 +142,7 @@ function SignIn() {
                 <CheckBox />
                 <p className="text-base">Remember me</p>
               </div>
-              <Link to="/forgot-password" className="text-base">
+              <Link to="/forgotPassword" className="text-base">
                 Forgot password?
               </Link>
             </div>
@@ -146,7 +159,10 @@ function SignIn() {
             <p className="text-[#818181]">or sign in with</p>
             <div className="flex-1 h-[1px] bg-[#DEDEDE]"></div>
           </div>
-          <button className="mt-4 border border-[#0A0A0A] w-[100%] flex items-center justify-center py-3 rounded-lg">
+          <button
+            className="mt-4 border border-[#0A0A0A] w-[100%] flex items-center justify-center py-3 rounded-lg"
+            onClick={loginWithGoogle}
+          >
             <div className="flex flex-row gap-x-3 items-center">
               <svg
                 width="32"

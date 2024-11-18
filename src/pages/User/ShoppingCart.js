@@ -22,18 +22,21 @@ function ShoppingCart() {
   const [type, setType] = useState("");
   const [openModal, setOpenModal] = useState(false);
 
-  useEffect(() => {
-    const guestCart = JSON.parse(localStorage.getItem("guestCarts")) || [];
-    if (guestCart.length > 0) {
-      dispatch(mergeCart(guestCart));
-      localStorage.removeItem("guestCarts");
-    }
-  }, [dispatch]);
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     const guestCart = JSON.parse(localStorage.getItem("carts")) || [];
+  //     if (guestCart.length > 0) {
+  //       dispatch(mergeCart(guestCart));
+  //       localStorage.removeItem("carts");
+  //     }
+  //   }
+  // }, [isAuthenticated]);
 
   console.log(carts);
 
   const selectedCartItems = carts.filter(
-    (product) => selectedItems[product.productId]
+    (product) =>
+      selectedItems[`${product.productId}-${product.colorId}-${product.sizeId}`]
   );
 
   const totalItems = selectedCartItems.reduce(
@@ -48,26 +51,25 @@ function ShoppingCart() {
   const taxes = subTotal * 0.1;
   const totalPrice = subTotal + shipping + taxes;
 
-  const handleCheckboxChange = (productId) => {
+  const handleCheckboxChange = (productId, colorId, sizeId) => {
+    const key = `${productId}-${colorId}-${sizeId}`;
     setSelectedItems((prev) => ({
       ...prev,
-      [productId]: !prev[productId],
+      [key]: !prev[key],
     }));
   };
 
-  const handleRemoveItem = (productId, color, size) => {
-    dispatch(removeItem({ productId, color, size }));
+  const handleRemoveItem = (productId, colorId, sizeId) => {
+    dispatch(removeItem({ productId, colorId, sizeId }));
   };
 
   const handleRemoveSelectedItems = () => {
-    selectedCartItems.forEach((product) => {
-      dispatch(
-        removeItem({
-          productId: product.productId,
-          color: product.color,
-          size: product.size,
-        })
-      );
+    Object.keys(selectedItems).forEach((key) => {
+      const [productId, colorId, sizeId] = key.split("-"); // Split the key to get IDs
+      if (selectedItems[key]) {
+        // Check if the item is selected
+        dispatch(removeItem({ productId, colorId, sizeId }));
+      }
     });
     setSelectedItems({});
   };
@@ -103,6 +105,8 @@ function ShoppingCart() {
       }
     }
   };
+
+  console.log({ carts });
 
   return (
     <>
@@ -152,9 +156,17 @@ function ShoppingCart() {
                     <tr className="border-b border-[#818181]" key={product.id}>
                       <td align="center" className="w-8">
                         <CheckBox
-                          isChecked={!!selectedItems[product.productId]}
+                          isChecked={
+                            !!selectedItems[
+                              `${product.productId}-${product.colorId}-${product.sizeId}`
+                            ]
+                          } // Check if selected
                           onChange={() =>
-                            handleCheckboxChange(product.productId)
+                            handleCheckboxChange(
+                              product.productId,
+                              product.colorId,
+                              product.sizeId
+                            )
                           }
                         />
                       </td>
@@ -163,8 +175,8 @@ function ShoppingCart() {
                           onClick={() => {
                             handleRemoveItem(
                               product.productId,
-                              product.color,
-                              product.size
+                              product.colorId,
+                              product.sizeId
                             );
                           }}
                         >

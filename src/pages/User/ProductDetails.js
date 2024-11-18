@@ -1,7 +1,15 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { AuthContext } from "../../context/AuthContext";
+
+import { getProductById } from "../../data/products";
+import { getAllImagesByProductId } from "../../data/productImages";
+import { getCategoryById } from "../../data/categories";
+import { getProductVariantsByProductId } from "../../data/productVariant";
+import { getColorById } from "../../data/colors";
+import { getSizeById } from "../../data/sizes";
+import { createShoppingCart } from "../../data/shoppingCart";
 
 import Banner from "../../components/Banner";
 import Color from "../../components/Color";
@@ -12,11 +20,9 @@ import Pagination from "../../components/Pagination";
 import Slider from "../../components/Slider";
 import FeatureBanner from "../../components/FeatureBanner";
 import { REVIEWS_PER_PAGE } from "../../utils/Constants";
-import { colors } from "../../data/colors";
-import { sizes } from "../../data/sizes";
 import { addToCart } from "../../stores/cart";
+import { formatURL } from "../../utils/formatURL";
 
-// Example data
 const reviews = [
   {
     id: 1,
@@ -183,94 +189,98 @@ function ProductDetails() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const carts = useSelector((store) => store.cart.items);
-  const [replies, setReplies] = useState({});
-  const [submittedReplies, setSubmittedReplies] = useState({});
-  const [showInput, setShowInput] = useState({});
-  const [showAllReplies, setShowAllReplies] = useState({});
 
-  const [product, setProduct] = useState(null);
-  const [selectedColor, setSelectedColor] = useState("black");
-  const [selectedSize, setSelectedSize] = useState("S");
-  const [mainImage, setMainImage] = useState("https://picsum.photos/500");
+  const [productName, setProductName] = useState("");
+  const [photos, setPhotos] = useState([]);
+  const [category, setCategory] = useState([]);
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [rating, setRating] = useState(0);
+  const [variants, setVariants] = useState([]);
+  const [colors, setColors] = useState([]);
+  const [selectedColor, setSelectedColor] = useState();
+  const [availableSizes, setAvailableSizes] = useState([]);
+  const [selectedSize, setSelectedSize] = useState();
+  const [mainImage, setMainImage] = useState();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
 
-  const fetchProductById = (productId) => {
-    return {
-      id: 1,
-      name: "Classy Leather Jacket",
-      category: "Jacket",
-      price: "75.00",
-      rating: 4.8,
-      color: "black",
-      size: "S",
-      image: "https://picsum.photos/200",
-      description:
-        "The Baddie Jacket is a stylish and edgy outerwear piece designed for bold, confident individuals. Crafted with premium materials, it features a sleek, modern fit that elevates any outfit. Perfect for making a statement, the Baddie Jacket combines comfort and fashion, offering a versatile look for day or night.",
-    };
-  };
-
-  const handleReplySubmit = (reviewId) => {
-    const replyContent = replies[reviewId] || "";
-    if (replyContent) {
-      setSubmittedReplies((prev) => ({
-        ...prev,
-        [reviewId]: [...(prev[reviewId] || []), replyContent],
-      }));
-      setReplies((prev) => ({ ...prev, [reviewId]: "" }));
-      setShowInput((prev) => ({ ...prev, [reviewId]: false }));
-    }
-  };
-
-  const handleReply = (reviewId) => {
-    setShowInput((prev) => ({
-      ...prev,
-      [reviewId]: !prev[reviewId],
-    }));
-  };
-
-  const handleAddToCart = () => {
-    const productData = {
-      productId: parseInt(id),
-      name: product.name,
-      price: product.price,
-      quantity: quantity,
-      size: selectedSize,
-      color: selectedColor,
-      image: mainImage,
-    };
-
-    if (isAuthenticated) {
-      dispatch(addToCart(productData));
-    } else {
-      const guestCart = JSON.parse(localStorage.getItem("guestCarts")) || [];
-      const existingProductIndex = guestCart.findIndex(
-        (item) =>
-          item.productId === productData.productId &&
-          item.size === productData.size &&
-          item.color === productData.color
-      );
-
-      if (existingProductIndex >= 0) {
-        guestCart[existingProductIndex].quantity += productData.quantity;
-      } else {
-        guestCart.push(productData);
-      }
-      localStorage.setItem("guestCarts", JSON.stringify(guestCart));
-    }
-  };
-
   useEffect(() => {
-    const productDetails = fetchProductById(id);
-    setProduct(productDetails);
+    const fetchProduct = async () => {
+      const product = await getProductById(id);
+      setProductName(product.name);
+      setPrice(product.price);
+      setDescription(product.description);
+      const fetchedCategory = await getCategoryById(product.categoryId);
+      setCategory(fetchedCategory.name);
+      const fetchedImages = await getAllImagesByProductId(id);
+      setMainImage(fetchedImages[0].imagePath);
+      setPhotos(fetchedImages);
+    };
 
-    if (productDetails && productDetails.name) {
-      document.title = productDetails.name;
-    }
+    const fetchVariants = async () => {
+      const fetchedVariants = await getProductVariantsByProductId(id);
+      const variantsData = await Promise.all(
+        fetchedVariants.map(async (variant) => {
+          const color = await getColorById(variant.colorId);
+          const size = await getSizeById(variant.sizeId);
+          return { size, color, quantity: variant.quantity };
+        })
+      );
+      setSelectedColor(variantsData[0].color._id);
+      setSelectedSize(variantsData[0].size._id);
+      setVariants(variantsData);
+    };
+
+    fetchProduct();
+    fetchVariants();
   }, [id]);
 
-  // Pagination for reviews
+  const uniqueColors = useMemo(() => {
+    const colorSet = new Set();
+    variants.forEach((variant) => {
+      colorSet.add(variant.color._id);
+    });
+    const colorList = Array.from(colorSet).map((colorId) => {
+      return variants.find((variant) => variant.color._id === colorId).color; // Get the color object
+    });
+    setColors(colorList);
+  }, [variants]);
+
+  useEffect(() => {
+    if (selectedColor) {
+      const filteredSizes = variants
+        .filter((variant) => variant.color._id === selectedColor)
+        .map((variant) => variant.size);
+      setAvailableSizes(filteredSizes);
+    }
+  }, [selectedColor, variants]);
+
+  useEffect(() => {
+    if (productName) {
+      document.title = productName;
+    }
+  }, []);
+
+  const handleAddToCart = async () => {
+    const product = {
+      productId: id,
+      name: productName,
+      categoryId: category,
+      price: price,
+      quantity: quantity,
+      sizeId: selectedSize,
+      colorId: selectedColor,
+      image: mainImage,
+    };
+    dispatch(addToCart(product));
+    // if (!isAuthenticated) dispatch(addToCart(product));
+    // else {
+    //   const response = await createShoppingCart();
+    // }
+  };
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const currentReviews = reviews.slice(
@@ -278,85 +288,74 @@ function ProductDetails() {
     currentPage * REVIEWS_PER_PAGE
   );
 
-  if (!product) {
-    return <p>Loading...</p>;
-  }
-
-  // Submit review
-  const handleSubmit = () => {};
-  const percentage = Math.round((product.rating / 5) * 100);
+  const percentage = Math.round((rating / 5) * 100);
 
   return (
     <div>
       <Banner
         title="Product Details"
-        route={`Home / Shop / Product Details / ${product.name}`}
+        route={`Home / Shop / Product Details / ${productName}`}
       />
       <div className="px-40">
         <div className="flex flex-row mt-10 gap-x-20">
-          <div className="flex flex-col gap-y-2">
-            {/* Main Image */}
-            <img src={mainImage} alt={product.name} />
+          <div className="flex flex-col gap-y-2 w-[40%]">
+            <img src={formatURL(mainImage)} alt={productName} />
 
             <div className="flex flex-row gap-x-[6.66px]">
-              {/* Small Images */}
-              {Array(4)
-                .fill(null)
-                .map((_, index) => (
-                  <img
-                    key={index}
-                    src={`https://picsum.photos/120?random=${index}`}
-                    alt={`Thumbnail ${index}`}
-                    onClick={() => {
-                      setMainImage(`https://picsum.photos/120?random=${index}`);
-                      setSelectedImageIndex(index);
-                    }}
-                    className={`cursor-pointer border-2 transition-all duration-300 ${
-                      selectedImageIndex === index
-                        ? "border-black"
-                        : "border-transparent"
-                    }`}
-                  />
-                ))}
+              {photos.map((image, index) => (
+                <img
+                  loading="lazy"
+                  key={index}
+                  src={formatURL(image.imagePath)}
+                  alt={`Thumbnail ${index}`}
+                  onClick={() => {
+                    setMainImage(image.imagePath);
+                    setSelectedImageIndex(index);
+                  }}
+                  className={`cursor-pointer border-2 w-28 transition-all duration-300 ${
+                    selectedImageIndex === index
+                      ? "border-black"
+                      : "border-transparent"
+                  }`}
+                />
+              ))}
             </div>
           </div>
           <div className="flex-1 gap-y-4 flex flex-col">
-            <p>{product.category}</p>
+            <p>{category}</p>
             <div className="flex flex-col gap-y-1">
-              <p className="font-semibold text-2xl">{product.name}</p>
+              <p className="font-semibold text-2xl">{productName}</p>
               <div className="flex flex-row items-center">
                 <Rating percentage={percentage} />
-                <p className="ml-2 text-lg">{product.rating}</p>
+                <p className="ml-2 text-lg">{}</p>
               </div>
-              <p className="font-semibold text-xl">${product.price}</p>
+              <p className="font-semibold text-xl">${price}</p>
             </div>
-            <p>{product.description}</p>
+            <p>{description}</p>
 
-            {/* Colors */}
             <div>
               <p className="font-medium text-xl mb-1">Color:</p>
               <div className="flex flex-row gap-x-2">
                 {colors.map((color) => (
                   <Color
-                    key={color}
-                    color={color}
-                    isSelected={selectedColor === color}
-                    onClick={() => setSelectedColor(color)}
+                    key={color._id}
+                    color={color.color}
+                    isSelected={selectedColor === color._id}
+                    onClick={() => setSelectedColor(color._id)}
                   />
                 ))}
               </div>
             </div>
 
-            {/* Sizes */}
             <div>
               <p className="font-medium text-xl mb-1">Size:</p>
               <div className="flex flex-row gap-x-2">
-                {sizes.map((size) => (
+                {availableSizes.map((size) => (
                   <Size
-                    key={size}
-                    size={size}
-                    isSelected={selectedSize === size}
-                    onClick={() => setSelectedSize(size)}
+                    key={size._id}
+                    size={size.size}
+                    isSelected={selectedSize === size._id}
+                    onClick={() => setSelectedSize(size._id)}
                   />
                 ))}
               </div>
@@ -498,92 +497,8 @@ function ProductDetails() {
                   {currentReviews.map((review) => (
                     <div key={review.id} className="mt-5">
                       <Review {...review} />
-
-                      {/* {showInput[review.id] && (
-                        <div className="flex flex-row mt-5 items-center gap-x-2 ml-14">
-                          <input
-                            className="rounded-lg px-5 py-2 text-sm border-[2px] border-[#0A0A0A]"
-                            placeholder="Write your reply..."
-                            value={replies[review.id] || ""}
-                            onChange={(e) =>
-                              setReplies({
-                                ...replies,
-                                [review.id]: e.target.value,
-                              })
-                            }
-                          />
-                          <button
-                            className="rounded-lg bg-[#0A0A0A] px-5 py-2 text-white disabled:bg-[#4A4A4A] disabled:cursor-not-allowed"
-                            disabled={replies[review.id] === ""}
-                            onClick={() => handleReplySubmit(review.id)}
-                          >
-                            Reply
-                          </button>
-                        </div>
-                      )}
-                      {submittedReplies[review.id] && (
-                        <div className="mt-10">
-                          {showAllReplies[review.id]
-                            ? submittedReplies[review.id].map((reply) => (
-                                <div
-                                  key={reply.id}
-                                  className="ml-14 mt-2 text-gray-600"
-                                >
-                                  <Review
-                                    user={reply.user}
-                                    rating={reply.rating}
-                                    content={reply}
-                                  />
-                                </div>
-                              ))
-                            : submittedReplies[review.id]
-                                .slice(0, 1)
-                                .map((reply) => (
-                                  <div
-                                    key={reply.id}
-                                    className="ml-14 mt-2 text-gray-600"
-                                  >
-                                    <Review
-                                      user={reply.user}
-                                      rating={reply.rating}
-                                      content={reply}
-                                    />
-                                  </div>
-                                ))}
-                          {submittedReplies[review.id].length > 1 &&
-                            !showAllReplies[review.id] && (
-                              <button
-                                className="ml-14 mt-5 text-[#4A4A4A] text-sm"
-                                onClick={() =>
-                                  setShowAllReplies((prev) => ({
-                                    ...prev,
-                                    [review.id]: true,
-                                  }))
-                                }
-                              >
-                                View more{" "}
-                                {submittedReplies[review.id].length - 1} replies
-                              </button>
-                            )}
-                          {showAllReplies[review.id] && (
-                            <button
-                              className="ml-14 mt-5 text-[#4A4A4A] text-sm"
-                              onClick={() =>
-                                setShowAllReplies((prev) => ({
-                                  ...prev,
-                                  [review.id]: false,
-                                }))
-                              }
-                            >
-                              Hide replies
-                            </button>
-                          )}
-                        </div>
-                      )} */}
-                      {/* Reply input field */}
                     </div>
                   ))}
-                  {/* Pagination */}
                   <Pagination
                     currentPage={currentPage}
                     totalPages={Math.ceil(reviews.length / REVIEWS_PER_PAGE)}

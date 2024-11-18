@@ -1,29 +1,31 @@
 import { useContext, useState, useRef, useEffect } from "react";
-import useAxios from "../../services/useAxios";
 import { AuthContext } from "../../context/AuthContext";
+import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 
 import Banner from "../../components/Banner";
 import toast from "react-hot-toast";
+import instance from "../../services/axiosConfig";
+import { formatURL } from "../../utils/formatURL";
 
 function PersonalInformation({ user }) {
-  let api = useAxios();
   const [data, setData] = useState({
-    avatarPath: user?.avatarPath || "https://picsum.photos/200",
+    avatarPath: user?.avatarPath || "",
+    avatarFile: null,
     fullName: user?.fullName || "",
     phone: user?.phone || "",
   });
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isChanged, setIsChanged] = useState(false);
 
   const fetchUserData = async (userId) => {
-    const authTokens = localStorage.getItem("authTokens")
-      ? JSON.parse(localStorage.getItem("authTokens"))
-      : null;
+    const refreshToken = Cookies.get("refreshToken");
     try {
-      if (authTokens) {
-        const tokenResponse = await api.post(
+      if (refreshToken) {
+        const tokenResponse = await instance.post(
           "/auth/refreshToken",
           {
-            refreshToken: authTokens.refreshToken,
+            refreshToken: refreshToken,
           },
           {
             headers: {
@@ -32,7 +34,7 @@ function PersonalInformation({ user }) {
           }
         );
         const accessToken = tokenResponse.data.accessToken;
-        const response = await api.get(`/user/${userId}`, {
+        const response = await instance.get(`/user/${userId}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -50,6 +52,17 @@ function PersonalInformation({ user }) {
       ...prevData,
       [name]: value,
     }));
+    const originalData = {
+      fullName: user.fullName,
+      phone: user.phone,
+      avatarPath: user.avatarPath,
+    };
+
+    const changesDetected =
+      value !== originalData[name] ||
+      (name === "avatarFile" && data.avatarFile !== null);
+
+    setIsChanged(changesDetected);
   };
 
   const fileInputRef = useRef(null);
@@ -59,7 +72,8 @@ function PersonalInformation({ user }) {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setData({ ...data, avatar: reader.result });
+        setData({ ...data, avatarPath: reader.result, avatarFile: file });
+        setIsChanged(true);
       };
       reader.readAsDataURL(file);
     }
@@ -71,14 +85,12 @@ function PersonalInformation({ user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let authTokens = localStorage.getItem("authTokens")
-      ? JSON.parse(localStorage.getItem("authTokens"))
-      : null;
+    const refreshToken = Cookies.get("refreshToken");
     try {
-      const tokenResponse = await api.post(
+      const tokenResponse = await instance.post(
         "/auth/refreshToken",
         {
-          refreshToken: authTokens.refreshToken,
+          refreshToken: refreshToken,
         },
         {
           headers: {
@@ -87,31 +99,31 @@ function PersonalInformation({ user }) {
         }
       );
       const accessToken = tokenResponse.data.accessToken;
-      const response = await api.put(
-        `/user/${user.id}`,
-        {
-          fullName: data.fullName,
-          phone: data.phone,
-          avatarPath: data.avatarPath,
+      const formData = new FormData();
+      formData.append("fullName", data.fullName);
+      formData.append("phone", data.phone);
+      if (data.avatarFile) {
+        formData.append("avatarPath", data.avatarFile);
+      }
+
+      const response = await instance.put(`/user/${user._id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${accessToken}`,
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      console.log(response.data);
+      });
+
       if (response.status === 200) {
         toast.success("Update information successfully", { duration: 2000 });
-        const updatedUser = {
-          ...data,
-          avatarPath: data.avatarPath,
+        setData({
+          avatarPath:
+            data.avatarPath instanceof File
+              ? URL.createObjectURL(data.avatarFile)
+              : data.avatarPath,
           fullName: data.fullName,
           phone: data.phone,
-        };
-        console.log(updatedUser);
-        setData(updatedUser);
+        });
+        setIsChanged(false);
       }
     } catch (error) {
       toast.error(error?.response?.data?.message || "An error occured", {
@@ -122,25 +134,27 @@ function PersonalInformation({ user }) {
 
   useEffect(() => {
     const getUserData = async () => {
-      if (user) {
-        const userData = await fetchUserData(user.id);
+      if (user && !isLoaded) {
+        console.log(user);
+        const userData = await fetchUserData(user._id);
         if (userData) {
           setData({
             avatarPath: userData.avatarPath || "",
             fullName: userData.fullName || "",
             phone: userData.phone || "",
           });
+          setIsLoaded(true);
         }
       }
     };
     getUserData();
-  }, [user]);
+  }, [user, isLoaded]);
 
   return (
     <div className="w-[600px]">
       <div className="mb-6 relative w-24 h-24">
         <img
-          src={data.avatarPath}
+          src={formatURL(data?.avatarPath)}
           alt="Profile"
           className="w-full h-full rounded-full object-cover"
         />
@@ -209,7 +223,8 @@ function PersonalInformation({ user }) {
         </div>
         <button
           type="submit"
-          className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800"
+          disabled={!isChanged}
+          className="px-10 py-3 text-white font-medium bg-black rounded-lg disabled:bg-[#4A4A4A] disabled:cursor-not-allowed"
         >
           Update Changes
         </button>
@@ -221,7 +236,6 @@ function PersonalInformation({ user }) {
 function MyOrders() {
   const [orders, setOrders] = useState([]);
   const { user } = useContext(AuthContext);
-  const api = useAxios();
 
   const exampleOrders = [
     {
@@ -412,7 +426,6 @@ function MyOrders() {
 
 function PasswordManager() {
   const { user } = useContext(AuthContext);
-  const api = useAxios();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -438,11 +451,8 @@ function PasswordManager() {
     }
 
     try {
-      const authTokens = localStorage.getItem("authTokens")
-        ? JSON.parse(localStorage.getItem("authTokens"))
-        : null;
-      const refreshToken = authTokens.refreshToken;
-      const tokenResponse = await api.post(
+      const refreshToken = Cookies.get("refreshToken");
+      const tokenResponse = await instance.post(
         "/auth/refreshToken",
         { refreshToken: refreshToken },
         {
@@ -453,7 +463,7 @@ function PasswordManager() {
       );
       const accessToken = tokenResponse.data.accessToken;
       const id = user.id;
-      const response = await api.post(
+      const response = await instance.post(
         `/auth/resetPassword`,
         {
           password: currentPassword,
@@ -530,7 +540,7 @@ function PasswordManager() {
 }
 
 function Account() {
-  const { user, setUser, getUserData } = useContext(AuthContext);
+  const { user, setUser } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("personal");
 
   const tabs = [

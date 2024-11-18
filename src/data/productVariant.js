@@ -1,32 +1,22 @@
 import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
-export const getAllProducts = async () => {
+export const getProductVariantsByProductId = async (productId) => {
   try {
-    const response = await instance.get("/product");
+    const response = await instance.get(
+      `/productVariant/productId/${productId}`
+    );
     return response.data;
   } catch (error) {
-    console.log(error);
     return null;
   }
 };
 
-export const getProductById = async (productId) => {
-  try {
-    const response = await instance.get(`/product/${productId}`);
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
-};
-
-export const createProduct = async (
-  name,
-  description,
-  categoryId,
-  price,
-  rating = 0
+export const createProductVariant = async (
+  productId,
+  sizeId,
+  colorId,
+  quantity
 ) => {
   const refreshToken = Cookies.get("refreshToken");
   try {
@@ -43,13 +33,12 @@ export const createProduct = async (
     );
     const accessToken = tokenResponse.data.accessToken;
     const response = await instance.post(
-      "/product",
+      "/productVariant",
       {
-        name: name,
-        description: description,
-        categoryId: categoryId,
-        price: price,
-        rating: rating,
+        productId: productId,
+        sizeId: sizeId,
+        colorId: colorId,
+        quantity: quantity,
       },
       {
         headers: {
@@ -64,13 +53,12 @@ export const createProduct = async (
   }
 };
 
-export const updateProduct = async (
+export const updateProductVariant = async (
+  id,
   productId,
-  name,
-  description,
-  categoryId,
-  price,
-  rating = 0
+  sizeId,
+  colorId,
+  quantity
 ) => {
   const refreshToken = Cookies.get("refreshToken");
   try {
@@ -87,13 +75,12 @@ export const updateProduct = async (
     );
     const accessToken = tokenResponse.data.accessToken;
     const response = await instance.put(
-      `/product/${productId}`,
+      `/productVariant/${id}`,
       {
-        name: name,
-        description: description,
-        categoryId: categoryId,
-        price: price,
-        rating: rating,
+        productId: productId,
+        sizeId: sizeId,
+        colorId: colorId,
+        quantity: quantity,
       },
       {
         headers: {
@@ -101,6 +88,33 @@ export const updateProduct = async (
         },
       }
     );
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const deleteProductVariant = async (id) => {
+  const refreshToken = Cookies.get("refreshToken");
+  try {
+    const tokenResponse = await instance.post(
+      "/auth/refreshToken",
+      {
+        refreshToken: refreshToken,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const accessToken = tokenResponse.data.accessToken;
+    const response = await instance.delete(`/productVariant/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     return response.data;
   } catch (error) {
     console.log(error);

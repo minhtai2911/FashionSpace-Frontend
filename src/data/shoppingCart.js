@@ -1,9 +1,30 @@
 import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
-export const getAllProducts = async () => {
+export const getShoppingCartByUserId = async (userId) => {
+  const refreshToken = Cookies.get("refreshToken");
   try {
-    const response = await instance.get("/product");
+    const tokenResponse = await instance.get(
+      "/auth/refreshToken",
+      {
+        refreshToken: refreshToken,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const accessToken = tokenResponse.data.accessToken;
+    const response = await instance.post(
+      "/shoppingCart/get/userId",
+      { userId: userId },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.log(error);
@@ -11,22 +32,10 @@ export const getAllProducts = async () => {
   }
 };
 
-export const getProductById = async (productId) => {
-  try {
-    const response = await instance.get(`/product/${productId}`);
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
-};
-
-export const createProduct = async (
-  name,
-  description,
-  categoryId,
-  price,
-  rating = 0
+export const createShoppingCart = async (
+  userId,
+  productVariantId,
+  quantity
 ) => {
   const refreshToken = Cookies.get("refreshToken");
   try {
@@ -43,57 +52,11 @@ export const createProduct = async (
     );
     const accessToken = tokenResponse.data.accessToken;
     const response = await instance.post(
-      "/product",
+      "/shoppingCart",
       {
-        name: name,
-        description: description,
-        categoryId: categoryId,
-        price: price,
-        rating: rating,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
-};
-
-export const updateProduct = async (
-  productId,
-  name,
-  description,
-  categoryId,
-  price,
-  rating = 0
-) => {
-  const refreshToken = Cookies.get("refreshToken");
-  try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
-    const response = await instance.put(
-      `/product/${productId}`,
-      {
-        name: name,
-        description: description,
-        categoryId: categoryId,
-        price: price,
-        rating: rating,
+        userId: userId,
+        productVariantId: productVariantId,
+        quantity: quantity,
       },
       {
         headers: {

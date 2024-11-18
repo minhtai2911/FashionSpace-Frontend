@@ -1,9 +1,10 @@
 import { useEffect, useState, useContext } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import Cookies from "js-cookie";
 import { AuthContext } from "../../context/AuthContext";
-import useAxios from "../../services/useAxios";
 import Error from "../Error";
+import instance from "../../services/axiosConfig";
 
 const EmailVerify = () => {
   const { setIsAuthenticated, setUser, setAuthTokens } =
@@ -12,17 +13,16 @@ const EmailVerify = () => {
   const [redirectTimer, setRedirectTimer] = useState(5);
   const [error, setError] = useState(null);
   const param = useParams();
-  const api = useAxios();
   const navigate = useNavigate();
 
   useEffect(() => {
     const verifyEmailUrl = async () => {
       try {
-        const response = await api.get(`/auth/verifyAccount/${param.id}`, {
+        const response = await instance.get(`/auth/verifyAccount/${param.id}`, {
           headers: { "Content-Type": "application/json" },
         });
         const { refreshToken, ...data } = response.data.data;
-        const tokenResponse = await api.post(
+        const tokenResponse = await instance.post(
           "/auth/refreshToken",
           { refreshToken: refreshToken },
           {
@@ -33,13 +33,10 @@ const EmailVerify = () => {
         );
         const accessToken = tokenResponse.data.accessToken;
         setUser(jwtDecode(accessToken));
-        setAuthTokens({ accessToken, refreshToken });
         setIsAuthenticated(true);
-        localStorage.setItem(
-          "authTokens",
-          JSON.stringify({ accessToken, refreshToken })
-        );
-        localStorage.setItem("user", JSON.stringify(jwtDecode(accessToken)));
+        Cookies.set("accessToken", accessToken);
+        Cookies.set("refreshToken", refreshToken);
+        Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
         setValidUrl(true);
       } catch (error) {
         setError(error);

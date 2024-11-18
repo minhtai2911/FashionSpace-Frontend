@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { products } from "../../data/products";
+import { getAllProducts } from "../../data/products";
 import Banner from "../../components/Banner";
 import ProductItem from "../../components/ProductItem";
 import CheckBox from "../../components/CheckBox";
@@ -8,7 +8,10 @@ import FilterItem from "../../components/FilterItem";
 import Pagination from "../../components/Pagination";
 import { PRODUCTS_PER_PAGE } from "../../utils/Constants";
 import { SORT_BY } from "../../utils/Constants";
-import { categories } from "../../data/categories";
+import { getAllCategories, getCategoryById } from "../../data/categories";
+import { getAllImagesByProductId } from "../../data/productImages";
+import LoadingOverlay from "../../components/LoadingOverlay";
+import { formatURL } from "../../utils/formatURL";
 
 function Shop() {
   const [minPrice, setMinPrice] = useState(0);
@@ -18,6 +21,9 @@ function Shop() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [sortCriteria, setSortCriteria] = useState(SORT_BY[0].value);
   const [currentPage, setCurrentPage] = useState(1);
+  const [productData, setProductData] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const priceGap = 100;
 
   const handleMinPriceChange = (e) => {
@@ -83,7 +89,7 @@ function Shop() {
     setMaxPrice(tempMaxPrice);
   };
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = productData.filter((product) => {
     const isInPriceRange =
       product.price >= minPrice && product.price <= maxPrice;
     const isInSelectedCategories =
@@ -114,6 +120,38 @@ function Shop() {
     currentPage * PRODUCTS_PER_PAGE
   );
 
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+
+      try {
+        const fetchedProducts = await getAllProducts();
+
+        const fetchedCategories = await getAllCategories();
+        setCategories(fetchedCategories);
+
+        const updatedProducts = await Promise.all(
+          fetchedProducts.map(async (product) => {
+            const images = await getAllImagesByProductId(product._id);
+            const category = await getCategoryById(product.categoryId);
+            return {
+              ...product,
+              images: images || [],
+              category: category.name,
+            };
+          })
+        );
+        setProductData(updatedProducts);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div>
       <Banner title={"Shop"} route={"Home / Shop"} />
@@ -130,10 +168,10 @@ function Shop() {
                   key={index}
                 >
                   <CheckBox
-                    isChecked={selectedCategories.includes(category)}
-                    onChange={() => handleCategoryChange(category)}
+                    isChecked={selectedCategories.includes(category.name)}
+                    onChange={() => handleCategoryChange(category.name)}
                   />
-                  <label className="">{category}</label>
+                  <label className="">{category.name}</label>
                 </div>
               ))}
             </div>
@@ -186,100 +224,110 @@ function Shop() {
           </div>
         </div>
         <div className="flex flex-col ml-20 gap-y-10 w-full">
-          <div className="flex flex-col gap-y-5">
-            <div className="flex justify-between items-center">
-              <div>
-                {filteredProducts.length > 0 ? (
+          {isLoading ? (
+            <LoadingOverlay content={"Fetching products..."} />
+          ) : (
+            <>
+              <div className="flex flex-col gap-y-5">
+                <div className="flex justify-between items-center">
                   <div>
-                    Showing {(currentPage - 1) * PRODUCTS_PER_PAGE + 1} -{" "}
-                    {Math.min(
-                      currentPage * PRODUCTS_PER_PAGE,
-                      filteredProducts.length
-                    )}{" "}
-                    of {filteredProducts.length} results
+                    {filteredProducts.length > 0 ? (
+                      <div>
+                        Showing {(currentPage - 1) * PRODUCTS_PER_PAGE + 1} -{" "}
+                        {Math.min(
+                          currentPage * PRODUCTS_PER_PAGE,
+                          filteredProducts.length
+                        )}{" "}
+                        of {filteredProducts.length} results
+                      </div>
+                    ) : (
+                      <div>Showing 0 - 0 of 0 result</div>
+                    )}
                   </div>
-                ) : (
-                  <div>Showing 0 - 0 of 0 result</div>
-                )}
-              </div>
-              <div>
-                Sort by:
-                <select
-                  value={sortCriteria}
-                  onChange={(e) => setSortCriteria(e.target.value)}
-                  className="border-[#0A0A0A] border-[1px] p-2 ml-2"
-                >
-                  {SORT_BY.map((criteria) => (
-                    <option key={criteria.value} value={criteria.value}>
-                      {criteria.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div
-              className="flex flex-wrap items-center gap-2 max-w-full"
-              id="filter-container"
-            >
-              <span className="mr-2">Active Filter:</span>
-              <div className="flex gap-3 flex-wrap">
-                {selectedCategories.map((category, index) => (
-                  <FilterItem
-                    key={index}
-                    name={category}
-                    onRemove={() => handleRemoveCategory(category)}
-                  />
-                ))}
-                {(minPrice !== 0 || maxPrice !== 1000) && (
-                  <FilterItem
-                    key="price-range"
-                    name={`Price: $${minPrice} - $${maxPrice}`}
-                    onRemove={resetPrice}
-                  />
-                )}
-              </div>
-              {(selectedCategories.length > 0 ||
-                minPrice !== 0 ||
-                maxPrice !== 1000) && (
-                <div
-                  className="underline ml-2 cursor-pointer whitespace-nowrap"
-                  onClick={clearAllFilters}
-                >
-                  Clear All
+                  <div>
+                    Sort by:
+                    <select
+                      value={sortCriteria}
+                      onChange={(e) => setSortCriteria(e.target.value)}
+                      className="border-[#0A0A0A] border-[1px] p-2 ml-2"
+                    >
+                      {SORT_BY.map((criteria) => (
+                        <option key={criteria.value} value={criteria.value}>
+                          {criteria.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-          <div
-            className="flex gap-x-5 gap-y-5 flex-wrap min-h-60"
-            id="product-container"
-          >
-            {currentProducts.length > 0 ? (
-              currentProducts.map((product) => (
-                <ProductItem
-                  key={product.id}
-                  name={product.name}
-                  rating={product.rating}
-                  category={product.category}
-                  image={product.image}
-                  price={product.price}
-                  id={product.id}
-                />
-              ))
-            ) : (
-              <div className="text-center w-full text-3xl font-bold">
-                <p>No products found matching your filters.</p>
+                <div
+                  className="flex flex-wrap items-center gap-2 max-w-full"
+                  id="filter-container"
+                >
+                  <span className="mr-2">Active Filter:</span>
+                  <div className="flex gap-3 flex-wrap">
+                    {selectedCategories.map((category, index) => (
+                      <FilterItem
+                        key={index}
+                        name={category}
+                        onRemove={() => handleRemoveCategory(category)}
+                      />
+                    ))}
+                    {(minPrice !== 0 || maxPrice !== 1000) && (
+                      <FilterItem
+                        key="price-range"
+                        name={`Price: $${minPrice} - $${maxPrice}`}
+                        onRemove={resetPrice}
+                      />
+                    )}
+                  </div>
+                  {(selectedCategories.length > 0 ||
+                    minPrice !== 0 ||
+                    maxPrice !== 1000) && (
+                    <div
+                      className="underline ml-2 cursor-pointer whitespace-nowrap"
+                      onClick={clearAllFilters}
+                    >
+                      Clear All
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-          {currentProducts.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(
-                filteredProducts.length / PRODUCTS_PER_PAGE
+              <div
+                className="flex gap-x-5 gap-y-5 flex-wrap min-h-60"
+                id="product-container"
+              >
+                {currentProducts.length > 0 && !isLoading ? (
+                  currentProducts.map((product) => (
+                    <ProductItem
+                      key={product._id}
+                      name={product.name}
+                      rating={product.rating}
+                      image={
+                        product.images.length > 0
+                          ? formatURL(product.images[0].imagePath)
+                          : ""
+                      }
+                      category={product.category}
+                      price={product.price}
+                      id={product._id}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center w-full text-3xl font-bold">
+                    <p>No products found matching your filters.</p>
+                  </div>
+                )}
+              </div>
+              {currentProducts.length > 0 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(
+                    filteredProducts.length / PRODUCTS_PER_PAGE
+                  )}
+                  onPageChange={setCurrentPage}
+                />
               )}
-              onPageChange={setCurrentPage}
-            />
+            </>
           )}
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 function ProductItem({ id, price, name, category, rating, image, usage }) {
@@ -40,7 +40,7 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
         )}
         <img
           className="object-cover h-64"
-          src={image ? image : "/storage/product_image.png"}
+          src={image ?? ""}
           alt="product image"
         />
       </Link>

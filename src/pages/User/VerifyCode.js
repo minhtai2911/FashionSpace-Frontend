@@ -1,8 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import useAxios from "../../services/useAxios";
-import axios from "axios";
 import toast from "react-hot-toast";
+import instance from "../../services/axiosConfig";
 
 function VerifyCode() {
   const navigate = useNavigate();
@@ -13,7 +12,6 @@ function VerifyCode() {
     : null;
   const location = useLocation();
   const { email } = location.state;
-  const api = useAxios();
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -54,14 +52,14 @@ function VerifyCode() {
   const handleSubmit = async () => {
     const verificationCode = code.join("");
     try {
-      const response = await api.post("/auth/checkOTPByEmail", {
+      const response = await instance.post("/auth/checkOTPByEmail", {
         email: email,
         OTP: verificationCode,
       });
       if (response.status === 200) {
         toast.success("Verify successfully", { duration: 2000 });
         const { refreshToken } = response.data.data;
-        navigate("/set-password", { state: { refreshToken } });
+        navigate("/setPassword", { state: { refreshToken } });
       }
     } catch (error) {
       toast.error(error.response.data.message, { duration: 2000 });
@@ -69,7 +67,7 @@ function VerifyCode() {
   };
   const handleResendCode = async () => {
     try {
-      const otpResponse = await api.post(
+      const otpResponse = await instance.post(
         "/auth/generateOTP",
         { email: email },
         {
@@ -80,7 +78,7 @@ function VerifyCode() {
       );
       const { otp } = otpResponse.data;
       await toast.promise(
-        api.post("/auth/sendOTP", { email: email, OTP: otp }),
+        instance.post("/auth/sendOTP", { email: email, OTP: otp }),
         {
           loading: "Sending OTP...",
           success: "OTP sent successfully",

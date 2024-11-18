@@ -253,7 +253,7 @@ function Checkout() {
               ))}
             </div>
             <hr className="border-[#818181]" />
-            <Link to="/order-completed" state={{ orderSummary }}>
+            <Link to="/orderCompleted" state={{ orderSummary }}>
               <button className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full">
                 Continue to Payment
               </button>

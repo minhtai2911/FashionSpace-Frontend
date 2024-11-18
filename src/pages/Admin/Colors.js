@@ -3,46 +3,45 @@ import { Table, Modal } from "flowbite-react";
 
 import Search from "../../components/Search";
 
-import { createCategory, getAllCategories } from "../../data/categories";
+import { getAllColors, createColor } from "../../data/colors";
 
-export default function Categories() {
-  const [categories, setCategories] = useState([]);
+export default function Colors() {
+  const [colors, setColors] = useState([]);
   const [openModal, setOpenModal] = useState(false);
-  const [category, setCategory] = useState("");
-  const [gender, setGender] = useState("");
+  const [color, setColor] = useState("");
 
   function onCloseModal() {
     setOpenModal(false);
   }
 
-  const handleCreateCategory = async () => {
+  const handleCreateColor = async () => {
     try {
-      const createdCategory = await createCategory(category, gender);
-      setCategories([...categories, createdCategory]);
-      setCategory("");
+      const createdColor = await createColor(color);
+      setColors([...colors, createdColor]);
+      setColor("");
       setOpenModal(false);
     } catch (error) {
-      console.error("Error creating category:", error);
+      console.error("Error creating color:", error);
     }
   };
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchColors = async () => {
       try {
-        const fetchedCategories = await getAllCategories();
-        setCategories(fetchedCategories);
+        const fetchedColors = await getAllColors();
+        setColors(fetchedColors);
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error("Error fetching colors:", error);
       }
     };
 
-    fetchCategories();
+    fetchColors();
   }, []);
 
   return (
     <>
       <div className="p-10 w-9/12">
-        <p className="font-extrabold text-xl">Categories</p>
+        <p className="font-extrabold text-xl">Colors</p>
         <div className="bg-white rounded-lg mt-10 p-5 flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
@@ -187,22 +186,20 @@ export default function Categories() {
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">
-                <Table.HeadCell>Category ID</Table.HeadCell>
-                <Table.HeadCell>Category Name</Table.HeadCell>
-                <Table.HeadCell>Gender</Table.HeadCell>
+                <Table.HeadCell>Color ID</Table.HeadCell>{" "}
+                <Table.HeadCell>Color Name</Table.HeadCell>
                 <Table.HeadCell>Action</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
-                {categories.map((category) => (
+                {colors.map((color) => (
                   <Table.Row
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
-                    key={category._id}
+                    key={color._id}
                   >
                     <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      {category._id}
+                      {color._id}
                     </Table.Cell>
-                    <Table.Cell>{category.name}</Table.Cell>
-                    <Table.Cell>{category.gender}</Table.Cell>
+                    <Table.Cell>{color.color}</Table.Cell>{" "}
                     <Table.Cell>
                       <div className="flex flex-row gap-x-3">
                         <a
@@ -263,7 +260,7 @@ export default function Categories() {
           className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10"
           onClick={() => setOpenModal(true)}
         >
-          New Category
+          New Color
         </button>
       </div>
       <Modal show={openModal} size="lg" onClose={onCloseModal} popup>
@@ -271,38 +268,26 @@ export default function Categories() {
         <Modal.Body className="px-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Categories / Create
+              Colors / Create
             </h3>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope font-semibold">
-                Category Name<b className="text-[#EF0606]">*</b>
+                Color <b className="text-[#EF0606]">*</b>
               </p>
               <input
-                id="category"
-                value={category}
+                id="color"
+                value={color}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
-                onChange={(e) => setCategory(e.target.value)}
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold">
-                Gender <b className="text-[#EF0606]">*</b>
-              </p>
-              <input
-                id="gender"
-                value={gender}
-                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
-                onChange={(e) => setGender(e.target.value)}
+                onChange={(e) => setColor(e.target.value)}
                 required
               />
             </div>
             <div className="w-full flex justify-center">
               <button
                 className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
-                onClick={handleCreateCategory}
+                onClick={handleCreateColor}
               >
-                Create Category
+                Create Color
               </button>
             </div>
           </div>

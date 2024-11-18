@@ -1,21 +1,16 @@
 import { useState } from "react";
+import { Outlet } from "react-router-dom";
 
-import NavBar from "../../components/NavBar";
+import SideBar from "../../components/SideBar";
 import Dashboard from "./Dashboard";
-import Products from "./Products";
+import Products from "./AdminProducts";
 import Categories from "./Categories";
 import Analysis from "./Analysis";
 export default function Admin() {
-  const [activeTab, setActiveTab] = useState(0);
   return (
-    <div className="bg-[#F9F9F9] flex flex-row gap-x-10">
-      <NavBar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="pt-14">
-        {activeTab === 0 && <Dashboard />}
-        {activeTab === 1 && <Products />}
-        {activeTab === 2 && <Categories />}
-        {activeTab === 3 && <Analysis />}
-      </div>
+    <div className="bg-[#F9F9F9] flex flex-row gap-x-10 admin-font">
+      <SideBar />
+      <Outlet />
     </div>
   );
 }

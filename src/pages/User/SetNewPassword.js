@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import useAxios from "../../services/useAxios";
 import toast from "react-hot-toast";
+import Cookies from "js-cookie";
+import instance from "../../services/axiosConfig";
 
 function SetNewPassword() {
   const location = useLocation();
@@ -9,7 +10,6 @@ function SetNewPassword() {
   const { refreshToken } = location.state;
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const api = useAxios();
 
   const handleResetPassword = async () => {
     const passwordPattern =
@@ -36,7 +36,7 @@ function SetNewPassword() {
     }
 
     try {
-      const tokenResponse = await api.post(
+      const tokenResponse = await instance.post(
         "/auth/refreshToken",
         { refreshToken: refreshToken },
         {
@@ -47,7 +47,7 @@ function SetNewPassword() {
       );
 
       const accessToken = tokenResponse.data.accessToken;
-      const response = await api.post(
+      const response = await instance.post(
         "/auth/forgotPassword",
         {
           newPassword: password,

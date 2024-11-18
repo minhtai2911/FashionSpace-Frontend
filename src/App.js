@@ -1,39 +1,53 @@
+import { useLayoutEffect, useEffect } from "react";
+import {
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  Navigate,
+} from "react-router-dom";
 import "./App.css";
-import { Routes, Route, useLocation } from "react-router-dom";
-import { useContext, useLayoutEffect } from "react";
-import { AuthContext } from "./context/AuthContext";
-import { Toaster } from "react-hot-toast";
 
-import ForgotPassword from "./pages/User/ForgotPassword";
-import SetNewPassword from "./pages/User/SetNewPassword";
-import Shop from "./pages/User/Shop";
-import SignIn from "./pages/User/SignIn";
-import SignUp from "./pages/User/SignUp";
-import Home from "./pages/User/Home";
-import ProductDetails from "./pages/User/ProductDetails";
-import ShoppingCart from "./pages/User/ShoppingCart";
-import Checkout from "./pages/User/Checkout";
-import OrderCompleted from "./pages/User/OrderCompleted";
-import Account from "./pages/User/Account";
-import VerifyCode from "./pages/User/VerifyCode";
-import EmailVerify from "./pages/User/EmailVerify";
+import Admin from "./pages/Admin/Admin";
 import Analysis from "./pages/Admin/Analysis";
-import Products from "./pages/Admin/Products";
 import Categories from "./pages/Admin/Categories";
 import Dashboard from "./pages/Admin/Dashboard";
-import Admin from "./pages/Admin/Admin";
+import Products from "./pages/Admin/AdminProducts";
+import Users from "./pages/Admin/Users";
+import Sizes from "./pages/Admin/Sizes";
+import Colors from "./pages/Admin/Colors";
+import AdminAccount from "./pages/Admin/Account";
+import CreateProduct from "./pages/Admin/CreateProduct";
+
+import Account from "./pages/User/Account";
+import AuthSuccess from "./pages/User/AuthSuccess";
+import Checkout from "./pages/User/Checkout";
+import EmailVerify from "./pages/User/EmailVerify";
+import ForgotPassword from "./pages/User/ForgotPassword";
+import Home from "./pages/User/Home";
+import OrderCompleted from "./pages/User/OrderCompleted";
+import ProductDetails from "./pages/User/ProductDetails";
+import SetNewPassword from "./pages/User/SetNewPassword";
+import Shop from "./pages/User/Shop";
+import ShoppingCart from "./pages/User/ShoppingCart";
+import SignIn from "./pages/User/SignIn";
+import SignUp from "./pages/User/SignUp";
+import VerifyCode from "./pages/User/VerifyCode";
 
 import Header from "./components/Header";
-import ProtectedRoute from "./components/ProtectedRoute";
+import SideBar from "./components/SideBar";
+import AdminProductDetails from "./pages/Admin/AdminProductDetails";
+import UpdateProduct from "./pages/Admin/AdminUpdateProduct";
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
   const noHeaderRoutes = [
     "/login",
     "/signup",
-    "/forgot-password",
-    "/verify-code",
-    "/set-password",
+    "/forgotPassword",
+    "/verifyCode",
+    "/setPassword",
     "/admin",
   ];
 
@@ -57,19 +71,19 @@ function App() {
       case "/checkout":
         document.title = "Checkout";
         break;
-      case "/order-completed":
+      case "/orderCompleted":
         document.title = "Order Completed";
         break;
       case "/account":
         document.title = "Account";
         break;
-      case "/forgot-password":
+      case "/forgotPassword":
         document.title = "Forgot Password";
         break;
-      case "/verify-code":
+      case "/verifyCode":
         document.title = "Verify Code";
         break;
-      case "/set-password":
+      case "/setPassword":
         document.title = "Set New Password";
         break;
       default:
@@ -77,10 +91,18 @@ function App() {
     }
   }, [location]);
 
+  const AdminRedirect = () => {
+    const location = useLocation();
+    return location.pathname === "/admin" ? (
+      <Navigate to="/admin/dashboard" />
+    ) : null;
+  };
+
   return (
     <div>
-      {!noHeaderRoutes.includes(location.pathname) && <Header /> &&
-        !location.pathname.startsWith("/verify") && <Header />}
+      {!noHeaderRoutes.includes(location.pathname) &&
+        !location.pathname.startsWith("/admin") && <Header />}
+      <AdminRedirect />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Shop />} />
@@ -90,12 +112,38 @@ function App() {
         <Route path="/cart" element={<ShoppingCart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/products/details/:id" element={<ProductDetails />} />
-        <Route path="/order-completed" element={<OrderCompleted />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-code" element={<VerifyCode />} />
+        <Route path="/orderCompleted" element={<OrderCompleted />} />
+        <Route path="/forgotPassword" element={<ForgotPassword />} />
+        <Route path="/verifyCode" element={<VerifyCode />} />
         <Route path="/account" element={<Account />} />
-        <Route path="/set-password" element={<SetNewPassword />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/success/*" element={<AuthSuccess />} />
+        <Route path="/setPassword" element={<SetNewPassword />} />
+        <Route
+          path="/admin"
+          element={
+            <div className="admin">
+              <Admin />
+            </div>
+          }
+        >
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="products" element={<Products />} />
+          <Route path="/admin/products/create" element={<CreateProduct />} />
+          <Route
+            path="/admin/products/details/:id"
+            element={<AdminProductDetails />}
+          />
+          <Route
+            path="/admin/products/update/:id"
+            element={<UpdateProduct />}
+          />
+          <Route path="categories" element={<Categories />} />
+          <Route path="analysis" element={<Analysis />} />
+          <Route path="users" element={<Users />} />
+          <Route path="sizes" element={<Sizes />} />
+          <Route path="colors" element={<Colors />} />
+          <Route path="account" element={<AdminAccount />} />
+        </Route>
       </Routes>
     </div>
   );

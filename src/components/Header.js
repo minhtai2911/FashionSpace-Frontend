@@ -2,24 +2,59 @@ import { useContext, useState, useEffect, useRef } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Cookies from "js-cookie";
 
-import { products } from "../data/products";
+import { getAllProducts } from "../data/products";
+import { formatURL } from "../utils/formatURL";
+import { getAllImagesByProductId } from "../data/productImages";
 function Header() {
-  const { isAuthenticated, logout } = useContext(AuthContext);
+  const { isAuthenticated, logout, getUserById, user, setUser } =
+    useContext(AuthContext);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [products, setProducts] = useState([]);
   const carts = useSelector((store) => store.cart.items);
   const modalRef = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const userId = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const fetchedProducts = await getAllProducts();
+      const updatedProducts = await Promise.all(
+        fetchedProducts.map(async (product) => {
+          const images = await getAllImagesByProductId(product._id);
+          return {
+            ...product,
+            imagePath: images[0].imagePath,
+          };
+        })
+      );
+      setProducts(updatedProducts);
+    };
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (userId) {
+        const userData = await getUserById(userId.id);
+        if (userData) {
+          setUser(userData);
+        }
+      }
+    };
+    fetchUserData();
+  }, [userId, getUserById, setUser]);
 
   useEffect(() => {
     let total = 0;
     carts.forEach((cart) => (total += cart.quantity));
     setTotalQuantity(total);
-  });
+  }, [carts]);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -69,10 +104,8 @@ function Header() {
   };
 
   const filteredProducts = searchQuery
-    ? products.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchQuery.toLowerCase())
+    ? products.filter((product) =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
   return (
@@ -189,13 +222,13 @@ function Header() {
             {isAuthenticated ? (
               <div className="relative" ref={dropdownRef}>
                 <button
-                  className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-gray-600"
+                  className="flex text-sm rounded-full md:me-0 focus:ring-gray-600"
                   type="button"
                   onClick={toggleDropdown}
                 >
                   <img
                     className="w-8 h-8 rounded-full"
-                    src="/docs/images/people/profile-picture-3.jpg"
+                    src={formatURL(user?.avatarPath)}
                     alt="user photo"
                   />
                 </button>
@@ -204,6 +237,10 @@ function Header() {
                     isDropdownOpen ? "block" : "hidden"
                   } bg-white rounded-lg shadow-[0_1px_3px_0_rgba(0,0,0,0.3)] w-32`}
                 >
+                  <div className="px-4 py-2 text-sm text-gray-700">
+                    Hello, {user?.fullName?.split(" ").pop()}
+                  </div>
+                  <hr className="mx-4" />
                   <ul className="pt-2 text-sm text-gray-700 text-gray-200">
                     <li>
                       <Link
@@ -360,14 +397,14 @@ function Header() {
                 style={{ boxShadow: "0 1rem 1rem rgba(0, 0, 0, .2)" }}
               >
                 {filteredProducts.map((product) => (
-                  <div key={product.id}>
+                  <div key={product._id}>
                     <Link
-                      to={`/products/details/${product.id}`}
+                      to={`/products/details/${product._id}`}
                       onClick={closeSearchModal}
                     >
                       <div className="flex items-center px-3 py-2 hover:bg-gray-100">
                         <img
-                          // src={product.images[0].image_path}
+                          src={formatURL(product.imagePath)}
                           alt={product.name}
                           className="w-10 h-10 rounded-full"
                         />

@@ -1,20 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import useAxios from "../../services/useAxios";
-import axios from "axios";
-import LoadingOverlay from "../../components/LoadingOverlay";
+import Cookies from "js-cookie";
 import toast from "react-hot-toast";
+import instance from "../../services/axiosConfig";
 
 function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const authTokens = localStorage.getItem("authTokens")
-    ? JSON.parse(localStorage.getItem("authTokens"))
-    : null;
-  const api = useAxios();
 
   const sendOtpAndNavigate = async () => {
-    const otpResponse = await api.post(
+    const otpResponse = await instance.post(
       "/auth/generateOTP",
       { email: email },
       {
@@ -26,7 +21,7 @@ function ForgotPassword() {
     const { otp } = otpResponse.data;
 
     if (otpResponse.status === 200) {
-      const sendMail = await api.post(
+      const sendMail = await instance.post(
         "/auth/sendOTP",
         { email: email, OTP: otp },
         {
@@ -36,7 +31,7 @@ function ForgotPassword() {
         }
       );
       if (sendMail.status === 200) {
-        navigate("/verify-code", { state: { email } });
+        navigate("/verifyCode", { state: { email } });
       }
     }
   };
@@ -48,7 +43,7 @@ function ForgotPassword() {
     }
 
     try {
-      const response = await api.post(
+      const response = await instance.post(
         "/auth/checkEmail",
         { email: email },
         {

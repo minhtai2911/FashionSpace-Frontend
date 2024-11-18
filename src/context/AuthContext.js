@@ -3,37 +3,14 @@ import { useNavigate } from "react-router-dom";
 import instance from "../services/axiosConfig";
 import { jwtDecode } from "jwt-decode";
 import toast from "react-hot-toast";
-import useAxios from "../services/useAxios";
+import Cookies from "js-cookie";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authTokens, setAuthTokens] = useState(() => {
-    const tokens = localStorage.getItem("authTokens");
-    return tokens ? JSON.parse(tokens) : null;
-  });
-  const [user, setUser] = useState(() =>
-    authTokens ? jwtDecode(authTokens.accessToken) : null
-  );
+  const [user, setUser] = useState();
   const navigate = useNavigate();
-
-  // Utility function to set auth tokens
-  const setTokens = (tokens) => {
-    localStorage.removeItem("authTokens");
-
-    // Check if tokens have the correct format, if not, extract the nested values
-    const formattedTokens = {
-      accessToken:
-        typeof tokens.accessToken === "string"
-          ? tokens.accessToken
-          : tokens.accessToken?.accessToken,
-      refreshToken: tokens.refreshToken || tokens.accessToken?.refreshToken,
-    };
-
-    setAuthTokens(formattedTokens);
-    localStorage.setItem("authTokens", JSON.stringify(formattedTokens));
-  };
 
   const signup = async (email, fullName, phone, password) => {
     try {
@@ -76,72 +53,87 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    if (!isAuthenticated) {
-      return;
-    }
-
     try {
-      const accessToken = authTokens?.accessToken;
-
+      const refreshToken = Cookies.get("refreshToken");
+      const response = await instance.post(
+        "/auth/refreshToken",
+        {
+          refreshToken: refreshToken,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      const accessToken = response.data.accessToken;
       if (accessToken) {
-        await instance.post(
-          "/auth/logout",
-          {},
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        const response = await instance.post("/auth/logout", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        if (response.status === 200) {
+          setIsAuthenticated(false);
+          setUser(null);
+          localStorage.removeItem("carts");
+          Cookies.remove("accessToken");
+          Cookies.remove("refreshToken");
+          Cookies.remove("user");
+          toast.success("Log out successfully", { duration: 2000 });
+          navigate("/login");
+        }
       }
-      setIsAuthenticated(false);
-      setAuthTokens(null);
-      setUser(null);
-      localStorage.removeItem("authTokens");
-      localStorage.removeItem("user");
-      toast.success("Log out successfully", { duration: 2000 });
-      navigate("/");
     } catch (error) {
-      console.error("Logout error:", error.message);
+      console.log(error);
       toast.error(error?.response?.data?.message || "Failed to log out", {
         duration: 2000,
       });
     }
   };
 
-  const getRoleName = async (id) => {
+  const getUserById = async (id) => {
     try {
-      const response = await instance.get(`/userRole/${id}`, {
+      const refreshToken = Cookies.get("refreshToken");
+      const tokenResponse = await instance.post(
+        "/auth/refreshToken",
+        { refreshToken: refreshToken },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const accessToken = tokenResponse.data.accessToken;
+      const response = await instance.get(`/user/${id}`, {
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
       });
-      return response.data.roleName;
-    } catch (error) {}
+      return response.data;
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const contextData = {
     user: user,
-    authTokens: authTokens,
-    setAuthTokens: setTokens,
     setIsAuthenticated: setIsAuthenticated,
     isAuthenticated: isAuthenticated,
-    getRoleName: getRoleName,
     setUser: setUser,
     signup: signup,
     logout: logout,
+    getUserById: getUserById,
   };
 
   useEffect(() => {
-    if (authTokens) {
-      setUser(jwtDecode(authTokens.accessToken));
+    const accessToken = Cookies.get("accessToken");
+    if (accessToken) {
+      setUser(jwtDecode(accessToken));
       setIsAuthenticated(true);
     } else {
       setUser(null);
       setIsAuthenticated(false);
     }
-  }, [authTokens]);
+  }, []);
 
   return (
     <AuthContext.Provider value={contextData}>{children}</AuthContext.Provider>
