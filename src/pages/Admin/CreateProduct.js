@@ -122,7 +122,7 @@ export default function CreateProduct() {
   };
 
   return (
-    <div className="p-10 w-9/12">
+    <div className="p-10 w-full">
       <p className="font-extrabold text-xl">Products / Create</p>
       <div className="bg-white rounded-lg mt-10 p-5 flex flex-col gap-y-5">
         <p className="font-extrabold text-base">Create new product</p>

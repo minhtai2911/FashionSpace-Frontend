@@ -8,9 +8,11 @@ import Categories from "./Categories";
 import Analysis from "./Analysis";
 export default function Admin() {
   return (
-    <div className="bg-[#F9F9F9] flex flex-row gap-x-10 admin-font">
+    <div className="bg-[#F9F9F9] flex flex-row admin-font h-screen">
       <SideBar />
-      <Outlet />
+      <div className="overflow-y-auto flex-1">
+        <Outlet />
+      </div>
     </div>
   );
 }

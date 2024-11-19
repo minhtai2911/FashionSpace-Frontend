@@ -186,7 +186,7 @@ export default function SideBar() {
   const { logout } = useContext(AuthContext);
 
   return (
-    <div className="flex flex-col w-2/12 bg-white h-screen pl-10 pt-10 justify-between relative overflow-y-auto">
+    <div className="flex flex-col w-2/12 bg-white h-screen pl-10 pt-10 justify-between overflow-y-auto">
       <div>
         <div className="flex flex-row gap-x-2 items-center mb-10">
           <svg
