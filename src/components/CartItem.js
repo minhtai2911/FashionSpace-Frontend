@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAllProducts } from "../data/products";
+import { getAllProducts, getProductById } from "../data/products";
 import { getAllImagesByProductId } from "../data/productImages";
 import { getCategoryById } from "../data/categories";
 import { useDispatch } from "react-redux";
@@ -9,24 +9,15 @@ import { getColorById } from "../data/colors";
 import { getSizeById } from "../data/sizes";
 
 function CartItem(props) {
-  const {
-    productId,
-    name,
-    price,
-    quantity,
-    categoryId,
-    colorId,
-    sizeId,
-    image,
-  } = props.data;
+  const { productId, quantity, colorId, sizeId } = props.data;
   const [products, setProducts] = useState([]);
   const [productData, setProductData] = useState([]);
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
-  const [category, setCategory] = useState("");
+  const [image, setImage] = useState("");
+  const [productName, setProductName] = useState("");
+  const [price, setPrice] = useState("");
   const dispatch = useDispatch();
-
-  console.log(props.data);
 
   // useEffect(() => {
   //   const fetchProductData = async () => {
@@ -57,6 +48,18 @@ function CartItem(props) {
   //   setDetail(findDetail);
   // }, [productId, color, size]);
   useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const product = await getProductById(productId);
+        const images = await getAllImagesByProductId(productId);
+        setProductName(product.name);
+        setPrice(product.price);
+        setImage(images[0].imagePath);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     const fetchColor = async () => {
       try {
         const color = await getColorById(colorId);
@@ -77,9 +80,10 @@ function CartItem(props) {
       }
     };
 
+    fetchProductData();
     fetchColor();
     fetchSize();
-  }, [categoryId, colorId, sizeId]);
+  }, [productId, colorId, sizeId]);
 
   const handleMinusQuantity = () => {
     dispatch(
@@ -112,7 +116,7 @@ function CartItem(props) {
           className="h-24 w-24 object-cover"
         />
         <div>
-          <h2 className="font-medium text-lg">{name}</h2>
+          <h2 className="font-medium text-lg">{productName}</h2>
           <p className="font-light">
             Color: {color} | Size: {size}
           </p>

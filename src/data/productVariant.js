@@ -12,6 +12,30 @@ export const getProductVariantsByProductId = async (productId) => {
   }
 };
 
+export const getProductVariantById = async (id) => {
+  try {
+    const response = await instance.get(`/productVariant/${id}`);
+    return response.data;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const getProductVariantByProductIdColorIdSizeId = async (
+  productId,
+  colorId,
+  sizeId
+) => {
+  try {
+    const response = await instance.get(
+      `/productVariant/${productId}/${colorId}/${sizeId}`
+    );
+    return response.data;
+  } catch (error) {
+    return null;
+  }
+};
+
 export const createProductVariant = async (
   productId,
   sizeId,
@@ -111,6 +135,33 @@ export const deleteProductVariant = async (id) => {
     );
     const accessToken = tokenResponse.data.accessToken;
     const response = await instance.delete(`/productVariant/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const deleteProductVariantsByProductId = async (id) => {
+  const refreshToken = Cookies.get("refreshToken");
+  try {
+    const tokenResponse = await instance.post(
+      "/auth/refreshToken",
+      {
+        refreshToken: refreshToken,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const accessToken = tokenResponse.data.accessToken;
+    const response = await instance.delete(`/productVariant/productId/${id}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

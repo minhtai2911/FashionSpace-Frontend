@@ -11,16 +11,7 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart(state, action) {
-      const {
-        productId,
-        name,
-        categoryId,
-        price,
-        quantity,
-        sizeId,
-        colorId,
-        image,
-      } = action.payload;
+      const { productId, quantity, sizeId, colorId } = action.payload;
       const indexProductId = state.items.findIndex(
         (item) =>
           item.productId === productId &&
@@ -32,13 +23,9 @@ const cartSlice = createSlice({
       } else {
         state.items.push({
           productId,
-          name,
-          categoryId,
-          price,
           quantity,
           sizeId,
           colorId,
-          image,
         });
       }
       localStorage.setItem("carts", JSON.stringify(state.items));

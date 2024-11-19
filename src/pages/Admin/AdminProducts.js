@@ -2,13 +2,27 @@ import { useState, useEffect } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { Table } from "flowbite-react";
 
-import { getAllProducts } from "../../data/products";
+import { deleteProduct, getAllProducts } from "../../data/products";
 import { getCategoryById } from "../../data/categories";
 import Search from "../../components/Search";
+import { deleteProductImagesByProductId } from "../../data/productImages";
+import { deleteProductVariantsByProductId } from "../../data/productVariant";
+import toast from "react-hot-toast";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
+
+  const handleDeleteProduct = async (productId) => {
+    try {
+      const deleteImage = await deleteProductImagesByProductId(productId);
+      const deleteVariant = await deleteProductVariantsByProductId(productId);
+      const deleteProductResponse = await deleteProduct(productId);
+      toast.success("Delete product successfully", { duration: 2000 });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -110,9 +124,9 @@ export default function Products() {
                             <p className="text-blue-600">Edit</p>
                           </div>
                         </Link>
-                        <a
-                          href="#"
+                        <button
                           className="font-medium text-[#EF0606] hover:underline"
+                          onClick={() => handleDeleteProduct(product._id)}
                         >
                           <div className="flex flex-row gap-x-1 items-center">
                             <svg
@@ -131,7 +145,7 @@ export default function Products() {
                             </svg>
                             <p className="text-[#EF0606]">Delete</p>
                           </div>
-                        </a>
+                        </button>
                       </div>
                     </Table.Cell>
                   </Table.Row>

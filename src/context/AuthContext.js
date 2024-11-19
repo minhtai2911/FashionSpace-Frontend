@@ -4,12 +4,17 @@ import instance from "../services/axiosConfig";
 import { jwtDecode } from "jwt-decode";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
+import { useSelector, useDispatch } from "react-redux";
+import { clearCart } from "../stores/cart";
+import { getProductVariantByProductIdColorIdSizeId } from "../data/productVariant";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState();
+  const carts = useSelector((state) => state.cart.items);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const signup = async (email, fullName, phone, password) => {
@@ -52,6 +57,46 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const createCart = async (carts) => {
+    console.log(carts);
+    try {
+      const refreshToken = Cookies.get("refreshToken");
+      const response = await instance.post(
+        "/auth/refreshToken",
+        {
+          refreshToken: refreshToken,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      const accessToken = response.data.accessToken;
+      const cartResponse = await Promise.all(
+        carts.map(async (cart) => {
+          const variantResponse =
+            await getProductVariantByProductIdColorIdSizeId(
+              cart.productId,
+              cart.colorId,
+              cart.sizeId
+            );
+          const response = await instance.post(
+            "/shoppingCart",
+            {
+              productVariantId: variantResponse._id,
+              quantity: cart.quantity,
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+        })
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const logout = async () => {
     try {
       const refreshToken = Cookies.get("refreshToken");
@@ -73,6 +118,8 @@ export const AuthProvider = ({ children }) => {
         if (response.status === 200) {
           setIsAuthenticated(false);
           setUser(null);
+          await createCart(carts);
+          dispatch(clearCart());
           localStorage.removeItem("carts");
           Cookies.remove("accessToken");
           Cookies.remove("refreshToken");

@@ -53,4 +53,44 @@ export const getUserById = async (id) => {
   }
 };
 
-export const createUser = async (data) => {};
+export const createUser = async (
+  email,
+  fullName,
+  phone,
+  password,
+  roleName
+) => {
+  const refreshToken = Cookies.get("refreshToken");
+  try {
+    const tokenResponse = await instance.post(
+      "/auth/refreshToken",
+      {
+        refreshToken: refreshToken,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const accessToken = tokenResponse.data.accessToken;
+    const response = await instance.post(
+      "/user",
+      {
+        email: email,
+        fullName: fullName,
+        phone: phone,
+        password: password,
+        roleName: roleName,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return null;
+  }
+};

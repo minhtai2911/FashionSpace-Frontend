@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Modal, Button } from "flowbite-react";
@@ -11,6 +11,7 @@ import CartItem from "../../components/CartItem.js";
 import Banner from "../../components/Banner";
 import CheckBox from "../../components/CheckBox.js";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { getProductById } from "../../data/products.js";
 
 function ShoppingCart() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -21,18 +22,7 @@ function ShoppingCart() {
   const [selectedItems, setSelectedItems] = useState({});
   const [type, setType] = useState("");
   const [openModal, setOpenModal] = useState(false);
-
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     const guestCart = JSON.parse(localStorage.getItem("carts")) || [];
-  //     if (guestCart.length > 0) {
-  //       dispatch(mergeCart(guestCart));
-  //       localStorage.removeItem("carts");
-  //     }
-  //   }
-  // }, [isAuthenticated]);
-
-  console.log(carts);
+  const [subTotal, setSubTotal] = useState(0);
 
   const selectedCartItems = carts.filter(
     (product) =>
@@ -43,13 +33,30 @@ function ShoppingCart() {
     (acc, product) => acc + product.quantity,
     0
   );
-  const subTotal = selectedCartItems.reduce(
-    (acc, product) => acc + product.price * product.quantity,
-    0
+
+  useEffect(() => {
+    const calculateOrderSummary = async () => {
+      const data = await Promise.all(
+        selectedCartItems.map(async (cart) => {
+          const product = await getProductById(cart.productId);
+          return cart.quantity * product.price;
+        })
+      );
+      setSubTotal(data.reduce((acc, curr) => acc + curr, 0));
+    };
+
+    calculateOrderSummary();
+  }, [selectedCartItems]);
+
+  const taxes = useMemo(() => subTotal * 0.1, [subTotal]);
+  const shipping = useMemo(
+    () => (subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : 5),
+    [subTotal]
   );
-  const shipping = subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : 5;
-  const taxes = subTotal * 0.1;
-  const totalPrice = subTotal + shipping + taxes;
+  const totalPrice = useMemo(
+    () => subTotal + shipping + taxes,
+    [subTotal, shipping, taxes]
+  );
 
   const handleCheckboxChange = (productId, colorId, sizeId) => {
     const key = `${productId}-${colorId}-${sizeId}`;
@@ -65,9 +72,8 @@ function ShoppingCart() {
 
   const handleRemoveSelectedItems = () => {
     Object.keys(selectedItems).forEach((key) => {
-      const [productId, colorId, sizeId] = key.split("-"); // Split the key to get IDs
+      const [productId, colorId, sizeId] = key.split("-");
       if (selectedItems[key]) {
-        // Check if the item is selected
         dispatch(removeItem({ productId, colorId, sizeId }));
       }
     });
@@ -105,8 +111,6 @@ function ShoppingCart() {
       }
     }
   };
-
-  console.log({ carts });
 
   return (
     <>
@@ -160,7 +164,7 @@ function ShoppingCart() {
                             !!selectedItems[
                               `${product.productId}-${product.colorId}-${product.sizeId}`
                             ]
-                          } // Check if selected
+                          }
                           onChange={() =>
                             handleCheckboxChange(
                               product.productId,

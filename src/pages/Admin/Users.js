@@ -3,9 +3,10 @@ import { Table, Modal, Label, TextInput, Button } from "flowbite-react";
 import { Dropdown } from "flowbite-react";
 import { Clock8 } from "lucide-react";
 
-import { getAllUsers } from "../../data/users";
-import { getUserRoleById } from "../../data/userRoles";
+import { createUser, getAllUsers } from "../../data/users";
+import { getAllUserRoles, getUserRoleById } from "../../data/userRoles";
 import Search from "../../components/Search";
+import toast from "react-hot-toast";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -14,7 +15,8 @@ export default function Users() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [roleId, setRoleId] = useState(1);
+  const [userRoles, setUserRoles] = useState([]);
+  const [userRole, setUserRole] = useState("");
 
   function onCloseModal() {
     setOpenModal(false);
@@ -39,10 +41,44 @@ export default function Users() {
       }
     };
 
+    const fetchUserRoles = async () => {
+      try {
+        const fetchedUserRoles = await getAllUserRoles();
+        setUserRoles(fetchedUserRoles);
+      } catch (error) {
+        console.error("Error fetching user roles:", error);
+      }
+    };
+
     fetchUsers();
+    fetchUserRoles();
   }, []);
 
-  const handleCreateUser = async () => {};
+  const handleCreateUser = async () => {
+    try {
+      console.log({ email, fullName, phone, password, userRole });
+      const createdUser = await createUser(
+        email,
+        fullName,
+        phone,
+        password,
+        userRole
+      );
+      toast.success("Create user successfully", { duration: 2000 });
+      setUsers([...users, createdUser]);
+      setEmail("");
+      setFullName("");
+      setPhone("");
+      setPassword("");
+      setUserRole("");
+      setOpenModal(false);
+    } catch (error) {
+      console.log(error);
+      toast.error("Error creating user:" + error.response.data.message, {
+        duration: 2000,
+      });
+    }
+  };
 
   return (
     <>
@@ -291,7 +327,7 @@ export default function Users() {
               <input
                 id="email"
                 value={email}
-                className="w-full font-semibold px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
@@ -303,7 +339,7 @@ export default function Users() {
               <input
                 id="fullName"
                 value={fullName}
-                className="w-full font-semibold px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
                 onChange={(e) => setFullName(e.target.value)}
                 required
               />
@@ -315,7 +351,7 @@ export default function Users() {
               <input
                 id="phone"
                 value={phone}
-                className="w-full font-semibold px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
                 onChange={(e) => setPhone(e.target.value)}
                 required
               />
@@ -326,8 +362,9 @@ export default function Users() {
               </p>
               <input
                 id="password"
+                type="password"
                 value={password}
-                className="w-full font-semibold px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
@@ -336,16 +373,26 @@ export default function Users() {
               <p className="font-manrope font-semibold">
                 Role <b className="text-[#EF0606]">*</b>
               </p>
-              <input
+              <select
                 id="role"
-                value={roleId}
-                className="w-full font-semibold px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
-                onChange={(e) => setRoleId(e.target.value)}
+                value={userRole}
+                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                onChange={(e) => setUserRole(e.target.value)}
                 required
-              />
+              >
+                <option value="">Choose Role</option>
+                {userRoles.map((role) => (
+                  <option key={role._id} value={role.roleName}>
+                    {role.roleName}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="w-full flex justify-center">
-              <button className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope">
+              <button
+                className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
+                onClick={handleCreateUser}
+              >
                 Create User
               </button>
             </div>

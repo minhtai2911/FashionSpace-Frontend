@@ -7,11 +7,18 @@ import { AuthContext } from "../../context/AuthContext";
 import CheckBox from "../../components/CheckBox";
 import { jwtDecode } from "jwt-decode";
 import instance from "../../services/axiosConfig";
+import { useDispatch, useSelector } from "react-redux";
+import { mergeCart } from "../../stores/cart";
+import { getShoppingCartByUserId } from "../../data/shoppingCart";
+import { getProductVariantById } from "../../data/productVariant";
 
 function SignIn() {
   const { setUser, isAuthenticated, setIsAuthenticated } =
     useContext(AuthContext);
   const navigate = useNavigate();
+  const carts = useSelector((state) => state.cart.items);
+  const [userCart, setUserCart] = useState([]);
+  const dispatch = useDispatch();
   const location = useLocation();
   const [data, setData] = useState({
     email: "",
@@ -21,6 +28,38 @@ function SignIn() {
   if (isAuthenticated) {
     navigate("/");
   }
+
+  // const fetchCart = async (userId) => {
+  //   try {
+  //     const response = await getShoppingCartByUserId(userId);
+  //     console.log(response);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.log(error);
+  //     return null;
+  //   }
+  // };
+
+  const mergeUserCart = async (userId) => {
+    try {
+      const userCartData = await getShoppingCartByUserId(userId);
+      if (userCartData) {
+        const data = await Promise.all(
+          userCartData.map(async (cart) => {
+            const variant = await getProductVariantById(cart.productVariantId);
+            const productId = variant.productId;
+            const sizeId = variant.sizeId;
+            const colorId = variant.colorId;
+            const quantity = cart.quantity;
+            return { productId, sizeId, colorId, quantity };
+          })
+        );
+        dispatch(mergeCart(data));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const login = async (email, password) => {
     try {
@@ -42,6 +81,7 @@ function SignIn() {
       Cookies.set("accessToken", accessToken);
       Cookies.set("refreshToken", refreshToken);
       Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
+      mergeUserCart(response.data._id);
     } catch (error) {
       setIsAuthenticated(false);
       if (error.status === 400) {

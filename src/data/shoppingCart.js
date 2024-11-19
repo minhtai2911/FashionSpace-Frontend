@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 export const getShoppingCartByUserId = async (userId) => {
   const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.get(
+    const tokenResponse = await instance.post(
       "/auth/refreshToken",
       {
         refreshToken: refreshToken,
@@ -16,7 +16,7 @@ export const getShoppingCartByUserId = async (userId) => {
       }
     );
     const accessToken = tokenResponse.data.accessToken;
-    const response = await instance.post(
+    const response = await instance.get(
       "/shoppingCart/get/userId",
       { userId: userId },
       {

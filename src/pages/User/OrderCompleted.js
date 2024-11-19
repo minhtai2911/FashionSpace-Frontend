@@ -1,65 +1,49 @@
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 import Banner from "../../components/Banner";
 import { FREE_SHIPPING, SHIPPING_RATE, TAX_RATE } from "../../utils/Constants";
-
-const order = {
-  _id: "order1",
-  orderId: "AFS1239",
-  paymentMethod: "COD",
-  totalPayment: 1055.0,
-  deliveryDate: "12 Sep 2024",
-  status: "Accepted",
-  items: [
-    {
-      productId: "product1",
-      name: "Mini Skirt",
-      color: "Black",
-      size: "XL",
-      price: 15,
-      quantity: 4,
-      imageUrl: "https://picsum.photos/200/300?random=1",
-    },
-    {
-      productId: "product2",
-      name: "Mini Skirt",
-      color: "Black",
-      size: "XL",
-      price: 20,
-      quantity: 1,
-      imageUrl: "https://picsum.photos/200/300?random=2",
-    },
-    {
-      productId: "product3",
-      name: "Mini Skirt",
-      color: "Black",
-      size: "XL",
-      price: 50,
-      quantity: 2,
-      imageUrl: "https://picsum.photos/200/300?random=3",
-    },
-    {
-      productId: "product4",
-      name: "Mini Skirt",
-      color: "Black",
-      size: "XL",
-      price: 10,
-      quantity: 3,
-      imageUrl: "https://picsum.photos/200/300?random=4",
-    },
-  ],
-};
+import { getProductById } from "../../data/products";
+import { getSizeById } from "../../data/sizes";
+import { getColorById } from "../../data/colors";
+import { getAllImagesByProductId } from "../../data/productImages";
+import { formatURL } from "../../utils/formatURL";
 
 function OrderCompleted() {
   const location = useLocation();
   const { orderSummary } = location.state;
-  const calculateSubtotal = (items) => {
-    return items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  };
-  const subTotal = calculateSubtotal(orderSummary.items);
-  const shipping = subTotal >= FREE_SHIPPING ? 0 : subTotal * SHIPPING_RATE;
-  const taxes = subTotal * TAX_RATE;
-  const total = subTotal + taxes + shipping;
+  const items = orderSummary.items;
+  console.log(items);
+  const subTotal = orderSummary.subTotal;
+  const shipping = orderSummary.shipping;
+  const taxes = orderSummary.taxes;
+  const total = orderSummary.totalPrice;
+
+  const [detailedItems, setDetailedItems] = useState([]);
+
+  useEffect(() => {
+    const fetchItemDetails = async () => {
+      const fetchedItems = await Promise.all(
+        items.map(async (item) => {
+          const product = await getProductById(item.productId);
+          const size = await getSizeById(item.sizeId);
+          const color = await getColorById(item.colorId);
+          const images = await getAllImagesByProductId(item.productId);
+          return {
+            ...item,
+            product,
+            size,
+            color,
+            images,
+          };
+        })
+      );
+      setDetailedItems(fetchedItems);
+    };
+
+    fetchItemDetails();
+  }, [items]);
+
   return (
     <div>
       <Banner
@@ -123,27 +107,29 @@ function OrderCompleted() {
               <td className="font-medium pt-4 text-center">Quantity</td>
               <td className="font-medium pt-4 pr-10 text-right">Sub Total</td>
             </tr>
-            {orderSummary.items.map((item) => (
-              <tr>
+            {detailedItems.map((item) => (
+              <tr key={item.product.productId}>
                 <td className="px-10 pt-4">
-                  <div key={item.productId} className="flex items-center">
+                  <div className="flex items-center">
                     <img
-                      src={item.image}
-                      alt={item.name}
+                      src={formatURL(item.images[0].imagePath)}
+                      alt={item.product.name}
                       className="w-16 h-16 mr-4"
                     />
                     <div>
-                      <p className="font-medium">{item.name}</p>
+                      <p className="font-medium">{item.product.name}</p>
                       <p className="font-light">
-                        Color: {item.color} | Size: {item.size}
+                        Color: {item.color.color} | Size: {item.size.size}
                       </p>
                     </div>
                   </div>
                 </td>
-                <td className="pt-4">${parseFloat(item.price).toFixed(2)}</td>
+                <td className="pt-4">
+                  ${parseFloat(item.product.price).toFixed(2)}
+                </td>
                 <td className="pt-4 text-center">{item.quantity}</td>
                 <td className="pt-4 px-10 text-right">
-                  ${parseFloat(item.price * item.quantity).toFixed(2)}
+                  ${parseFloat(item.product.price * item.quantity).toFixed(2)}
                 </td>
               </tr>
             ))}
