@@ -124,7 +124,7 @@ export default function CreateProduct() {
   return (
     <div className="p-10 w-full">
       <p className="font-extrabold text-xl">Products / Create</p>
-      <div className="bg-white rounded-lg mt-10 p-5 flex flex-col gap-y-5">
+      <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col gap-y-5">
         <p className="font-extrabold text-base">Create new product</p>
         <div className="flex flex-row gap-x-10 px-10 justify-between ">
           {photos.length === 0 && (

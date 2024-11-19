@@ -84,7 +84,7 @@ export default function Users() {
     <>
       <div className="p-10 w-full">
         <p className="font-extrabold text-xl">Users</p>
-        <div className="bg-white rounded-lg mt-10 p-5 flex flex-col">
+        <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
               {/* <button

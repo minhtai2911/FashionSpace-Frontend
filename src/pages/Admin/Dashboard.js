@@ -221,7 +221,7 @@ export default function Dashboard() {
         />
       </div>
       <div className="flex flex-row mt-5 gap-x-5">
-        <div className="flex-[2] p-6 bg-white border border-gray-200 rounded-lg shadow-md flex flex-col gap-y-2">
+        <div className="flex-[2] p-6 bg-white rounded-lg shadow-md flex flex-col gap-y-2">
           <p className="font-bold">Revenue</p>
           <p className="text-2xl font-bold">$1,234,567</p>
           <ResponsiveContainer width="100%" height={250}>
@@ -261,11 +261,11 @@ export default function Dashboard() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex-1 p-6 bg-white border border-gray-200 rounded-lg shadow-md flex flex-col gap-y-2">
+        <div className="flex-1 p-6 bg-white rounded-lg shadow-md flex flex-col gap-y-2">
           <p className="font-bold">Best Seller Products</p>
         </div>
       </div>
-      <div className="flex-1 p-6 mt-5 bg-white border border-gray-200 rounded-lg shadow-md flex flex-col gap-y-2">
+      <div className="flex-1 p-6 mt-5 bg-white rounded-lg shadow-md flex flex-col gap-y-2">
         <p className="font-bold">Recent Orders</p>
       </div>
     </div>
