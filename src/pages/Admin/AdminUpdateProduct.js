@@ -23,7 +23,7 @@ import {
   updateProductImageById,
 } from "../../data/productImages";
 import toast from "react-hot-toast";
-import { formatURL } from "../../utils/formatURL";
+import { formatURL } from "../../utils/format";
 
 export default function UpdateProduct() {
   const navigate = useNavigate();
@@ -222,8 +222,6 @@ export default function UpdateProduct() {
             )
         )
         .map((existing) => existing._id);
-
-      console.log(variantIdsToDelete);
 
       await Promise.all(
         variantIdsToDelete.map((variantId) => deleteProductVariant(variantId))

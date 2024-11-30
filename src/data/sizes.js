@@ -62,3 +62,30 @@ export const createSize = async (categoryId, size) => {
     return null;
   }
 };
+
+export const deleteSizeById = async (id) => {
+  const refreshToken = Cookies.get("refreshToken");
+  try {
+    const tokenResponse = await instance.post(
+      "/auth/refreshToken",
+      {
+        refreshToken: refreshToken,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const accessToken = tokenResponse.data.accessToken;
+    const response = await instance.delete(`/productSize/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.status === 200;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};

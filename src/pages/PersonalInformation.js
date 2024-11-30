@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 
 import toast from "react-hot-toast";
 import instance from "../services/axiosConfig";
-import { formatURL } from "../utils/formatURL";
+import { formatURL } from "../utils/format";
 
 export default function PersonalInformation({ user }) {
   const [data, setData] = useState({
@@ -15,7 +15,7 @@ export default function PersonalInformation({ user }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
 
-  const fetchUserData = async (userId) => {
+  const fetchUserData = async (id) => {
     const refreshToken = Cookies.get("refreshToken");
     try {
       if (refreshToken) {
@@ -31,7 +31,7 @@ export default function PersonalInformation({ user }) {
           }
         );
         const accessToken = tokenResponse.data.accessToken;
-        const response = await instance.get(`/user/${userId}`, {
+        const response = await instance.get(`/user/${id}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -103,7 +103,7 @@ export default function PersonalInformation({ user }) {
         formData.append("avatarPath", data.avatarFile);
       }
 
-      const response = await instance.put(`/user/${user._id}`, formData, {
+      const response = await instance.put(`/user/${user.id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${accessToken}`,
@@ -133,7 +133,7 @@ export default function PersonalInformation({ user }) {
     const getUserData = async () => {
       if (user && !isLoaded) {
         console.log(user);
-        const userData = await fetchUserData(user._id);
+        const userData = await fetchUserData(user.id);
         if (userData) {
           setData({
             avatarPath: userData.avatarPath || "",

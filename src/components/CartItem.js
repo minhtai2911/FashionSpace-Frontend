@@ -4,7 +4,7 @@ import { getAllImagesByProductId } from "../data/productImages";
 import { getCategoryById } from "../data/categories";
 import { useDispatch } from "react-redux";
 import { changeQuantity } from "../stores/cart";
-import { formatURL } from "../utils/formatURL";
+import { formatURL } from "../utils/format";
 import { getColorById } from "../data/colors";
 import { getSizeById } from "../data/sizes";
 

@@ -94,3 +94,29 @@ export const createUser = async (
     return null;
   }
 };
+
+export const deleteUserById = async (id) => {
+  const refreshToken = Cookies.get("refreshToken");
+  try {
+    const tokenResponse = await instance.post(
+      "/auth/refreshToken",
+      {
+        refreshToken: refreshToken,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const accessToken = tokenResponse.data.accessToken;
+    const response = await instance.delete(`/user/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return null;
+  }
+};

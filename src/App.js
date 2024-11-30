@@ -38,6 +38,11 @@ import Header from "./components/Header";
 import SideBar from "./components/SideBar";
 import AdminProductDetails from "./pages/Admin/AdminProductDetails";
 import UpdateProduct from "./pages/Admin/AdminUpdateProduct";
+import Orders from "./pages/Admin/Orders";
+import Reviews from "./pages/Admin/Reviews";
+import OrderDetails from "./pages/Admin/OrderDetails";
+import UpdateOrder from "./pages/Admin/UpdateOrder";
+import TrackOrder from "./pages/User/TrackOrder";
 
 function App() {
   const location = useLocation();
@@ -115,6 +120,7 @@ function App() {
         <Route path="/orderCompleted" element={<OrderCompleted />} />
         <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/verifyCode" element={<VerifyCode />} />
+        <Route path="/trackOrder/:id" element={<TrackOrder />} />
         <Route path="/account" element={<Account />} />
         <Route path="/success/*" element={<AuthSuccess />} />
         <Route path="/setPassword" element={<SetNewPassword />} />
@@ -141,6 +147,10 @@ function App() {
           <Route path="analysis" element={<Analysis />} />
           <Route path="users" element={<Users />} />
           <Route path="sizes" element={<Sizes />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="/admin/orders/details/:id" element={<OrderDetails />} />
+          <Route path="/admin/orders/update/:id" element={<UpdateOrder />} />
+          <Route path="reviews" element={<Reviews />} />
           <Route path="colors" element={<Colors />} />
           <Route path="account" element={<AdminAccount />} />
         </Route>

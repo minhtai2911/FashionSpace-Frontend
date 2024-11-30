@@ -7,9 +7,6 @@ function VerifyCode() {
   const navigate = useNavigate();
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(60);
-  const authTokens = localStorage.getItem("authTokens")
-    ? JSON.parse(localStorage.getItem("authTokens"))
-    : null;
   const location = useLocation();
   const { email } = location.state;
   const inputRef = useRef(null);

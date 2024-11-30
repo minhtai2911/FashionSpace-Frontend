@@ -89,7 +89,8 @@ export default function CreateProduct() {
         productName,
         description,
         categoryId,
-        price
+        price,
+        0
       );
 
       if (productResponse) {

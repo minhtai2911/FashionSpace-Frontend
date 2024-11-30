@@ -90,17 +90,18 @@ function SignUp() {
                 className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] "
                 placeholder="Enter your name"
                 name="fullName"
+                type="text"
                 value={data.fullName}
                 onChange={handleChange}
               />
             </div>
-            <div className="mt-4 flex flex-row gap-x-10">
+            <div className="mt-4 flex flex-row gap-x-5">
               <div className="flex-1">
                 <p className="font-medium text-base">
                   Email <b className="text-red-500">*</b>
                 </p>
                 <input
-                  className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
+                  className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
                   placeholder="Enter your email"
                   name="email"
                   type="email"
@@ -116,6 +117,7 @@ function SignUp() {
                   className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
                   placeholder="Enter your phone"
                   name="phone"
+                  type="text"
                   value={data.phone}
                   onChange={handleChange}
                 />
@@ -126,7 +128,7 @@ function SignUp() {
                 Password <b className="text-red-500">*</b>
               </p>
               <input
-                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
+                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
                 type="password"
                 name="password"
                 value={data.password}
@@ -138,7 +140,7 @@ function SignUp() {
                 Confirm Password <b className="text-red-500">*</b>
               </p>
               <input
-                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
+                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
                 type="password"
                 name="confirmPassword"
                 value={data.confirmPassword}

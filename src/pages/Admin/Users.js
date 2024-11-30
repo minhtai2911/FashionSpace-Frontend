@@ -3,7 +3,7 @@ import { Table, Modal, Label, TextInput, Button } from "flowbite-react";
 import { Dropdown } from "flowbite-react";
 import { Clock8 } from "lucide-react";
 
-import { createUser, getAllUsers } from "../../data/users";
+import { createUser, deleteUserById, getAllUsers } from "../../data/users";
 import { getAllUserRoles, getUserRoleById } from "../../data/userRoles";
 import Search from "../../components/Search";
 import toast from "react-hot-toast";
@@ -75,6 +75,19 @@ export default function Users() {
     } catch (error) {
       console.log(error);
       toast.error("Error creating user:" + error.response.data.message, {
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    try {
+      await deleteUserById(id);
+      setUsers(users.filter((user) => user._id !== id));
+      toast.success("Delete user successfully", { duration: 2000 });
+    } catch (error) {
+      console.log(error);
+      toast.error("Delete user failed", {
         duration: 2000,
       });
     }
@@ -275,8 +288,8 @@ export default function Users() {
                               <p className="text-blue-600">Edit</p>
                             </div>
                           </a>
-                          <a
-                            href="#"
+                          <button
+                            onClick={() => handleDeleteUser(user._id)}
                             className="font-medium text-[#EF0606] hover:underline"
                           >
                             <div className="flex flex-row gap-x-1 items-center">
@@ -296,7 +309,7 @@ export default function Users() {
                               </svg>
                               <p className="text-[#EF0606]">Delete</p>
                             </div>
-                          </a>
+                          </button>
                         </div>
                       </Table.Cell>
                     </Table.Row>

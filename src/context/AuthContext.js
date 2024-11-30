@@ -77,6 +77,7 @@ export const AuthProvider = ({ children }) => {
           const variantDetails = await getProductVariantById(
             item.productVariantId
           );
+          console.log(variantDetails);
           return {
             ...item,
             productId: variantDetails.productId,
@@ -197,7 +198,7 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
           await createCart(carts);
           dispatch(clearCart());
-          localStorage.removeItem("carts");
+          Cookies.remove("carts");
           Cookies.remove("accessToken");
           Cookies.remove("refreshToken");
           Cookies.remove("user");
@@ -245,6 +246,7 @@ export const AuthProvider = ({ children }) => {
     setUser: setUser,
     signup: signup,
     logout: logout,
+    createCart: createCart,
     getUserById: getUserById,
   };
 

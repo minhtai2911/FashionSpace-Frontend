@@ -1,24 +1,47 @@
-import { Link, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 
 import Banner from "../../components/Banner";
-import { PAYMENT_METHOD } from "../../utils/Constants";
+import {
+  ORDER_STATUS,
+  PAYMENT_METHOD,
+  PAYMENT_STATUS,
+} from "../../utils/Constants";
+import instance from "../../services/axiosConfig";
+import toast from "react-hot-toast";
+import Cookies from "js-cookie";
+import { AuthContext } from "../../context/AuthContext";
+import { getProductVariantByProductIdColorIdSizeId } from "../../data/productVariant";
+import { createPaymentDetail } from "../../data/paymentDetail";
+import { createOrder } from "../../data/orders";
+import { useDispatch, useSelector } from "react-redux";
+import { removeItem } from "../../stores/cart";
 
-const apiUrl =
-  "https://vietnam-administrative-division-json-server-swart.vercel.app";
-const apiEndpointDistrict = apiUrl + "/district/?idProvince=";
-const apiEndpointCommune = apiUrl + "/commune/?idDistrict=";
+const apiUrl = "https://api.mysupership.vn";
+const apiEndpointProvince = apiUrl + "/v1/partner/areas/province";
+const apiEndpointDistrict = apiUrl + "/v1/partner/areas/district?province=";
+const apiEndpointCommune = apiUrl + "/v1/partner/areas/commune?district=";
 
 function Checkout() {
   const location = useLocation();
   const { orderSummary } = location.state;
+  const { user, createCart } = useContext(AuthContext);
+  const carts = useSelector((state) => state.cart.items);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [communes, setCommunes] = useState([]);
+  const [phone, setPhone] = useState("");
   const [selectedProvince, setSelectedProvince] = useState("0");
   const [selectedDistrict, setSelectedDistrict] = useState("0");
+  const [selectedCommune, setSelectedCommune] = useState("0");
+  const [street, setStreet] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("MOMO");
+  const [updatedCarts, setUpdatedCarts] = useState(carts);
+  const [isOrderCreated, setIsOrderCreated] = useState(false);
 
   useEffect(() => {
     if (selectedProvince !== "0") {
@@ -32,14 +55,23 @@ function Checkout() {
     }
   }, [selectedDistrict]);
 
+  useEffect(() => {
+    updateProvince();
+  }, []);
+
   async function fetchData(url) {
     try {
       const response = await axios.get(url);
-      return response.data || [];
+      return response.data.results || [];
     } catch (error) {
       console.error("Error fetching data:", error);
       return [];
     }
+  }
+
+  async function updateProvince() {
+    const provinceList = await fetchData(apiEndpointProvince);
+    setProvinces(provinceList);
   }
 
   async function updateDistricts(idProvince) {
@@ -52,6 +84,236 @@ function Checkout() {
     setCommunes(communeList);
   }
 
+  const handleCreateOrderAddress = async () => {
+    const selectedCityName = provinces.find(
+      (p) => p.code === selectedProvince
+    )?.name;
+    const selectedDistrictName = districts.find(
+      (d) => d.code === selectedDistrict
+    )?.name;
+    const selectedCommuneName = communes.find(
+      (c) => c.code === selectedCommune
+    )?.name;
+
+    try {
+      const refreshToken = Cookies.get("refreshToken");
+      const response = await instance.post(
+        "/auth/refreshToken",
+        {
+          refreshToken: refreshToken,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      const accessToken = response.data.accessToken;
+      const orderAddressResponse = await instance.post(
+        "/orderAddress",
+        {
+          city: selectedCityName,
+          district: selectedDistrictName,
+          commune: selectedCommuneName,
+          phone: phone,
+          street: street,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      return orderAddressResponse;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "An error occurred", {
+        duration: 2000,
+      });
+      return error;
+    }
+  };
+
+  const handleCreateOrderDetails = async (orderId) => {
+    const details = orderSummary.items;
+    try {
+      const refreshToken = Cookies.get("refreshToken");
+      const response = await instance.post(
+        "/auth/refreshToken",
+        {
+          refreshToken: refreshToken,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      const accessToken = response.data.accessToken;
+      const orderDetailResponse = await Promise.all(
+        details.map(async (item) => {
+          const variantResponse =
+            await getProductVariantByProductIdColorIdSizeId(
+              item.productId,
+              item.colorId,
+              item.sizeId
+            );
+          const itemResponse = await instance.post(
+            "/orderDetail",
+            {
+              productVariantId: variantResponse._id,
+              quantity: item.quantity,
+              orderId: orderId,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+          return itemResponse;
+        })
+      );
+      return orderDetailResponse;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "An error occurred", {
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleCreateOrder = async (
+    status,
+    total,
+    paymentDetailId,
+    orderAddressId,
+    userId
+  ) => {
+    try {
+      const refreshToken = Cookies.get("refreshToken");
+      const tokenResponse = await instance.post(
+        "/auth/refreshToken",
+        {
+          refreshToken: refreshToken,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const accessToken = tokenResponse.data.accessToken;
+      const response = await instance.post(
+        "/order",
+        {
+          status,
+          total,
+          paymentDetailId,
+          orderAddressId,
+          id: userId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      return response;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "An error occurred", {
+        duration: 2000,
+      });
+      return error;
+    }
+  };
+
+  const handleCreatePaymentDetail = async () => {
+    try {
+      const refreshToken = Cookies.get("refreshToken");
+      const tokenResponse = await instance.post(
+        "/auth/refreshToken",
+        {
+          refreshToken: refreshToken,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const accessToken = tokenResponse.data.accessToken;
+      const response = await instance.post(
+        "/paymentDetail",
+        {
+          paymentMethod: paymentMethod,
+          status: PAYMENT_STATUS.UNPAID,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      return response;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "An error occurred", {
+        duration: 2000,
+      });
+      return error;
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (paymentMethod === "COD") {
+      try {
+        const orderAddress = await handleCreateOrderAddress();
+        if (orderAddress.status === 201) {
+          const paymentDetail = await handleCreatePaymentDetail();
+          if (paymentDetail.status === 201) {
+            const order = await handleCreateOrder(
+              ORDER_STATUS.PENDING,
+              orderSummary.totalPrice,
+              paymentDetail.data._id,
+              orderAddress.data._id,
+              user.id
+            );
+            if (order.status === 201) {
+              const orderDetail = await handleCreateOrderDetails(
+                order.data._id
+              );
+              if (orderDetail.every((response) => response.status === 201)) {
+                orderSummary.items.forEach((item) => {
+                  dispatch(
+                    removeItem({
+                      productId: item.productId,
+                      colorId: item.colorId,
+                      sizeId: item.sizeId,
+                    })
+                  );
+                });
+
+                const orderData = {
+                  order: order.data,
+                  paymentDetail: paymentDetail.data,
+                };
+
+                toast.success("Create order successfully", {
+                  duration: 2000,
+                });
+                navigate("/orderCompleted", {
+                  state: { orderSummary, orderData },
+                });
+              }
+            }
+          }
+        }
+      } catch (error) {
+        toast.error(error?.response?.data?.message || "An error occurred", {
+          duration: 2000,
+        });
+      }
+    } else {
+    }
+  };
+
+  useEffect(() => {
+    if (isOrderCreated) {
+      setUpdatedCarts(carts);
+      createCart(updatedCarts);
+    }
+  }, [isOrderCreated]);
+
   return (
     <div>
       <Banner title="Checkout" route="Home / Shopping Cart / Checkout" />
@@ -60,20 +322,13 @@ function Checkout() {
           <p className="font-medium text-2xl">Billing Details</p>
           <div>
             <p className="text-base">
-              Full Name <b className="text-red-500">*</b>
-            </p>
-            <input
-              className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-              placeholder="Taylor Swift"
-            ></input>
-          </div>
-          <div>
-            <p className="text-base">
               Phone <b className="text-red-500">*</b>
             </p>
             <input
               className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
               type="number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               placeholder="Enter phone number"
             ></input>
           </div>
@@ -83,7 +338,7 @@ function Checkout() {
             </p>
             <select
               id="city-province"
-              class="w-[100%] border rounded px-3 py-2.5 mt-2 text-sm"
+              class="w-[100%] border rounded-lg px-3 py-2.5 mt-2 text-sm"
               name="city"
               onChange={(e) => {
                 setSelectedProvince(e.target.value);
@@ -92,99 +347,46 @@ function Checkout() {
               }}
             >
               <option value="0">Select City</option>
-              <option value="01">Thành phố Hà Nội</option>
-              <option value="79">Thành phố Hồ Chí Minh</option>
-              <option value="31">Thành phố Hải Phòng</option>
-              <option value="48">Thành phố Đà Nẵng</option>
-              <option value="92">Thành phố Cần Thơ</option>
-              <option value="02">Tỉnh Hà Giang</option>
-              <option value="04">Tỉnh Cao Bằng</option>
-              <option value="06">Tỉnh Bắc Kạn</option>
-              <option value="08">Tỉnh Tuyên Quang</option>
-              <option value="10">Tỉnh Lào Cai</option>
-              <option value="11">Tỉnh Điện Biên</option>
-              <option value="12">Tỉnh Lai Châu</option>
-              <option value="14">Tỉnh Sơn La</option>
-              <option value="15">Tỉnh Yên Bái</option>
-              <option value="17">Tỉnh Hoà Bình</option>
-              <option value="19">Tỉnh Thái Nguyên</option>
-              <option value="20">Tỉnh Lạng Sơn</option>
-              <option value="22">Tỉnh Quảng Ninh</option>
-              <option value="24">Tỉnh Bắc Giang</option>
-              <option value="25">Tỉnh Phú Thọ</option>
-              <option value="26">Tỉnh Vĩnh Phúc</option>
-              <option value="27">Tỉnh Bắc Ninh</option>
-              <option value="30">Tỉnh Hải Dương</option>
-              <option value="33">Tỉnh Hưng Yên</option>
-              <option value="34">Tỉnh Thái Bình</option>
-              <option value="35">Tỉnh Hà Nam</option>
-              <option value="36">Tỉnh Nam Định</option>
-              <option value="37">Tỉnh Ninh Bình</option>
-              <option value="38">Tỉnh Thanh Hóa</option>
-              <option value="40">Tỉnh Nghệ An</option>
-              <option value="42">Tỉnh Hà Tĩnh</option>
-              <option value="44">Tỉnh Quảng Bình</option>
-              <option value="45">Tỉnh Quảng Trị</option>
-              <option value="46">Tỉnh Thừa Thiên Huế</option>
-              <option value="49">Tỉnh Quảng Nam</option>
-              <option value="51">Tỉnh Quảng Ngãi</option>
-              <option value="52">Tỉnh Bình Định</option>
-              <option value="54">Tỉnh Phú Yên</option>
-              <option value="56">Tỉnh Khánh Hòa</option>
-              <option value="58">Tỉnh Ninh Thuận</option>
-              <option value="60">Tỉnh Bình Thuận</option>
-              <option value="62">Tỉnh Kon Tum</option>
-              <option value="64">Tỉnh Gia Lai</option>
-              <option value="66">Tỉnh Đắk Lắk</option>
-              <option value="67">Tỉnh Đắk Nông</option>
-              <option value="68">Tỉnh Lâm Đồng</option>
-              <option value="70">Tỉnh Bình Phước</option>
-              <option value="72">Tỉnh Tây Ninh</option>
-              <option value="74">Tỉnh Bình Dương</option>
-              <option value="75">Tỉnh Đồng Nai</option>
-              <option value="77">Tỉnh Bà Rịa - Vũng Tàu</option>
-              <option value="80">Tỉnh Long An</option>
-              <option value="82">Tỉnh Tiền Giang</option>
-              <option value="83">Tỉnh Bến Tre</option>
-              <option value="84">Tỉnh Trà Vinh</option>
-              <option value="86">Tỉnh Vĩnh Long</option>
-              <option value="87">Tỉnh Đồng Tháp</option>
-              <option value="89">Tỉnh An Giang</option>
-              <option value="91">Tỉnh Kiên Giang</option>
-              <option value="93">Tỉnh Hậu Giang</option>
-              <option value="94">Tỉnh Sóc Trăng</option>
-              <option value="95">Tỉnh Bạc Liêu</option>
-              <option value="96">Tỉnh Cà Mau</option>
+              {provinces.map((province) => (
+                <option key={province.code} value={province.code}>
+                  {province.name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <p className="text-base">District *</p>
+            <p className="text-base">
+              District <b className="text-red-500">*</b>
+            </p>
             <select
               id="district-town"
-              class="w-full border border-gray-300 rounded px-3 py-2.5 mt-2 text-sm"
+              class="w-full border rounded-lg px-3 py-2.5 mt-2 text-sm disabled:cursor-not-allowed"
               name="district"
               onChange={(e) => setSelectedDistrict(e.target.value)}
               disabled={districts.length === 0}
             >
               <option value="0">Select District</option>
               {districts.map((district) => (
-                <option key={district.idDistrict} value={district.idDistrict}>
+                <option key={district.code} value={district.code}>
                   {district.name}
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <p className="text-base">Commune *</p>
+            <p className="text-base">
+              Commune <b className="text-red-500">*</b>
+            </p>
             <select
               id="ward-commune"
-              class="w-full border border-gray-300 rounded px-3 py-2.5 text-sm mt-2"
+              class="w-full border rounded-lg px-3 py-2.5 text-sm mt-2 disabled:cursor-not-allowed"
               name="ward"
               disabled={communes.length === 0}
+              onChange={(e) => setSelectedCommune(e.target.value)}
             >
               <option value="0">Select Commune</option>
               {communes.map((commune) => (
-                <option key={commune.idCommune} value={commune.idCommune}>
+                <option key={commune.code} value={commune.code}>
                   {commune.name}
                 </option>
               ))}
@@ -195,8 +397,11 @@ function Checkout() {
               Street <b className="text-red-500">*</b>
             </p>
             <input
+              type="text"
               className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
               placeholder="Enter street address"
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
             ></input>
           </div>
         </div>
@@ -241,7 +446,7 @@ function Checkout() {
             <hr className="border-[#818181]" />
             <div className="flex flex-col gap-y-2">
               {PAYMENT_METHOD.map((method, index) => (
-                <div className="flex flex-row ml-2" key={index}>
+                <div className="flex flex-row ml-2 items-center" key={index}>
                   <input
                     type="radio"
                     checked={paymentMethod === method.value}
@@ -253,11 +458,12 @@ function Checkout() {
               ))}
             </div>
             <hr className="border-[#818181]" />
-            <Link to="/orderCompleted" state={{ orderSummary }}>
-              <button className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full">
-                Continue to Payment
-              </button>
-            </Link>
+            <button
+              className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full"
+              onClick={handleSubmit}
+            >
+              Place Order
+            </button>
           </div>
         </div>
       </div>

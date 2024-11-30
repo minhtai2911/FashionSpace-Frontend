@@ -29,17 +29,6 @@ function SignIn() {
     navigate("/");
   }
 
-  // const fetchCart = async (userId) => {
-  //   try {
-  //     const response = await getShoppingCartByUserId(userId);
-  //     console.log(response);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.log(error);
-  //     return null;
-  //   }
-  // };
-
   const mergeUserCart = async (userId) => {
     try {
       const userCartData = await getShoppingCartByUserId(userId);
@@ -158,7 +147,7 @@ function SignIn() {
                 Email <b className="text-red-500">*</b>
               </p>
               <input
-                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
+                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
                 name="email"
                 type="email"
                 value={data.email}
@@ -170,7 +159,7 @@ function SignIn() {
                 Password <b className="text-red-500">*</b>
               </p>
               <input
-                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] border-[#E5E7EB] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
+                className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
                 type="password"
                 name="password"
                 value={data.password}

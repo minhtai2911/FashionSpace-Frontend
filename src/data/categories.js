@@ -11,9 +11,9 @@ export const getAllCategories = async () => {
   }
 };
 
-export const getCategoryById = async (categoryId) => {
+export const getCategoryById = async (id) => {
   try {
-    const response = await instance.get(`/category/${categoryId}`);
+    const response = await instance.get(`/category/${id}`);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -45,6 +45,32 @@ export const createCategory = async (category, gender) => {
         },
       }
     );
+    return response.data;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const deleteCategoryById = async (id) => {
+  const refreshToken = Cookies.get("refreshToken");
+  try {
+    const tokenResponse = await instance.post(
+      "/auth/refreshToken",
+      {
+        refreshToken: refreshToken,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const accessToken = tokenResponse.data.accessToken;
+    const response = await instance.delete(`/category/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     return response.data;
   } catch (error) {
     return null;

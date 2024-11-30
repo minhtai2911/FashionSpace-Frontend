@@ -6,7 +6,7 @@ import { getColorById } from "../../data/colors";
 import { getProductVariantsByProductId } from "../../data/productVariant";
 import { getSizeById } from "../../data/sizes";
 import { getAllImagesByProductId } from "../../data/productImages";
-import { formatURL } from "../../utils/formatURL";
+import { formatURL } from "../../utils/format";
 
 export default function AdminProductDetails() {
   const { id } = useParams();

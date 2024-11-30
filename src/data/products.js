@@ -11,6 +11,26 @@ export const getAllProducts = async () => {
   }
 };
 
+export const getNewArrivalProducts = async () => {
+  try {
+    const response = await instance.get("/product/get/newArrivalProduct");
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const getBestSellerProducts = async () => {
+  try {
+    const response = await instance.get("/product/get/bestSellerProduct");
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
 export const getProductById = async (productId) => {
   try {
     const response = await instance.get(`/product/${productId}`);

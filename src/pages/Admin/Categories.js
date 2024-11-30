@@ -3,7 +3,13 @@ import { Table, Modal } from "flowbite-react";
 
 import Search from "../../components/Search";
 
-import { createCategory, getAllCategories } from "../../data/categories";
+import {
+  createCategory,
+  deleteCategoryById,
+  getAllCategories,
+} from "../../data/categories";
+import toast from "react-hot-toast";
+import { GENDER } from "../../utils/Constants";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
@@ -23,6 +29,17 @@ export default function Categories() {
       setOpenModal(false);
     } catch (error) {
       console.error("Error creating category:", error);
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    try {
+      await deleteCategoryById(id);
+      setCategories(categories.filter((c) => c.id !== id));
+      toast.success("Delete category successfully", { duration: 2000 });
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast.error("Delete category failed", { duration: 2000 });
     }
   };
 
@@ -229,8 +246,8 @@ export default function Categories() {
                             <p className="text-blue-600">Edit</p>
                           </div>
                         </a>
-                        <a
-                          href="#"
+                        <button
+                          onClick={() => handleDeleteCategory(category._id)}
                           className="font-medium text-[#EF0606] hover:underline"
                         >
                           <div className="flex flex-row gap-x-1 items-center">
@@ -250,7 +267,7 @@ export default function Categories() {
                             </svg>
                             <p className="text-[#EF0606]">Delete</p>
                           </div>
-                        </a>
+                        </button>
                       </div>
                     </Table.Cell>
                   </Table.Row>
@@ -289,13 +306,18 @@ export default function Categories() {
               <p className="font-manrope font-semibold">
                 Gender <b className="text-[#EF0606]">*</b>
               </p>
-              <input
-                id="gender"
+              <select
                 value={gender}
-                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
                 onChange={(e) => setGender(e.target.value)}
-                required
-              />
+              >
+                <option value={""}>Choose gender</option>
+                {GENDER.map((gender) => (
+                  <option key={gender.key} value={gender.value}>
+                    {gender.value}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="w-full flex justify-center">
               <button

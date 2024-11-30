@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import Cookies from "js-cookie";
 
 import { getAllProducts } from "../data/products";
-import { formatURL } from "../utils/formatURL";
+import { formatURL } from "../utils/format";
 import { getAllImagesByProductId } from "../data/productImages";
 function Header() {
   const { isAuthenticated, logout, getUserById, user, setUser } =
@@ -214,9 +214,11 @@ function Header() {
                   fill="#0A0A0A"
                 />
               </svg>
-              <span className="absolute left-1/2 bottom-1/2 inline-block w-5 h-5 bg-red-600 text-white text-[10px] font-bold rounded-full text-center leading-5">
-                {totalQuantity}
-              </span>
+              {totalQuantity !== 0 && (
+                <span className="absolute left-1/2 bottom-1/2 inline-block w-5 h-5 bg-red-600 text-white text-[10px] font-bold rounded-full text-center leading-5">
+                  {totalQuantity}
+                </span>
+              )}
             </Link>
 
             {isAuthenticated ? (

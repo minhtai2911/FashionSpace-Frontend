@@ -32,8 +32,35 @@ export const PAYMENT_METHOD = [
     title: "Cash on Delivery",
   },
 ];
+export const ORDER_STATUS = {
+  PENDING: "Pending",
+  ACCEPTED: "Accepted",
+  PROCESSING: "Processing",
+  IN_DELIVERY: "In Delivery",
+  SHIPPED: "Shipped",
+  CANCELLED: "Cancelled",
+};
+export const PAYMENT_STATUS = {
+  PAID: "Paid",
+  UNPAID: "Unpaid",
+  REFUNDED: "Refunded",
+};
 export const FREE_SHIPPING = 300;
 export const SHIPPING_RATE = 0.05;
+export const GENDER = [
+  {
+    key: "Men",
+    value: "Men",
+  },
+  {
+    key: "Women",
+    value: "Women",
+  },
+  {
+    key: "Unisex",
+    value: "Unisex",
+  },
+];
 export const TAX_RATE = 0.1;
 export const ROLE_NAME = {
   EMPLOYEE: "Employee",

@@ -21,7 +21,7 @@ import Slider from "../../components/Slider";
 import FeatureBanner from "../../components/FeatureBanner";
 import { REVIEWS_PER_PAGE } from "../../utils/Constants";
 import { addToCart } from "../../stores/cart";
-import { formatURL } from "../../utils/formatURL";
+import { formatURL } from "../../utils/format";
 
 const reviews = [
   {
@@ -212,6 +212,7 @@ function ProductDetails() {
       setProductName(product.name);
       setPrice(product.price);
       setDescription(product.description);
+      setRating(product.rating);
       const fetchedCategory = await getCategoryById(product.categoryId);
       setCategory(fetchedCategory.name);
       const fetchedImages = await getAllImagesByProductId(id);
@@ -243,7 +244,7 @@ function ProductDetails() {
       colorSet.add(variant.color._id);
     });
     const colorList = Array.from(colorSet).map((colorId) => {
-      return variants.find((variant) => variant.color._id === colorId).color; // Get the color object
+      return variants.find((variant) => variant.color._id === colorId).color;
     });
     setColors(colorList);
   }, [variants]);
@@ -301,7 +302,7 @@ function ProductDetails() {
           <div className="flex flex-col gap-y-2 w-[40%]">
             <img src={formatURL(mainImage)} alt={productName} />
 
-            <div className="flex flex-row gap-x-[6.66px]">
+            <div className="flex flex-row gap-x-[6.66px] overflow-y-scroll">
               {photos.map((image, index) => (
                 <img
                   loading="lazy"
@@ -327,7 +328,9 @@ function ProductDetails() {
               <p className="font-semibold text-2xl">{productName}</p>
               <div className="flex flex-row items-center">
                 <Rating percentage={percentage} />
-                <p className="ml-2 text-lg">{}</p>
+                <p className="ml-2 text-lg">
+                  {rating ? rating : "No rating yet"}
+                </p>
               </div>
               <p className="font-semibold text-xl">${price}</p>
             </div>
@@ -504,28 +507,6 @@ function ProductDetails() {
                     totalPages={Math.ceil(reviews.length / REVIEWS_PER_PAGE)}
                     onPageChange={setCurrentPage}
                   />
-                  <div className="mt-5 rounded-lg py-5 px-10 border-[2px] border-[#0A0A0A] w-1/2 self-center flex flex-col gap-y-5">
-                    <h1 className="text-center text-lg font-medium">
-                      Add Your Review
-                    </h1>
-                    <div>
-                      <p className="text-lg mb-2">
-                        Rating <b className="text-red-500">*</b>
-                      </p>
-                    </div>
-                    <div className="w-full">
-                      <p className="text-lg mb-2">
-                        Review <b className="text-red-500">*</b>
-                      </p>
-                      <textarea
-                        className="rounded-lg px-5 py-3 w-full border-[2px] border-[#0A0A0A] resize-none"
-                        placeholder="Write here..."
-                      ></textarea>
-                    </div>
-                    <button className="rounded-lg bg-[#0A0A0A] px-5 py-3 w-fit self-center text-white">
-                      Submit
-                    </button>
-                  </div>
                 </div>
               )}
             </div>

@@ -11,7 +11,7 @@ import { SORT_BY } from "../../utils/Constants";
 import { getAllCategories, getCategoryById } from "../../data/categories";
 import { getAllImagesByProductId } from "../../data/productImages";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import { formatURL } from "../../utils/formatURL";
+import { formatURL } from "../../utils/format";
 
 function Shop() {
   const [minPrice, setMinPrice] = useState(0);

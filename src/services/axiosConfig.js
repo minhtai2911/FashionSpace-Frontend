@@ -53,28 +53,4 @@ instance.interceptors.request.use(async (req) => {
   return req;
 });
 
-// instance.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     const originalRequest = error.config;
-//     if (error.response.status === 401 && !originalRequest._retry) {
-//       originalRequest._retry = true;
-//       try {
-//         const response = await axios.post("/auth/refreshToken");
-//         const { accessToken } = response.data;
-//         localStorage.setItem("authTokens", accessToken);
-//         originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
-//         return axios(originalRequest);
-//       } catch (refreshError) {
-//         console.error("Token refresh failed:", refreshError);
-//         localStorage.removeItem("token");
-//         localStorage.removeItem("refreshToken");
-//         window.location.href = "/login";
-//         return Promise.reject(refreshError);
-//       }
-//     }
-//     return Promise.reject(error);
-//   }
-// );
-
 export default instance;

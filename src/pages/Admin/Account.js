@@ -1,4 +1,5 @@
 import { useState, useContext } from "react";
+import Cookies from "js-cookie";
 import { AuthContext } from "../../context/AuthContext";
 import PersonalInformation from "../PersonalInformation";
 import PasswordManager from "../PasswordManager";
