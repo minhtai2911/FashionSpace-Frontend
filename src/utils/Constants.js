@@ -24,12 +24,12 @@ export const SORT_BY = [
 ];
 export const PAYMENT_METHOD = [
   {
-    value: "MOMO",
-    title: "Checkout with Momo",
-  },
-  {
     value: "COD",
     title: "Cash on Delivery",
+  },
+  {
+    value: "MOMO",
+    title: "Checkout with Momo",
   },
 ];
 export const ORDER_STATUS = {
@@ -39,6 +39,10 @@ export const ORDER_STATUS = {
   IN_DELIVERY: "In Delivery",
   SHIPPED: "Shipped",
   CANCELLED: "Cancelled",
+};
+export const REVIEW_STATUS = {
+  REPLIED: "Replied",
+  NOT_REPLIED: "Not Replied",
 };
 export const PAYMENT_STATUS = {
   PAID: "Paid",

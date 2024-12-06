@@ -110,7 +110,7 @@ export default function UpdateOrder() {
                 <p className="font-manrope font-semibold text-sm">Order ID</p>
                 <input
                   value={orderWithDetails._id || ""}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
                   disabled
                 />
               </div>
@@ -120,7 +120,7 @@ export default function UpdateOrder() {
                 </p>
                 <input
                   value={orderWithDetails?.user?.fullName || ""}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
                   disabled
                 />
               </div>
@@ -146,7 +146,7 @@ export default function UpdateOrder() {
                 </p>
                 <input
                   value={orderWithDetails?.paymentDetails?.paymentMethod || ""}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
                   disabled
                 />
               </div>
@@ -156,7 +156,7 @@ export default function UpdateOrder() {
                 </p>
                 <input
                   value={orderWithDetails?.paymentDetails?.status || ""}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
                   disabled
                 />
               </div>
@@ -164,7 +164,7 @@ export default function UpdateOrder() {
                 <p className="font-manrope font-semibold text-sm">Amount</p>
                 <input
                   value={`$ ${orderWithDetails.total}` || ""}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
                   disabled
                 />
               </div>
@@ -176,7 +176,7 @@ export default function UpdateOrder() {
                 </p>
                 <input
                   value={formatDate(orderWithDetails.createdDate) || ""}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
                   disabled
                 />
               </div>

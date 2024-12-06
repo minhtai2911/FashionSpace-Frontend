@@ -39,7 +39,7 @@ function Checkout() {
   const [selectedDistrict, setSelectedDistrict] = useState("0");
   const [selectedCommune, setSelectedCommune] = useState("0");
   const [street, setStreet] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("MOMO");
+  const [paymentMethod, setPaymentMethod] = useState("COD");
   const [updatedCarts, setUpdatedCarts] = useState(carts);
   const [isOrderCreated, setIsOrderCreated] = useState(false);
 
