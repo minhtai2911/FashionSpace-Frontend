@@ -3,16 +3,24 @@ import { Table, Modal } from "flowbite-react";
 
 import Search from "../../components/Search";
 
-import { getAllColors, createColor, deleteColorById } from "../../data/colors";
+import {
+  getAllColors,
+  createColor,
+  deleteColorById,
+  updateColor,
+} from "../../data/colors";
 import toast from "react-hot-toast";
 
 export default function Colors() {
   const [colors, setColors] = useState([]);
-  const [openModal, setOpenModal] = useState(false);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [color, setColor] = useState("");
+  const [colorDetails, setColorDetails] = useState({});
+  const [openDetailModal, setOpenDetailModal] = useState(false);
+  const [openUpdateModal, setOpenUpdateModal] = useState(false);
 
   function onCloseModal() {
-    setOpenModal(false);
+    setOpenCreateModal(false);
   }
 
   const handleCreateColor = async () => {
@@ -20,7 +28,7 @@ export default function Colors() {
       const createdColor = await createColor(color);
       setColors([...colors, createdColor]);
       setColor("");
-      setOpenModal(false);
+      setOpenCreateModal(false);
     } catch (error) {
       console.error("Error creating color:", error);
     }
@@ -37,16 +45,31 @@ export default function Colors() {
     }
   };
 
-  useEffect(() => {
-    const fetchColors = async () => {
-      try {
-        const fetchedColors = await getAllColors();
-        setColors(fetchedColors);
-      } catch (error) {
-        console.error("Error fetching colors:", error);
-      }
-    };
+  const fetchColors = async () => {
+    try {
+      const fetchedColors = await getAllColors();
+      setColors(fetchedColors);
+    } catch (error) {
+      console.error("Error fetching colors:", error);
+    }
+  };
 
+  const handleUpdateColor = async () => {
+    const response = await updateColor(
+      colorDetails._id,
+      colorDetails.color,
+      colorDetails
+    );
+    if (response) {
+      toast.success("Update color successfully", { duration: 2000 });
+      fetchColors();
+      setOpenUpdateModal(false);
+    } else {
+      toast.error("Update color failed", { duration: 2000 });
+    }
+  };
+
+  useEffect(() => {
     fetchColors();
   }, []);
 
@@ -77,8 +100,35 @@ export default function Colors() {
                     <Table.Cell>{color.color}</Table.Cell>{" "}
                     <Table.Cell>
                       <div className="flex flex-row gap-x-3">
-                        <a
-                          href="#"
+                        <button
+                          className="font-medium hover:underline"
+                          onClick={() => {
+                            setColorDetails(color);
+                            setOpenDetailModal(true);
+                          }}
+                        >
+                          <div className="flex flex-row gap-x-1 items-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                              class="size-5"
+                            >
+                              <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                              <path
+                                fill-rule="evenodd"
+                                d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z"
+                                clip-rule="evenodd"
+                              />
+                            </svg>
+                            <p className="text-[#0A0A0A]">View</p>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setColorDetails(color);
+                            setOpenUpdateModal(true);
+                          }}
                           className="font-medium text-blue-600 hover:underline"
                         >
                           <div className="flex flex-row gap-x-1 items-center">
@@ -100,7 +150,7 @@ export default function Colors() {
                             </svg>
                             <p className="text-blue-600">Edit</p>
                           </div>
-                        </a>
+                        </button>
                         <button
                           onClick={() => handleDeleteColor(color._id)}
                           className="font-medium text-[#EF0606] hover:underline"
@@ -133,12 +183,12 @@ export default function Colors() {
         </div>
         <button
           className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10"
-          onClick={() => setOpenModal(true)}
+          onClick={() => setOpenCreateModal(true)}
         >
           New Color
         </button>
       </div>
-      <Modal show={openModal} size="lg" onClose={onCloseModal} popup>
+      <Modal show={openCreateModal} size="lg" onClose={onCloseModal} popup>
         <Modal.Header />
         <Modal.Body className="px-10">
           <div className="space-y-4">
@@ -146,13 +196,13 @@ export default function Colors() {
               Colors / Create
             </h3>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold">
+              <p className="font-manrope font-semibold text-sm">
                 Color <b className="text-[#EF0606]">*</b>
               </p>
               <input
                 id="color"
                 value={color}
-                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
                 onChange={(e) => setColor(e.target.value)}
                 required
               />
@@ -163,6 +213,67 @@ export default function Colors() {
                 onClick={handleCreateColor}
               >
                 Create Color
+              </button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={openDetailModal}
+        size="lg"
+        onClose={() => {
+          setOpenDetailModal(false);
+        }}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body className="px-10 pb-10">
+          <div className="space-y-4">
+            <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
+              Colors / Details
+            </h3>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Color</p>
+              <input
+                value={colorDetails.color}
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                disabled
+              />
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={openUpdateModal}
+        size="lg"
+        onClose={() => setOpenUpdateModal(false)}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body className="px-10">
+          <div className="space-y-4">
+            <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
+              Colors / Update
+            </h3>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Color Name</p>
+              <input
+                value={colorDetails.color}
+                className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                onChange={(e) =>
+                  setColorDetails({
+                    ...colorDetails,
+                    color: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="w-full flex justify-center">
+              <button
+                className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
+                onClick={handleUpdateColor}
+              >
+                Save changes
               </button>
             </div>
           </div>

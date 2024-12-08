@@ -30,3 +30,37 @@ export const getReviewById = async (id) => {
     return null;
   }
 };
+
+export const createReview = async (productId, rating, content) => {
+  const refreshToken = Cookies.get("refreshToken");
+  try {
+    const tokenResponse = await instance.post(
+      "/auth/refreshToken",
+      {
+        refreshToken: refreshToken,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const accessToken = tokenResponse.data.accessToken;
+    const response = await instance.post(
+      "/review",
+      {
+        productId: productId,
+        rating: rating,
+        content: content,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return null;
+  }
+};

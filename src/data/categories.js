@@ -51,6 +51,36 @@ export const createCategory = async (category, gender) => {
   }
 };
 
+export const updateCategory = async (id, name, gender) => {
+  const refreshToken = Cookies.get("refreshToken");
+  try {
+    const tokenResponse = await instance.post(
+      "/auth/refreshToken",
+      {
+        refreshToken: refreshToken,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const accessToken = tokenResponse.data.accessToken;
+    const response = await instance.put(
+      `/category/${id}`,
+      { name: name, gender: gender },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return null;
+  }
+};
+
 export const deleteCategoryById = async (id) => {
   const refreshToken = Cookies.get("refreshToken");
   try {

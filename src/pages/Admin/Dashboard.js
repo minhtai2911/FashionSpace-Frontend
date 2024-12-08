@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card } from "flowbite-react";
+import { Card, Table } from "flowbite-react";
 import {
   AreaChart,
   Area,
@@ -11,8 +11,15 @@ import {
 } from "recharts";
 import DashboardCard from "../../components/DashboardCard";
 import { getAllOrders } from "../../data/orders";
-import { getAllProducts } from "../../data/products";
-import { getAllUsers } from "../../data/users";
+import { getAllProducts, getBestSellerProducts } from "../../data/products";
+import { getAllUsers, getUserById } from "../../data/users";
+import { getAllImagesByProductId } from "../../data/productImages";
+
+import { formatURL } from "../../utils/format";
+import { ORDER_STATUS } from "../../utils/Constants";
+import { getPaymentDetailById } from "../../data/paymentDetail";
+import { getOrderDetailsByOrderId } from "../../data/orderDetail";
+import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 
 const data = [
   {
@@ -93,38 +100,86 @@ export default function Dashboard() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
+  const [bestSellerProducts, setBestSellerProducts] = useState([]);
+  const [latestOrders, setLatestOrders] = useState([]);
+
+  async function fetchOrders() {
+    const fetchedOrders = await getAllOrders();
+    const ordersWithDetails = await Promise.all(
+      fetchedOrders.map(async (order) => {
+        const user = await getUserById(order.userId);
+        const paymentDetails = await getPaymentDetailById(
+          order.paymentDetailId
+        );
+        const details = await getOrderDetailsByOrderId(order._id);
+        const trackingData = await getOrderTrackingByOrderId(order._id);
+        const tracking = trackingData.length
+          ? trackingData[trackingData.length - 1]
+          : {};
+
+        return {
+          ...order,
+          user,
+          paymentDetails,
+          details,
+          tracking,
+        };
+      })
+    );
+
+    setOrders(ordersWithDetails);
+
+    const sortedOrders = ordersWithDetails.sort(
+      (a, b) => new Date(b.createdDate) - new Date(a.createdDate)
+    );
+    setLatestOrders(sortedOrders.slice(0, 5));
+  }
+
+  const fetchProduct = async () => {
+    const data = await getAllProducts();
+    setProducts(data);
+  };
+
+  const fetchUser = async () => {
+    const data = await getAllUsers();
+    setUsers(data);
+  };
+
+  const fetchBestSellerProducts = async () => {
+    const fetchedBestSeller = await getBestSellerProducts();
+    const data = await Promise.all(
+      fetchedBestSeller.map(async (product) => {
+        const images = await getAllImagesByProductId(product._id);
+        return { ...product, images };
+      })
+    );
+    setBestSellerProducts(data);
+  };
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case ORDER_STATUS.SHIPPED:
+        return "bg-green-100 text-green-600";
+      case ORDER_STATUS.ACCEPTED:
+        return "bg-blue-100 text-blue-600";
+      case ORDER_STATUS.PENDING:
+        return "bg-yellow-100 text-yellow-600";
+      case ORDER_STATUS.IN_DELIVERY:
+        return "bg-orange-100 text-orange-600";
+      case ORDER_STATUS.PROCESSING:
+        return "bg-purple-100 text-purple-600";
+      case ORDER_STATUS.CANCELLED:
+        return "bg-red-100 text-red-600";
+      default:
+        return "bg-gray-100 text-gray-600";
+    }
+  };
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        const data = await getAllOrders();
-        setOrders(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const fetchProduct = async () => {
-      try {
-        const data = await getAllProducts();
-        setProducts(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const fetchUser = async () => {
-      try {
-        const data = await getAllUsers();
-        setUsers(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchOrder();
+    fetchOrders();
     fetchProduct();
     fetchUser();
+    fetchBestSellerProducts();
   }, []);
 
   return (
@@ -244,13 +299,6 @@ export default function Dashboard() {
               <YAxis />
               <CartesianGrid strokeDasharray="3 3" />
               <Tooltip />
-              {/* <Area
-                type="monotone"
-                dataKey="revenue"
-                stroke="#8884d8"
-                fillOpacity={1}
-                fill="url(#colorRevenue)"
-              /> */}
               <Area
                 type="monotone"
                 dataKey="expense"
@@ -263,10 +311,87 @@ export default function Dashboard() {
         </div>
         <div className="flex-1 p-6 bg-white rounded-lg shadow-md flex flex-col gap-y-2">
           <p className="font-bold">Best Seller Products</p>
+          <Table>
+            <Table.Head className="normal-case text-sm">
+              <Table.HeadCell></Table.HeadCell>
+              <Table.HeadCell>Product Name</Table.HeadCell>
+              <Table.HeadCell>Price</Table.HeadCell>
+              <Table.HeadCell>Rating</Table.HeadCell>
+            </Table.Head>
+            <Table.Body className="divide-y">
+              {bestSellerProducts.map((product) => (
+                <Table.Row
+                  key={product._id}
+                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                >
+                  <Table.Cell className="min-w-32">
+                    <img
+                      src={formatURL(product.images[0].imagePath)}
+                      className="w-full"
+                    />
+                  </Table.Cell>
+                  <Table.Cell className="min-w-40">{product.name}</Table.Cell>
+                  <Table.Cell>${product.price}</Table.Cell>
+                  <Table.Cell>
+                    <div className="flex flex-row gap-x-1 items-center">
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 40 40"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M20.0001 28.7833L26.9168 32.9667C28.1835 33.7333 29.7335 32.6 29.4001 31.1666L27.5668 23.3L33.6835 18C34.8001 17.0333 34.2001 15.2 32.7335 15.0833L24.6835 14.4L21.5335 6.96665C20.9668 5.61665 19.0335 5.61665 18.4668 6.96665L15.3168 14.3833L7.26679 15.0666C5.80012 15.1833 5.20012 17.0166 6.31679 17.9833L12.4335 23.2833L10.6001 31.15C10.2668 32.5833 11.8168 33.7167 13.0835 32.95L20.0001 28.7833Z"
+                          fill="#FFE066"
+                        />
+                      </svg>
+                      <p className="font-medium">{product.rating}</p>
+                    </div>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
         </div>
       </div>
       <div className="flex-1 p-6 mt-5 bg-white rounded-lg shadow-md flex flex-col gap-y-2">
         <p className="font-bold">Recent Orders</p>
+        <Table hoverable>
+          <Table.Head className="normal-case text-base">
+            <Table.HeadCell>Order ID</Table.HeadCell>
+            <Table.HeadCell>Customer Name</Table.HeadCell>
+            <Table.HeadCell>Status</Table.HeadCell>
+            <Table.HeadCell>Amount</Table.HeadCell>
+            <Table.HeadCell>Payment Method</Table.HeadCell>
+            <Table.HeadCell>Payment Status</Table.HeadCell>
+          </Table.Head>
+          <Table.Body className="divide-y">
+            {latestOrders.map((order) => (
+              <Table.Row
+                className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                key={order._id}
+              >
+                <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                  {order._id}
+                </Table.Cell>
+                <Table.Cell>{order.user.fullName}</Table.Cell>
+                <Table.Cell>
+                  <div
+                    className={`px-3 py-1 rounded-lg text-center font-semibold ${getStatusClass(
+                      order.tracking.status
+                    )}`}
+                  >
+                    {order.tracking.status}
+                  </div>
+                </Table.Cell>
+                <Table.Cell>{order.total}</Table.Cell>
+                <Table.Cell>{order.paymentDetails.paymentMethod}</Table.Cell>
+                <Table.Cell>{order.paymentDetails.status}</Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
       </div>
     </div>
   );

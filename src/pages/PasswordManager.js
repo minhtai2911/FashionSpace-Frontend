@@ -79,7 +79,7 @@ export default function PasswordManager() {
           </label>
           <input
             type="password"
-            className="px-5 py-3 border rounded-lg w-full"
+            className="px-5 py-3 text-sm font-medium border rounded-lg w-full"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             required
@@ -91,7 +91,7 @@ export default function PasswordManager() {
           </label>
           <input
             type="password"
-            className="px-5 py-3 border rounded-lg w-full"
+            className="px-5 py-3 text-sm font-medium border rounded-lg w-full"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
@@ -103,7 +103,7 @@ export default function PasswordManager() {
           </label>
           <input
             type="password"
-            className="px-5 py-3 border rounded-lg w-full"
+            className="px-5 py-3 text-sm font-medium border rounded-lg w-full"
             value={confirmNewPassword}
             onChange={(e) => setConfirmNewPassword(e.target.value)}
             required
@@ -111,7 +111,7 @@ export default function PasswordManager() {
         </div>
         <button
           type="submit"
-          className="bg-black text-white mt-3 font-semibold px-10 py-3 rounded-lg hover:bg-gray-800"
+          className="bg-black text-white mt-3 font-semibold px-8 text-sm py-3 rounded-lg hover:bg-gray-800"
         >
           Update Password
         </button>

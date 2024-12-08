@@ -25,7 +25,7 @@ const apiEndpointCommune = apiUrl + "/v1/partner/areas/commune?district=";
 
 function Checkout() {
   const location = useLocation();
-  const { orderSummary } = location.state;
+  const { orderSummary, type } = location.state;
   const { user, createCart } = useContext(AuthContext);
   const carts = useSelector((state) => state.cart.items);
   const navigate = useNavigate();
@@ -149,12 +149,13 @@ function Checkout() {
               item.colorId,
               item.sizeId
             );
+          console.log(orderId, variantResponse._id, item.quantity);
           const itemResponse = await instance.post(
             "/orderDetail",
             {
+              orderId: orderId,
               productVariantId: variantResponse._id,
               quantity: item.quantity,
-              orderId: orderId,
             },
             {
               headers: {
@@ -174,11 +175,10 @@ function Checkout() {
   };
 
   const handleCreateOrder = async (
-    status,
     total,
     paymentDetailId,
     orderAddressId,
-    userId
+    shippingFee
   ) => {
     try {
       const refreshToken = Cookies.get("refreshToken");
@@ -197,11 +197,10 @@ function Checkout() {
       const response = await instance.post(
         "/order",
         {
-          status,
           total,
           paymentDetailId,
           orderAddressId,
-          id: userId,
+          shippingFee,
         },
         {
           headers: {
@@ -211,6 +210,7 @@ function Checkout() {
       );
       return response;
     } catch (error) {
+      console.log(error);
       toast.error(error?.response?.data?.message || "An error occurred", {
         duration: 2000,
       });
@@ -262,26 +262,27 @@ function Checkout() {
           const paymentDetail = await handleCreatePaymentDetail();
           if (paymentDetail.status === 201) {
             const order = await handleCreateOrder(
-              ORDER_STATUS.PENDING,
               orderSummary.totalPrice,
               paymentDetail.data._id,
               orderAddress.data._id,
-              user.id
+              orderSummary.shipping
             );
             if (order.status === 201) {
               const orderDetail = await handleCreateOrderDetails(
                 order.data._id
               );
               if (orderDetail.every((response) => response.status === 201)) {
-                orderSummary.items.forEach((item) => {
-                  dispatch(
-                    removeItem({
-                      productId: item.productId,
-                      colorId: item.colorId,
-                      sizeId: item.sizeId,
-                    })
-                  );
-                });
+                if (type != "Buy Now") {
+                  orderSummary.items.forEach((item) => {
+                    dispatch(
+                      removeItem({
+                        productId: item.productId,
+                        colorId: item.colorId,
+                        sizeId: item.sizeId,
+                      })
+                    );
+                  });
+                }
 
                 const orderData = {
                   order: order.data,

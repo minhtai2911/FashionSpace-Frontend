@@ -5,7 +5,7 @@ import PersonalInformation from "../PersonalInformation";
 import PasswordManager from "../PasswordManager";
 
 export default function AdminAccount() {
-  const { user, setUser } = useContext(AuthContext);
+  const user = JSON.parse(Cookies.get("user"));
   const [activeTab, setActiveTab] = useState("personal");
 
   const tabs = [

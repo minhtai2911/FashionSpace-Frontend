@@ -67,7 +67,7 @@ export default function AdminProductDetails() {
               <input
                 id="productName"
                 value={productName}
-                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                 disabled
               />
             </div>
@@ -77,7 +77,7 @@ export default function AdminProductDetails() {
                 <input
                   id="category"
                   value={category}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
                 ></input>
               </div>
@@ -87,7 +87,7 @@ export default function AdminProductDetails() {
                   id="price"
                   value={price}
                   disabled
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                 />
               </div>
             </div>
@@ -99,7 +99,7 @@ export default function AdminProductDetails() {
                 id="description"
                 value={description}
                 disabled
-                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm resize-none"
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm resize-none"
               />
             </div>
           </div>
@@ -113,7 +113,7 @@ export default function AdminProductDetails() {
                 <input
                   id="size"
                   value={variant?.size?.size}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
                 />
               </div>
@@ -123,7 +123,7 @@ export default function AdminProductDetails() {
                   <input
                     id="color"
                     value={variant?.color?.color}
-                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                     disabled
                   />
                 </div>
@@ -132,7 +132,7 @@ export default function AdminProductDetails() {
                   <input
                     id="quantity"
                     value={variant?.quantity}
-                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                     disabled
                   />
                 </div>

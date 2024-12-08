@@ -86,11 +86,10 @@ export const getOrderByUserId = async (userId) => {
 };
 
 export const createOrder = async (
-  status,
   total,
   paymentDetailId,
   orderAddressId,
-  userId
+  shippingFee
 ) => {
   const refreshToken = Cookies.get("refreshToken");
   try {
@@ -109,11 +108,10 @@ export const createOrder = async (
     const response = await instance.post(
       "/order",
       {
-        status,
         total,
         paymentDetailId,
         orderAddressId,
-        id: userId,
+        shippingFee,
       },
       {
         headers: {

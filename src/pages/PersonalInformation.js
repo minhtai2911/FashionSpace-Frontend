@@ -201,7 +201,7 @@ export default function PersonalInformation({ user }) {
             name="fullName"
             value={data.fullName}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-lg border-[#808191] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
+            className="w-full px-3 py-2 border text-sm font-medium rounded-lg border-[#808191] focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
           />
         </div>
         <div className="mb-6">
@@ -215,13 +215,13 @@ export default function PersonalInformation({ user }) {
             name="phone"
             value={data.phone}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-[#808191] rounded-lg focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
+            className="w-full px-3 py-2 border text-sm font-medium border-[#808191] rounded-lg focus:border-[#0A0A0A] focus:ring-[#0A0A0A]"
           />
         </div>
         <button
           type="submit"
           disabled={!isChanged}
-          className="px-10 py-3 font-semibold text-white bg-black rounded-lg disabled:bg-[#4A4A4A] disabled:cursor-not-allowed"
+          className="px-8 py-3 text-sm font-semibold text-white bg-black rounded-lg disabled:bg-[#4A4A4A] disabled:cursor-not-allowed"
         >
           Update Changes
         </button>

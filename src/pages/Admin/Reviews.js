@@ -26,9 +26,36 @@ export default function Reviews() {
   const [reviewDetails, setReviewDetails] = useState({});
   const [feedback, setFeedback] = useState("");
 
+  const fetchData = async () => {
+    try {
+      const fetchedReviews = await getAllReviews();
+      const data = await Promise.all(
+        fetchedReviews.map(async (review) => {
+          const product = await getProductById(review.productId);
+          const reviewResponse = await getReviewResponseByReviewId(review._id);
+          const user = await getUserById(review.userId);
+          return {
+            ...review,
+            status: reviewResponse.length > 0 ? "Replied" : "Not Replied",
+            productName: product.name,
+            fullName: user.fullName,
+          };
+        })
+      );
+      setReviews(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const handleReplyReview = async () => {
     const response = await createReviewResponse(reviewDetails._id, feedback);
     if (response) {
+      await fetchData();
       setFeedback("");
       setOpenReplyModal(false);
       toast.success("Reply sent successfully", { duration: 2000 });
@@ -36,35 +63,6 @@ export default function Reviews() {
       toast.error("Failed to send reply", { duration: 2000 });
     }
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const fetchedReviews = await getAllReviews();
-        const data = await Promise.all(
-          fetchedReviews.map(async (review) => {
-            const product = await getProductById(review.productId);
-            const reviewResponse = await getReviewResponseByReviewId(
-              review._id
-            );
-            const user = await getUserById(review.userId);
-            return {
-              ...review,
-              status: reviewResponse.length > 0 ? "Replied" : "Not Replied",
-              productName: product.name,
-              fullName: user.fullName,
-            };
-          })
-        );
-        setReviews(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchData();
-    console.log(reviews);
-  }, []);
 
   const getStatusClass = (status) => {
     switch (status) {

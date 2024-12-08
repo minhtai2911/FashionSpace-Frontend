@@ -3,44 +3,52 @@ import { Table, Modal, Label, TextInput, Button } from "flowbite-react";
 import { Dropdown } from "flowbite-react";
 import { Clock8 } from "lucide-react";
 
-import { createUser, deleteUserById, getAllUsers } from "../../data/users";
+import {
+  createUser,
+  deleteUserById,
+  getAllUsers,
+  updateUserById,
+} from "../../data/users";
 import { getAllUserRoles, getUserRoleById } from "../../data/userRoles";
 import Search from "../../components/Search";
 import toast from "react-hot-toast";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
-  const [openModal, setOpenModal] = useState(false);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [userRoles, setUserRoles] = useState([]);
   const [userRole, setUserRole] = useState("");
+  const [userDetails, setUserDetails] = useState({});
+  const [openDetailModal, setOpenDetailModal] = useState(false);
+  const [openUpdateModal, setOpenUpdateModal] = useState(false);
 
-  function onCloseModal() {
-    setOpenModal(false);
+  function onCloseCreateModal() {
+    setOpenCreateModal(false);
   }
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const fetchedUsers = await getAllUsers();
-        const updatedUsers = await Promise.all(
-          fetchedUsers.map(async (user) => {
-            const userRole = await getUserRoleById(user.roleId);
-            return {
-              ...user,
-              role: userRole.roleName,
-            };
-          })
-        );
-        setUsers(updatedUsers);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+  const fetchUsers = async () => {
+    try {
+      const fetchedUsers = await getAllUsers();
+      const updatedUsers = await Promise.all(
+        fetchedUsers.map(async (user) => {
+          const userRole = await getUserRoleById(user.roleId);
+          return {
+            ...user,
+            role: userRole.roleName,
+          };
+        })
+      );
+      setUsers(updatedUsers);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
+  useEffect(() => {
     const fetchUserRoles = async () => {
       try {
         const fetchedUserRoles = await getAllUserRoles();
@@ -71,10 +79,28 @@ export default function Users() {
       setPhone("");
       setPassword("");
       setUserRole("");
-      setOpenModal(false);
+      setOpenCreateModal(false);
     } catch (error) {
       console.log(error);
       toast.error("Error creating user:" + error.response.data.message, {
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    const response = await updateUserById(
+      userDetails._id,
+      userDetails.fullName,
+      userDetails.phone,
+      userDetails.roleId
+    );
+    if (response) {
+      toast.success("Update user successfully", { duration: 2000 });
+      fetchUsers();
+      setOpenUpdateModal(false);
+    } else {
+      toast.error("Update user failed", {
         duration: 2000,
       });
     }
@@ -264,8 +290,35 @@ export default function Users() {
                       <Table.Cell>{user.role}</Table.Cell>
                       <Table.Cell>
                         <div className="flex flex-row gap-x-3">
-                          <a
-                            href="#"
+                          <button
+                            className="font-medium hover:underline"
+                            onClick={() => {
+                              setUserDetails(user);
+                              setOpenDetailModal(true);
+                            }}
+                          >
+                            <div className="flex flex-row gap-x-1 items-center">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                class="size-5"
+                              >
+                                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z"
+                                  clip-rule="evenodd"
+                                />
+                              </svg>
+                              <p className="text-[#0A0A0A]">View</p>
+                            </div>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setUserDetails(user);
+                              setOpenUpdateModal(true);
+                            }}
                             className="font-medium text-blue-600 hover:underline"
                           >
                             <div className="flex flex-row gap-x-1 items-center">
@@ -287,7 +340,7 @@ export default function Users() {
                               </svg>
                               <p className="text-blue-600">Edit</p>
                             </div>
-                          </a>
+                          </button>
                           <button
                             onClick={() => handleDeleteUser(user._id)}
                             className="font-medium text-[#EF0606] hover:underline"
@@ -321,12 +374,17 @@ export default function Users() {
         </div>
         <button
           className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10"
-          onClick={() => setOpenModal(true)}
+          onClick={() => setOpenCreateModal(true)}
         >
           New User
         </button>
       </div>
-      <Modal show={openModal} size="lg" onClose={onCloseModal} popup>
+      <Modal
+        show={openCreateModal}
+        size="lg"
+        onClose={onCloseCreateModal}
+        popup
+      >
         <Modal.Header />
         <Modal.Body className="px-10">
           <div className="space-y-4">
@@ -334,68 +392,74 @@ export default function Users() {
               Users / Create
             </h3>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold">
+              <p className="font-manrope font-semibold text-sm">
                 Email <b className="text-[#EF0606]">*</b>
               </p>
               <input
                 id="email"
                 value={email}
-                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold">
+              <p className="font-manrope font-semibold text-sm">
                 Full Name <b className="text-[#EF0606]">*</b>
               </p>
               <input
                 id="fullName"
                 value={fullName}
-                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
                 onChange={(e) => setFullName(e.target.value)}
                 required
               />
             </div>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold">
+              <p className="font-manrope font-semibold text-sm">
                 Phone <b className="text-[#EF0606]">*</b>
               </p>
               <input
                 id="phone"
                 value={phone}
-                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
                 onChange={(e) => setPhone(e.target.value)}
                 required
               />
             </div>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold">
+              <p className="font-manrope font-semibold text-sm">
                 Password <b className="text-[#EF0606]">*</b>
               </p>
               <input
                 id="password"
                 type="password"
                 value={password}
-                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold">
+              <p className="font-manrope font-semibold text-sm">
                 Role <b className="text-[#EF0606]">*</b>
               </p>
               <select
                 id="role"
                 value={userRole}
-                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
                 onChange={(e) => setUserRole(e.target.value)}
                 required
               >
-                <option value="">Choose Role</option>
+                <option value="" className="font-medium font-manrope">
+                  Choose Role
+                </option>
                 {userRoles.map((role) => (
-                  <option key={role._id} value={role.roleName}>
+                  <option
+                    key={role._id}
+                    value={role.roleName}
+                    className="font-medium font-manrope"
+                  >
                     {role.roleName}
                   </option>
                 ))}
@@ -407,6 +471,121 @@ export default function Users() {
                 onClick={handleCreateUser}
               >
                 Create User
+              </button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={openDetailModal}
+        size="lg"
+        onClose={() => {
+          setOpenDetailModal(false);
+        }}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body className="px-10 pb-10">
+          <div className="space-y-4">
+            <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
+              Users / Details
+            </h3>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Email</p>
+              <input
+                value={userDetails.email}
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                disabled
+              />
+            </div>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Full Name</p>
+              <input
+                value={userDetails.fullName}
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                disabled
+              />
+            </div>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Phone</p>
+              <input
+                value={userDetails.phone}
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                disabled
+              />
+            </div>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Role</p>
+              <input
+                value={userDetails.role}
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                disabled
+              />
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={openUpdateModal}
+        size="lg"
+        onClose={() => setOpenUpdateModal(false)}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body className="px-10">
+          <div className="space-y-4">
+            <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
+              Users / Update
+            </h3>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Full Name</p>
+              <input
+                id="fullName"
+                value={userDetails.fullName}
+                className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                onChange={(e) =>
+                  setUserDetails({ ...userDetails, fullName: e.target.value })
+                }
+              />
+            </div>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Phone</p>
+              <input
+                id="phone"
+                value={userDetails.phone}
+                className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                onChange={(e) =>
+                  setUserDetails({ ...userDetails, phone: e.target.value })
+                }
+              />
+            </div>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Role</p>
+              <select
+                id="role"
+                value={userDetails.roleId}
+                className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                onChange={(e) =>
+                  setUserDetails({ ...userDetails, roleId: e.target.value })
+                }
+              >
+                {userRoles.map((role) => (
+                  <option
+                    key={role._id}
+                    value={role._id}
+                    className="font-medium font-manrope"
+                  >
+                    {role.roleName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="w-full flex justify-center">
+              <button
+                className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
+                onClick={handleUpdateUser}
+              >
+                Save changes
               </button>
             </div>
           </div>

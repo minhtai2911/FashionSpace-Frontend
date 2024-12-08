@@ -13,6 +13,10 @@ import { getColorById } from "../../data/colors";
 import { getCategoryById } from "../../data/categories";
 import { ORDER_STATUS } from "../../utils/Constants";
 import toast from "react-hot-toast";
+import {
+  createOrderTracking,
+  getOrderTrackingByOrderId,
+} from "../../data/orderTracking";
 
 export default function UpdateOrder() {
   const { id } = useParams();
@@ -37,12 +41,17 @@ export default function UpdateOrder() {
       const user = await getUserById(order.userId);
       const paymentDetails = await getPaymentDetailById(order.paymentDetailId);
       const details = await getOrderDetailsByOrderId(order._id);
+      const trackingData = await getOrderTrackingByOrderId(order._id);
+      const tracking = trackingData.length
+        ? trackingData[trackingData.length - 1]
+        : {};
 
       const orderDetails = {
         ...order,
         user,
         paymentDetails,
         details,
+        tracking,
       };
 
       const detailedItems = await Promise.all(
@@ -69,9 +78,11 @@ export default function UpdateOrder() {
 
       setOrderWithDetails(orderDetails);
       setItemDetails(detailedItems);
-      setDeliveryDate(formatToDateInput(orderDetails.deliveryDate) || "");
-      setCurrentAddress(orderDetails.currentAddress || "");
-      setStatus(orderDetails.status || "");
+      setDeliveryDate(
+        formatToDateInput(orderDetails.tracking.expectedDeliveryDate) || ""
+      );
+      setCurrentAddress(orderDetails.tracking.currentAddress || "");
+      setStatus(orderDetails.tracking.status || "");
     } catch (error) {
       console.error("Error fetching order details:", error);
     }
@@ -81,13 +92,15 @@ export default function UpdateOrder() {
     fetchOrders();
   }, [id]);
 
+  console.log(orderWithDetails);
+
   const handleUpdateOrder = async () => {
     try {
-      const response = await updateOrderById(
+      const response = await createOrderTracking(
+        id,
         status,
-        deliveryDate,
         currentAddress,
-        id
+        deliveryDate
       );
       if (response) {
         toast.success("Update order successfully", { duration: 2000 });

@@ -16,3 +16,10 @@ export const formatDate = (date) => {
 
   return date.toLocaleDateString("en-ES");
 };
+
+export const getTime = (dateTime) => {
+  const date = new Date(dateTime);
+  const localTime = date.toLocaleTimeString("vi-VN");
+
+  return localTime;
+};

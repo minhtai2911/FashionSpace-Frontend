@@ -11,6 +11,7 @@ import { getProductById } from "../../data/products";
 import { getSizeById } from "../../data/sizes";
 import { getColorById } from "../../data/colors";
 import { getCategoryById } from "../../data/categories";
+import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 
 export default function OrderDetails() {
   const { id } = useParams();
@@ -23,12 +24,17 @@ export default function OrderDetails() {
       const user = await getUserById(order.userId);
       const paymentDetails = await getPaymentDetailById(order.paymentDetailId);
       const details = await getOrderDetailsByOrderId(order._id);
+      const trackingData = await getOrderTrackingByOrderId(order._id);
+      const tracking = trackingData.length
+        ? trackingData[trackingData.length - 1]
+        : {};
 
       const orderDetails = {
         ...order,
         user,
         paymentDetails,
         details,
+        tracking,
       };
 
       const detailedItems = await Promise.all(
@@ -62,6 +68,8 @@ export default function OrderDetails() {
     fetchOrders();
   }, [id]);
 
+  console.log(orderWithDetails);
+
   return (
     <div className="p-10 w-full">
       <p className="font-extrabold text-xl">Orders / Details</p>
@@ -91,7 +99,7 @@ export default function OrderDetails() {
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">Status</p>
                 <input
-                  value={orderWithDetails.status || ""}
+                  value={orderWithDetails?.tracking?.status || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
                 />
@@ -121,7 +129,7 @@ export default function OrderDetails() {
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">Amount</p>
                 <input
-                  value={`$ ${orderWithDetails.total}` || ""}
+                  value={`$ ${orderWithDetails?.total}` || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
                 />
@@ -133,7 +141,7 @@ export default function OrderDetails() {
                   Creation Date
                 </p>
                 <input
-                  value={formatDate(orderWithDetails.createdDate) || ""}
+                  value={formatDate(orderWithDetails?.createdDate) || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
                 />
@@ -143,7 +151,11 @@ export default function OrderDetails() {
                   Delivery Date
                 </p>
                 <input
-                  value={formatDate(orderWithDetails.deliveryDate) || ""}
+                  value={
+                    formatDate(
+                      orderWithDetails?.tracking?.expectedDeliveryDate
+                    ) || ""
+                  }
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
                 />
@@ -153,7 +165,7 @@ export default function OrderDetails() {
                   Current Address
                 </p>
                 <input
-                  value={orderWithDetails.currentAddress || ""}
+                  value={orderWithDetails?.tracking?.currentAddress || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
                 />

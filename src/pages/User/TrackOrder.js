@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import Banner from "../../components/Banner";
 import { ORDER_STATUS } from "../../utils/Constants";
 import OrderStatus from "../../components/OrderStatus";
-import { formatDate, formatURL } from "../../utils/format";
+import { formatDate, formatURL, getTime } from "../../utils/format";
 import { getOrderById } from "../../data/orders";
 import { getOrderDetailsByOrderId } from "../../data/orderDetail";
 import { getPaymentDetailById } from "../../data/paymentDetail";
@@ -14,6 +14,7 @@ import { getSizeById } from "../../data/sizes";
 import { getColorById } from "../../data/colors";
 import { getCategoryById } from "../../data/categories";
 import { getAllImagesByProductId } from "../../data/productImages";
+import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 
 const status = [
   {
@@ -212,48 +213,56 @@ const status = [
 export default function TrackOrder() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
+  const [tracking, setTracking] = useState([]);
+
+  const getStatusObjectByStatus = (statusValue) => {
+    return status.find((item) => item.status === statusValue);
+  };
+
+  const fetchOrder = async () => {
+    try {
+      const fetchedOrder = await getOrderById(id);
+      const details = await getOrderDetailsByOrderId(fetchedOrder._id);
+      const trackingData = await getOrderTrackingByOrderId(fetchedOrder._id);
+
+      const orderDetails = {
+        ...fetchedOrder,
+        details,
+      };
+
+      setTracking(trackingData);
+
+      const detailedItems = await Promise.all(
+        orderDetails.details.map(async (item) => {
+          const productVariant = await getProductVariantById(
+            item.productVariantId
+          );
+          const product = await getProductById(productVariant.productId);
+          const images = await getAllImagesByProductId(product._id);
+          const size = await getSizeById(productVariant.sizeId);
+          const color = await getColorById(productVariant.colorId);
+          const category = await getCategoryById(product.categoryId);
+
+          return {
+            product: product,
+            images: images,
+            size: size,
+            color: color,
+            category: category,
+            quantity: item.quantity,
+          };
+        })
+      );
+      setOrder({
+        ...orderDetails,
+        detailedItems,
+      });
+    } catch (error) {
+      console.error("Error fetching order:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        const fetchedOrder = await getOrderById(id);
-        const details = await getOrderDetailsByOrderId(fetchedOrder._id);
-
-        const orderDetails = {
-          ...fetchedOrder,
-          details,
-        };
-
-        const detailedItems = await Promise.all(
-          orderDetails.details.map(async (item) => {
-            const productVariant = await getProductVariantById(
-              item.productVariantId
-            );
-            const product = await getProductById(productVariant.productId);
-            const images = await getAllImagesByProductId(product._id);
-            const size = await getSizeById(productVariant.sizeId);
-            const color = await getColorById(productVariant.colorId);
-            const category = await getCategoryById(product.categoryId);
-
-            return {
-              product: product,
-              images: images,
-              size: size,
-              color: color,
-              category: category,
-              quantity: item.quantity,
-            };
-          })
-        );
-        setOrder({
-          ...orderDetails,
-          detailedItems,
-        });
-      } catch (error) {
-        console.error("Error fetching order:", error);
-      }
-    };
-
     fetchOrder();
   }, []);
 
@@ -265,14 +274,16 @@ export default function TrackOrder() {
           <div className="flex flex-col mt-10 w-full">
             <p className="text-2xl font-medium">Order Status</p>
             <p className="mt-1">Order ID: {id}</p>
-            <div className="border rounded-lg px-10 py-5 mt-6 flex">
-              {status.map((item, index) => (
+            <div className="border rounded-lg px-10 py-5 mt-6 flex overflow-scroll">
+              {tracking.map((item, index) => (
                 <OrderStatus
-                  key={index}
-                  icon={item.icon}
+                  key={item._id}
+                  icon={getStatusObjectByStatus(item.status).icon}
                   status={item.status}
                   index={index}
-                  orderStatus={order.status}
+                  orderStatus={tracking[tracking.length - 1].status}
+                  date={formatDate(item.date)}
+                  time={getTime(item.date)}
                 />
               ))}
             </div>

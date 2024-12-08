@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { getPaymentDetailById } from "../../data/paymentDetail";
 import { ORDER_STATUS } from "../../utils/Constants";
 import { getUserById } from "../../data/users";
+import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 
 export default function Orders() {
   const [orderWithDetails, setOrdersWithDetails] = useState([]);
@@ -43,12 +44,17 @@ export default function Orders() {
             order.paymentDetailId
           );
           const details = await getOrderDetailsByOrderId(order._id);
+          const trackingData = await getOrderTrackingByOrderId(order._id);
+          const tracking = trackingData.length
+            ? trackingData[trackingData.length - 1]
+            : {};
 
           return {
             ...order,
             user,
             paymentDetails,
             details,
+            tracking,
           };
         })
       );
@@ -97,17 +103,17 @@ export default function Orders() {
                     <Table.Cell>
                       <div
                         className={`px-3 py-1 rounded-lg text-center font-semibold ${getStatusClass(
-                          order.status
+                          order?.tracking?.status
                         )}`}
                       >
-                        {order.status}
+                        {order?.tracking?.status}
                       </div>
                     </Table.Cell>
-                    <Table.Cell>{order.total}</Table.Cell>
+                    <Table.Cell>{order?.total}</Table.Cell>
                     <Table.Cell>
-                      {order.paymentDetails.paymentMethod}
+                      {order?.paymentDetails?.paymentMethod}
                     </Table.Cell>
-                    <Table.Cell>{order.paymentDetails.status}</Table.Cell>
+                    <Table.Cell>{order?.paymentDetails?.status}</Table.Cell>
                     <Table.Cell>
                       <div className="flex flex-row gap-x-3">
                         <Link

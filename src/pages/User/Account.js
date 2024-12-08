@@ -1,5 +1,6 @@
 import { useContext, useState, useRef, useEffect } from "react";
 import { AuthContext } from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 import Banner from "../../components/Banner";
 import PersonalInformation from "../PersonalInformation";
@@ -7,7 +8,7 @@ import PasswordManager from "../PasswordManager";
 import MyOrders from "./MyOrders";
 
 function Account() {
-  const { user, setUser } = useContext(AuthContext);
+  const user = JSON.parse(Cookies.get("user"));
   const [activeTab, setActiveTab] = useState("personal");
 
   const tabs = [

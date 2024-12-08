@@ -7,18 +7,22 @@ import {
   createCategory,
   deleteCategoryById,
   getAllCategories,
+  updateCategory,
 } from "../../data/categories";
 import toast from "react-hot-toast";
 import { GENDER } from "../../utils/Constants";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
-  const [openModal, setOpenModal] = useState(false);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [category, setCategory] = useState("");
   const [gender, setGender] = useState("");
+  const [categoryDetails, setCategoryDetails] = useState({});
+  const [openDetailModal, setOpenDetailModal] = useState(false);
+  const [openUpdateModal, setOpenUpdateModal] = useState(false);
 
   function onCloseModal() {
-    setOpenModal(false);
+    setOpenCreateModal(false);
   }
 
   const handleCreateCategory = async () => {
@@ -26,7 +30,7 @@ export default function Categories() {
       const createdCategory = await createCategory(category, gender);
       setCategories([...categories, createdCategory]);
       setCategory("");
-      setOpenModal(false);
+      setOpenCreateModal(false);
     } catch (error) {
       console.error("Error creating category:", error);
     }
@@ -43,16 +47,31 @@ export default function Categories() {
     }
   };
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const fetchedCategories = await getAllCategories();
-        setCategories(fetchedCategories);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
+  const fetchCategories = async () => {
+    try {
+      const fetchedCategories = await getAllCategories();
+      setCategories(fetchedCategories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
 
+  const handleUpdateCategory = async () => {
+    const response = await updateCategory(
+      categoryDetails._id,
+      categoryDetails.name,
+      categoryDetails.gender
+    );
+    if (response) {
+      toast.success("Update category successfully", { duration: 2000 });
+      fetchCategories();
+      setOpenUpdateModal(false);
+    } else {
+      toast.error("Update category failed", { duration: 2000 });
+    }
+  };
+
+  useEffect(() => {
     fetchCategories();
   }, []);
 
@@ -222,8 +241,35 @@ export default function Categories() {
                     <Table.Cell>{category.gender}</Table.Cell>
                     <Table.Cell>
                       <div className="flex flex-row gap-x-3">
-                        <a
-                          href="#"
+                        <button
+                          className="font-medium hover:underline"
+                          onClick={() => {
+                            setCategoryDetails(category);
+                            setOpenDetailModal(true);
+                          }}
+                        >
+                          <div className="flex flex-row gap-x-1 items-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                              class="size-5"
+                            >
+                              <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                              <path
+                                fill-rule="evenodd"
+                                d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z"
+                                clip-rule="evenodd"
+                              />
+                            </svg>
+                            <p className="text-[#0A0A0A]">View</p>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCategoryDetails(category);
+                            setOpenUpdateModal(true);
+                          }}
                           className="font-medium text-blue-600 hover:underline"
                         >
                           <div className="flex flex-row gap-x-1 items-center">
@@ -245,7 +291,7 @@ export default function Categories() {
                             </svg>
                             <p className="text-blue-600">Edit</p>
                           </div>
-                        </a>
+                        </button>
                         <button
                           onClick={() => handleDeleteCategory(category._id)}
                           className="font-medium text-[#EF0606] hover:underline"
@@ -278,12 +324,12 @@ export default function Categories() {
         </div>
         <button
           className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10"
-          onClick={() => setOpenModal(true)}
+          onClick={() => setOpenCreateModal(true)}
         >
           New Category
         </button>
       </div>
-      <Modal show={openModal} size="lg" onClose={onCloseModal} popup>
+      <Modal show={openCreateModal} size="lg" onClose={onCloseModal} popup>
         <Modal.Header />
         <Modal.Body className="px-10">
           <div className="space-y-4">
@@ -291,29 +337,35 @@ export default function Categories() {
               Categories / Create
             </h3>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold">
+              <p className="font-manrope text-sm font-semibold">
                 Category Name<b className="text-[#EF0606]">*</b>
               </p>
               <input
                 id="category"
                 value={category}
-                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
                 onChange={(e) => setCategory(e.target.value)}
                 required
               />
             </div>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold">
+              <p className="font-manrope text-sm font-semibold">
                 Gender <b className="text-[#EF0606]">*</b>
               </p>
               <select
                 value={gender}
-                className="w-full px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-base"
+                className="w-full px-5 py-3 border border-[#808191] font-manrope font-medium focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
                 onChange={(e) => setGender(e.target.value)}
               >
-                <option value={""}>Choose gender</option>
+                <option value={""} className="font-medium font-manrope text-sm">
+                  Choose gender
+                </option>
                 {GENDER.map((gender) => (
-                  <option key={gender.key} value={gender.value}>
+                  <option
+                    key={gender.key}
+                    value={gender.value}
+                    className="font-medium font-manrope text-sm"
+                  >
                     {gender.value}
                   </option>
                 ))}
@@ -325,6 +377,102 @@ export default function Categories() {
                 onClick={handleCreateCategory}
               >
                 Create Category
+              </button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={openDetailModal}
+        size="lg"
+        onClose={() => {
+          setOpenDetailModal(false);
+        }}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body className="px-10 pb-10">
+          <div className="space-y-4">
+            <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
+              Categories / Details
+            </h3>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">
+                Category Name
+              </p>
+              <input
+                value={categoryDetails.name}
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                disabled
+              />
+            </div>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Gender</p>
+              <input
+                value={categoryDetails.gender}
+                className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
+                disabled
+              />
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={openUpdateModal}
+        size="lg"
+        onClose={() => setOpenUpdateModal(false)}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body className="px-10">
+          <div className="space-y-4">
+            <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
+              Categories / Update
+            </h3>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">
+                Category Name
+              </p>
+              <input
+                value={categoryDetails.name}
+                className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                onChange={(e) =>
+                  setCategoryDetails({
+                    ...categoryDetails,
+                    name: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">Gender</p>
+              <select
+                value={categoryDetails.gender}
+                className="w-full px-5 py-3 border border-[#808191] font-manrope font-medium focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                onChange={(e) =>
+                  setCategoryDetails({
+                    ...categoryDetails,
+                    gender: e.target.value,
+                  })
+                }
+              >
+                {GENDER.map((gender) => (
+                  <option
+                    key={gender.key}
+                    value={gender.value}
+                    className="font-medium font-manrope text-sm"
+                  >
+                    {gender.value}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="w-full flex justify-center">
+              <button
+                className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
+                onClick={handleUpdateCategory}
+              >
+                Save changes
               </button>
             </div>
           </div>

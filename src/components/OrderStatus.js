@@ -204,7 +204,7 @@ export default function OrderStatus({
   index,
   orderStatus,
 }) {
-  const [isDisabled, setIsDisabled] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(true);
   const [orderIndex, setOrderIndex] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -248,7 +248,9 @@ export default function OrderStatus({
           />
         </svg>
         <div
-          class={`hidden sm:flex flex-1 ${index === 4 && "bg-transparent"} ${
+          class={`hidden sm:flex flex-1 ${
+            currentIndex == orderIndex && "bg-transparent"
+          } ${
             currentIndex <= orderIndex - 1 ? "bg-[#0A0A0A]" : "bg-[#DEDEDE]"
           } h-1.5 dark:bg-gray-700`}
         ></div>

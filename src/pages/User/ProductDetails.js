@@ -10,10 +10,14 @@ import { getProductVariantsByProductId } from "../../data/productVariant";
 import { getColorById } from "../../data/colors";
 import { getSizeById } from "../../data/sizes";
 import { createShoppingCart } from "../../data/shoppingCart";
+import { getReviewsByProductId } from "../../data/reviews";
+import { getReviewResponseByReviewId } from "../../data/reviewResponse";
+import { getUserById } from "../../data/users";
 
 import Banner from "../../components/Banner";
 import Color from "../../components/Color";
 import Rating from "../../components/Rating";
+import SellerFeedback from "../../components/SellerFeedback";
 import Size from "../../components/Size";
 import Review from "../../components/Review";
 import Pagination from "../../components/Pagination";
@@ -23,108 +27,6 @@ import { REVIEWS_PER_PAGE } from "../../utils/Constants";
 import { addToCart } from "../../stores/cart";
 import { formatURL } from "../../utils/format";
 
-const reviews = [
-  {
-    id: 1,
-    user: {
-      avatar: "https://picsum.photos/100",
-      name: "John Doe",
-    },
-    rating: 4.5,
-    content: "This is a great product. I love it.",
-    createdDate: "20/10/2024",
-  },
-  {
-    id: 2,
-    user: {
-      avatar: "https://picsum.photos/100",
-      name: "Jane Doe",
-    },
-    rating: 3.5,
-    content: "This is a good product. I like it.",
-    createdDate: "20/10/2024",
-  },
-  {
-    id: 3,
-    user: {
-      avatar: "https://picsum.photos/100",
-      name: "John Smith",
-    },
-    rating: 2.5,
-    content: "This is a bad product. I don't like it.",
-    createdDate: "20/10/2024",
-  },
-  {
-    id: 4,
-    user: {
-      avatar: "https://picsum.photos/100",
-      name: "John Smith",
-    },
-    rating: 2.5,
-    content: "This is a bad product. I don't like it.",
-    createdDate: "20/10/2024",
-  },
-  {
-    id: 5,
-    user: {
-      avatar: "https://picsum.photos/100",
-      name: "John Smith",
-    },
-    rating: 2.5,
-    content: "This is a bad product. I don't like it.",
-    createdDate: "20/10/2024",
-  },
-  {
-    id: 6,
-    user: {
-      avatar: "https://picsum.photos/100",
-      name: "John Smith",
-    },
-    rating: 2.5,
-    content: "This is a bad product. I don't like it.",
-    createdDate: "20/10/2024",
-  },
-  {
-    id: 7,
-    user: {
-      avatar: "https://picsum.photos/100",
-      name: "John Smith",
-    },
-    rating: 2.5,
-    content: "This is a bad product. I don't like it.",
-    createdDate: "20/10/2024",
-  },
-  {
-    id: 8,
-    user: {
-      avatar: "https://picsum.photos/100",
-      name: "John Smith",
-    },
-    rating: 2.5,
-    content: "This is a bad product. I don't like it.",
-    createdDate: "20/10/2024",
-  },
-  {
-    id: 9,
-    user: {
-      avatar: "https://picsum.photos/100",
-      name: "John Smith",
-    },
-    rating: 2.5,
-    content: "This is a bad product. I don't like it.",
-    createdDate: "20/10/2024",
-  },
-  {
-    id: 10,
-    user: {
-      avatar: "https://picsum.photos/100",
-      name: "John Smith",
-    },
-    rating: 2.5,
-    content: "This is a bad product. I don't like it.",
-    createdDate: "20/10/2024",
-  },
-];
 const relatedProducts = [
   {
     id: 1,
@@ -205,37 +107,57 @@ function ProductDetails() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
+  const [reviews, setReviews] = useState([]);
+
+  const fetchProduct = async () => {
+    const product = await getProductById(id);
+    setProductName(product.name);
+    setPrice(product.price);
+    setDescription(product.description);
+    setRating(product.rating);
+    const fetchedCategory = await getCategoryById(product.categoryId);
+    setCategory(fetchedCategory.name);
+    const fetchedImages = await getAllImagesByProductId(id);
+    setMainImage(fetchedImages[0].imagePath);
+    setPhotos(fetchedImages);
+  };
+
+  const fetchVariants = async () => {
+    const fetchedVariants = await getProductVariantsByProductId(id);
+    const variantsData = await Promise.all(
+      fetchedVariants.map(async (variant) => {
+        const color = await getColorById(variant.colorId);
+        const size = await getSizeById(variant.sizeId);
+        return { size, color, quantity: variant.quantity };
+      })
+    );
+    setSelectedColor(variantsData[0].color._id);
+    setSelectedSize(variantsData[0].size._id);
+    setVariants(variantsData);
+  };
+
+  const fetchReviews = async () => {
+    const fetchedReviews = await getReviewsByProductId(id);
+    const data = await Promise.all(
+      fetchedReviews.map(async (review) => {
+        const user = await getUserById(review.userId);
+        const response = await getReviewResponseByReviewId(review._id);
+        let reviewResponse = null;
+        if (response.length > 0) {
+          const userResponse = await getUserById(response[0].userId);
+          const data = response[0];
+          reviewResponse = { data, userResponse };
+        }
+        return { ...review, user, reviewResponse };
+      })
+    );
+    setReviews(data);
+  };
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      const product = await getProductById(id);
-      setProductName(product.name);
-      setPrice(product.price);
-      setDescription(product.description);
-      setRating(product.rating);
-      const fetchedCategory = await getCategoryById(product.categoryId);
-      setCategory(fetchedCategory.name);
-      const fetchedImages = await getAllImagesByProductId(id);
-      setMainImage(fetchedImages[0].imagePath);
-      setPhotos(fetchedImages);
-    };
-
-    const fetchVariants = async () => {
-      const fetchedVariants = await getProductVariantsByProductId(id);
-      const variantsData = await Promise.all(
-        fetchedVariants.map(async (variant) => {
-          const color = await getColorById(variant.colorId);
-          const size = await getSizeById(variant.sizeId);
-          return { size, color, quantity: variant.quantity };
-        })
-      );
-      setSelectedColor(variantsData[0].color._id);
-      setSelectedSize(variantsData[0].size._id);
-      setVariants(variantsData);
-    };
-
     fetchProduct();
     fetchVariants();
+    fetchReviews();
   }, [id]);
 
   const uniqueColors = useMemo(() => {
@@ -276,10 +198,6 @@ function ProductDetails() {
       image: mainImage,
     };
     dispatch(addToCart(product));
-    // if (!isAuthenticated) dispatch(addToCart(product));
-    // else {
-    //   const response = await createShoppingCart();
-    // }
   };
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -460,46 +378,22 @@ function ProductDetails() {
             </div>
             <div className="mt-4">
               {activeTab === "description" && (
-                <>
-                  <p className="text-sm">
-                    The Baddie Jacket is the ultimate fusion of style and
-                    attitude, designed to make you stand out wherever you go.
-                    Made from high-quality materials, this jacket boasts a
-                    sleek, tailored fit that hugs the body while providing
-                    comfort and durability. The design includes edgy accents
-                    like metallic zippers, bold stitching, and a modern collar,
-                    giving it a fierce, fashion-forward vibe. Whether you're
-                    dressing up for a night out or layering it over your casual
-                    outfit, the Baddie Jacket ensures you'll always look
-                    effortlessly cool.
-                  </p>
-                  <ul className="mt-4 space-y-2">
-                    <li className="flex items-center text-sm">
-                      <span className="mr-2">•</span>
-                      Outer shell: High-quality faux leather for a sleek,
-                      polished look
-                    </li>
-                    <li className="flex items-center text-sm">
-                      <span className="mr-2">•</span>
-                      Lining: Soft polyester for warmth and comfort
-                    </li>
-                    <li className="flex items-center text-sm">
-                      <span className="mr-2">•</span>
-                      Material properties: Breathable, durable, and lightweight
-                      for everyday wear
-                    </li>
-                    <li className="flex items-center text-sm">
-                      <span className="mr-2">•</span>
-                      Eco-friendly: Cruelty-free and sustainable materials
-                    </li>
-                  </ul>
-                </>
+                <p className="text-sm">{description}</p>
               )}
               {activeTab === "review" && (
                 <div className="flex flex-col gap-y-4">
                   {currentReviews.map((review) => (
                     <div key={review.id} className="mt-5">
-                      <Review {...review} />
+                      <div className="flex flex-col gap-y-5">
+                        <Review {...review} />
+                        {review.reviewResponse && (
+                          <SellerFeedback
+                            user={review.reviewResponse.userResponse}
+                            content={review.reviewResponse.data.content}
+                            createdDate={review.reviewResponse.data.createdDate}
+                          />
+                        )}
+                      </div>
                     </div>
                   ))}
                   <Pagination
@@ -517,7 +411,7 @@ function ProductDetails() {
                   Explore Related Products
                 </h1>
               </div>
-              <Slider products={relatedProducts} />
+              {/* <Slider products={relatedProducts} /> */}
             </div>
             <FeatureBanner />
           </div>
