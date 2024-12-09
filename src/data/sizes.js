@@ -93,7 +93,7 @@ export const updateSize = async (id, categoryId, size) => {
     return response.data;
   } catch (error) {
     console.log(error);
-    return false;
+    return null;
   }
 };
 
@@ -120,6 +120,6 @@ export const deleteSizeById = async (id) => {
     return response.data;
   } catch (error) {
     console.log(error);
-    return false;
+    return null;
   }
 };

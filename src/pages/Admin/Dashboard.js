@@ -20,6 +20,8 @@ import { ORDER_STATUS } from "../../utils/Constants";
 import { getPaymentDetailById } from "../../data/paymentDetail";
 import { getOrderDetailsByOrderId } from "../../data/orderDetail";
 import { getOrderTrackingByOrderId } from "../../data/orderTracking";
+import { getStatistics } from "../../data/statistic";
+import dayjs from "dayjs";
 
 const data = [
   {
@@ -100,8 +102,11 @@ export default function Dashboard() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
+  const [statistics, setStatistics] = useState([]);
   const [bestSellerProducts, setBestSellerProducts] = useState([]);
   const [latestOrders, setLatestOrders] = useState([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [yearRevenue, setYearRevenue] = useState(0);
 
   async function fetchOrders() {
     const fetchedOrders = await getAllOrders();
@@ -156,6 +161,23 @@ export default function Dashboard() {
     setBestSellerProducts(data);
   };
 
+  const fetchStatistics = async () => {
+    const data = await getStatistics("", "", "");
+    const total = data.reduce((sum, stat) => {
+      return sum + stat.totalRevenue;
+    }, 0);
+    setTotalRevenue(total);
+  };
+
+  const fetchYearStatistics = async () => {
+    const data = await getStatistics("", "", dayjs().year());
+    const total = data.reduce((sum, stat) => {
+      return sum + stat.totalRevenue;
+    }, 0);
+    setStatistics(data);
+    setYearRevenue(total);
+  };
+
   const getStatusClass = (status) => {
     switch (status) {
       case ORDER_STATUS.SHIPPED:
@@ -180,7 +202,14 @@ export default function Dashboard() {
     fetchProduct();
     fetchUser();
     fetchBestSellerProducts();
+    fetchStatistics();
+    fetchYearStatistics();
   }, []);
+
+  const chartData = statistics.map((stat) => ({
+    date: `${stat.day}/${stat.month}/${stat.year}`,
+    revenue: stat.totalRevenue,
+  }));
 
   return (
     <div className="p-10 w-full">
@@ -210,7 +239,7 @@ export default function Dashboard() {
         />
         <DashboardCard
           title={"Total Revenue"}
-          value={230}
+          value={`$${totalRevenue}`}
           description={"Available to payout"}
           icon={
             <svg
@@ -277,34 +306,30 @@ export default function Dashboard() {
       </div>
       <div className="flex flex-row mt-5 gap-x-5">
         <div className="flex-[2] p-6 bg-white rounded-lg shadow-md flex flex-col gap-y-2">
-          <p className="font-bold">Revenue</p>
-          <p className="text-2xl font-bold">$1,234,567</p>
+          <p className="font-bold">Revenue (this year)</p>
+          <p className="text-2xl font-bold">${yearRevenue}</p>
           <ResponsiveContainer width="100%" height={250}>
             <AreaChart
-              data={data}
+              data={chartData}
               className="font-semibold text-xs"
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
             >
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
                   <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="name" />
+              <XAxis dataKey="date" />
               <YAxis />
               <CartesianGrid strokeDasharray="3 3" />
               <Tooltip />
               <Area
                 type="monotone"
-                dataKey="expense"
+                dataKey="revenue"
                 stroke="#82ca9d"
                 fillOpacity={1}
-                fill="url(#colorExpense)"
+                fill="url(#colorRevenue)"
               />
             </AreaChart>
           </ResponsiveContainer>

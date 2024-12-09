@@ -15,81 +15,7 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 
 import Calendar from "../../components/Calendar";
-
-const data = [
-  {
-    name: "Jan",
-    revenue: 4000,
-    expense: 2400,
-    amt: 2400,
-  },
-  {
-    name: "Feb",
-    revenue: 3000,
-    expense: 1398,
-    amt: 2210,
-  },
-  {
-    name: "Mar",
-    revenue: 2000,
-    expense: 9800,
-    amt: 2290,
-  },
-  {
-    name: "Apr",
-    revenue: 2780,
-    expense: 3908,
-    amt: 2000,
-  },
-  {
-    name: "May",
-    revenue: 1890,
-    expense: 4800,
-    amt: 2181,
-  },
-  {
-    name: "Jun",
-    revenue: 2390,
-    expense: 3800,
-    amt: 2500,
-  },
-  {
-    name: "Jul",
-    revenue: 3490,
-    expense: 4300,
-    amt: 2100,
-  },
-  {
-    name: "Aug",
-    revenue: 3490,
-    expense: 1340,
-    amt: 2100,
-  },
-  {
-    name: "Sep",
-    revenue: 3490,
-    expense: 5160,
-    amt: 2100,
-  },
-  {
-    name: "Oct",
-    revenue: 3490,
-    expense: 8102,
-    amt: 2100,
-  },
-  {
-    name: "Nov",
-    revenue: 3490,
-    expense: 3012,
-    amt: 2100,
-  },
-  {
-    name: "Dec",
-    revenue: 3490,
-    expense: 1030,
-    amt: 2100,
-  },
-];
+import { getStatistics } from "../../data/statistic";
 
 export default function Analysis() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -97,6 +23,7 @@ export default function Analysis() {
   const [showPicker, setShowPicker] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [statistics, setStatistics] = useState([]);
+  const [totalOrder, setTotalOrder] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
 
   const getCurrentDateRange = (date) => {
@@ -137,42 +64,55 @@ export default function Analysis() {
 
           for (let i = 0; i < 7; i++) {
             const currentDay = startOfWeek.add(i, "day");
-            // const response = await api.get(
-            //   `/statistics?year=${currentDay.year()}&month=${
-            //     currentDay.month() + 1
-            //   }&day=${currentDay.date()}`
-            // );
-            // weekStatistics.push(...response.data.data);
+            const response = await getStatistics(
+              currentDay.date(),
+              currentDay.month() + 1,
+              currentDay.year()
+            );
+            weekStatistics.push(...response);
           }
 
           setStatistics(weekStatistics);
 
           const total = weekStatistics.reduce((sum, stat) => {
-            return sum + stat.total_revenue;
+            return sum + stat.totalRevenue;
           }, 0);
           setTotalRevenue(total);
+
+          setTotalOrder(
+            weekStatistics.reduce((sum, stat) => sum + stat.totalOrder, 0)
+          );
         } else if (selectedView === "month") {
-          // const response = await api.get(
-          //   `/statistics?year=${year}&month=${month}`
-          // );
-          // setStatistics(response.data.data);
-          // const total = response.data.data.reduce((sum, stat) => {
-          //   return sum + stat.total_revenue;
-          // }, 0);
-          // setTotalRevenue(total);
+          const response = await getStatistics("", month, year);
+          setStatistics(response);
+          const total = response.reduce((sum, stat) => {
+            return sum + stat.totalRevenue;
+          }, 0);
+          setTotalOrder(
+            response.reduce((sum, stat) => sum + stat.totalOrder, 0)
+          );
+          setTotalRevenue(total);
         } else if (selectedView === "year") {
-          // const response = await api.get(`/statistics?year=${year}`);
-          // setStatistics(response.data.data);
-          // const total = response.data.data.reduce((sum, stat) => {
-          //   return sum + stat.total_revenue;
-          // }, 0);
-          // setTotalRevenue(total);
+          const response = await getStatistics("", "", year);
+          setStatistics(response);
+          const total = response.reduce((sum, stat) => {
+            return sum + stat.totalRevenue;
+          }, 0);
+          setTotalOrder(
+            response.reduce((sum, stat) => sum + stat.totalOrder, 0)
+          );
+          setTotalRevenue(total);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     }
   };
+
+  const chartData = statistics.map((stat) => ({
+    date: `${stat.day}/${stat.month}/${stat.year}`,
+    revenue: stat.totalRevenue,
+  }));
 
   const handleViewChange = (value) => {
     setSelectedView(value);
@@ -188,16 +128,10 @@ export default function Analysis() {
   }, []);
 
   useEffect(() => {
-    if (selectedDate) {
+    if (selectedDate || selectedView) {
       fetchData();
     }
-  }, [selectedDate]);
-
-  useEffect(() => {
-    if (selectedView) {
-      fetchData();
-    }
-  }, [selectedView]);
+  }, [selectedDate, selectedView]);
 
   useEffect(() => {
     setInputValue(getCurrentDateRange(dayjs()));
@@ -244,8 +178,8 @@ export default function Analysis() {
       worksheet.addRow([
         index + 1,
         `${stat.day}/${stat.month}/${stat.year}`,
-        stat.total_order,
-        stat.total_revenue,
+        stat.totalOrder,
+        stat.totalRevenue,
       ]);
     });
 
@@ -315,7 +249,18 @@ export default function Analysis() {
               <Table.HeadCell className="w-40">Total Order</Table.HeadCell>
               <Table.HeadCell className="w-40">Revenue</Table.HeadCell>
             </Table.Head>
-            <Table.Body className="divide-y"></Table.Body>
+            <Table.Body className="divide-y">
+              {statistics.map((stat, index) => (
+                <Table.Row key={index}>
+                  <Table.Cell>{index + 1}</Table.Cell>
+                  <Table.Cell>
+                    {`${stat.day}/${stat.month}/${stat.year}`}
+                  </Table.Cell>
+                  <Table.Cell>{stat.totalOrder}</Table.Cell>
+                  <Table.Cell>${stat.totalRevenue}</Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
           </Table>
           <Table>
             <Table.Head className="normal-case text-sm">
@@ -326,7 +271,7 @@ export default function Analysis() {
                 <Table.Cell>
                   <div className="w-[400px] flex justify-between font-semibold">
                     <p>Total Orders</p>
-                    <p>12</p>
+                    <p>{totalOrder}</p>
                   </div>
                 </Table.Cell>
               </Table.Row>
@@ -334,7 +279,7 @@ export default function Analysis() {
                 <Table.Cell>
                   <div className="w-[400px] flex justify-between font-semibold">
                     <p>Total Revenue</p>
-                    <p>12</p>
+                    <p>${totalRevenue}</p>
                   </div>
                 </Table.Cell>
               </Table.Row>
@@ -343,33 +288,29 @@ export default function Analysis() {
         </div>
         <div className="bg-white rounded-lg flex flex-col gap-y-2">
           <p className="font-bold">Revenue</p>
-          <p className="text-2xl font-bold">$1,234,567</p>
+          <p className="text-2xl font-bold">${totalRevenue}</p>
           <ResponsiveContainer width="100%" height={250}>
             <AreaChart
-              data={data}
+              data={chartData}
               className="font-semibold text-xs"
               margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
             >
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
                   <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="name" />
+              <XAxis dataKey="date" />
               <YAxis />
               <CartesianGrid strokeDasharray="3 3" />
               <Tooltip />
               <Area
                 type="monotone"
-                dataKey="expense"
+                dataKey="revenue"
                 stroke="#82ca9d"
                 fillOpacity={1}
-                fill="url(#colorExpense)"
+                fill="url(#colorRevenue)"
               />
             </AreaChart>
           </ResponsiveContainer>
