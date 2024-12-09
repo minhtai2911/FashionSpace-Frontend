@@ -52,6 +52,7 @@ function App() {
     "/signup",
     "/forgotPassword",
     "/verifyCode",
+    "/verify",
     "/setPassword",
     "/admin",
   ];

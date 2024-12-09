@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { mergeCart } from "../../stores/cart";
 import { getShoppingCartByUserId } from "../../data/shoppingCart";
 import { getProductVariantById } from "../../data/productVariant";
+import { getUserRoleById } from "../../data/userRoles";
 
 function SignIn() {
   const { setUser, isAuthenticated, setIsAuthenticated } =
@@ -70,7 +71,6 @@ function SignIn() {
       Cookies.set("accessToken", accessToken);
       Cookies.set("refreshToken", refreshToken);
       Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
-      mergeUserCart(response.data._id);
     } catch (error) {
       setIsAuthenticated(false);
       if (error.status === 400) {
@@ -111,13 +111,20 @@ function SignIn() {
     }
     try {
       await login(data.email, data.password);
-      const state = location.state;
-      if (state && state.orderSummary) {
-        navigate("/checkout", {
-          state: { orderSummary: state.orderSummary },
-        });
+      const user = JSON.parse(Cookies.get("user"));
+      const role = await getUserRoleById(user.roleId);
+      if (role.roleName === "User") {
+        await mergeUserCart(user.id);
+        const state = location.state;
+        if (state && state.orderSummary) {
+          navigate("/checkout", {
+            state: { orderSummary: state.orderSummary },
+          });
+        } else {
+          navigate("/");
+        }
       } else {
-        navigate("/");
+        navigate("/admin");
       }
     } catch (err) {
       console.log(err);

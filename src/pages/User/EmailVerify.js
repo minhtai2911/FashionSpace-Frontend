@@ -92,7 +92,12 @@ const EmailVerify = () => {
       </p>
     </div>
   ) : (
-    <Error errorCode={error.status} />
+    <Error
+      errorCode={error.status}
+      title={"It looks like something went wrong."}
+      content="Don't worry, our team is already on it. Please try refreshing the page
+        or come back later."
+    />
   );
 };
 

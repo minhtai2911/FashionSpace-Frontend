@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { Link, NavLink } from "react-router-dom";
 
 import { AuthContext } from "../context/AuthContext";
+import { ADMIN_PERMISSIONS, EMPLOYEE_PERMISSIONS } from "../utils/Constants";
 
 const tabs = [
   {
@@ -22,6 +23,7 @@ const tabs = [
     ),
     path: "/admin/dashboard",
     title: "Dashboard",
+    permission: "DASHBOARD",
   },
   {
     icon: (isActive) => (
@@ -43,6 +45,7 @@ const tabs = [
     ),
     path: "/admin/products",
     title: "Products",
+    permission: "PRODUCTS",
   },
   {
     icon: (isActive) => (
@@ -71,6 +74,7 @@ const tabs = [
     ),
     path: "/admin/categories",
     title: "Categories",
+    permission: "CATEGORIES",
   },
   {
     icon: (isActive) => (
@@ -95,6 +99,7 @@ const tabs = [
     ),
     path: "/admin/colors",
     title: "Colors",
+    permission: "COLORS",
   },
   {
     icon: (isActive) => (
@@ -115,6 +120,7 @@ const tabs = [
     ),
     path: "/admin/sizes",
     title: "Sizes",
+    permission: "SIZES",
   },
   {
     icon: (isActive) => (
@@ -136,6 +142,7 @@ const tabs = [
     ),
     path: "/admin/users",
     title: "Users",
+    permission: "USERS",
   },
   {
     icon: (isActive) => (
@@ -157,6 +164,7 @@ const tabs = [
     ),
     path: "/admin/analysis",
     title: "Analysis",
+    permission: "ANALYSIS",
   },
   {
     icon: (isActive) => (
@@ -179,6 +187,7 @@ const tabs = [
     ),
     path: "/admin/account",
     title: "Account",
+    permission: "ACCOUNT",
   },
   {
     icon: (isActive) => (
@@ -200,6 +209,7 @@ const tabs = [
     ),
     path: "/admin/orders",
     title: "Orders",
+    permission: "ORDERS",
   },
   {
     icon: (isActive) => (
@@ -221,10 +231,11 @@ const tabs = [
     ),
     path: "/admin/reviews",
     title: "Reviews",
+    permission: "REVIEWS",
   },
 ];
 
-export default function SideBar() {
+export default function SideBar({ userRole }) {
   const { logout } = useContext(AuthContext);
 
   return (
@@ -259,28 +270,41 @@ export default function SideBar() {
           <p className="font-extrabold">FASHION SPACE</p>
         </div>
         <div className="flex flex-col gap-y-1">
-          {tabs.map((tab, index) => (
-            <NavLink
-              to={tab.path}
-              key={index}
-              className={({ isActive }) =>
-                `p-3 rounded-xl w-40 ${isActive ? `bg-[#0A0A0A]` : `bg-white`}`
+          {tabs.map((tab, index) => {
+            const hasPermission = (userRole) => {
+              if (userRole === "Admin") {
+                return ADMIN_PERMISSIONS.includes(tab.permission);
+              } else if (userRole === "Employee") {
+                return EMPLOYEE_PERMISSIONS.includes(tab.permission);
               }
-            >
-              {({ isActive }) => (
-                <div className="flex flex-row gap-x-2">
-                  {tab.icon(isActive)}
-                  <p
-                    className={`font-manrope font-bold ${
-                      isActive ? `text-white` : `text-[#808191]`
-                    }`}
-                  >
-                    {tab.title}
-                  </p>
-                </div>
-              )}
-            </NavLink>
-          ))}
+              return false; // Default case for no role
+            };
+
+            return hasPermission(userRole) ? ( // Check permission before rendering
+              <NavLink
+                to={tab.path}
+                key={index}
+                className={({ isActive }) =>
+                  `p-3 rounded-xl w-40 ${
+                    isActive ? `bg-[#0A0A0A]` : `bg-white`
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <div className="flex flex-row gap-x-2">
+                    {tab.icon(isActive)}
+                    <p
+                      className={`font-manrope font-bold ${
+                        isActive ? `text-white` : `text-[#808191]`
+                      }`}
+                    >
+                      {tab.title}
+                    </p>
+                  </div>
+                )}
+              </NavLink>
+            ) : null;
+          })}
         </div>
       </div>
       <button className="flex flex-row gap-x-2 mb-2" onClick={logout}>

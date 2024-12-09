@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-export default function Error({ errorCode }) {
+export default function Error({ errorCode, title, content }) {
   return (
     <div className="w-screen h-screen flex flex-col justify-center items-center">
       <svg
@@ -19,14 +19,13 @@ export default function Error({ errorCode }) {
       <h1 className="font-medium text-4xl mt-10 text-center">
         Error {errorCode}
         <br />
-        It looks like something went wrong.
+        {title}
       </h1>
       <p className="mt-8 mb-14 ml-auto mr-auto max-w-96 text-center text-[#9E9E9E]">
-        Don't worry, our team is already on it. Please try refreshing the page
-        or come back later.
+        {content}
       </p>
       <Link to={"/"}>
-        <button className="px-6 py-3 text-white font-medium text-xs bg-black rounded-lg mt-6">
+        <button className="px-6 py-3 text-white font-medium text-xs bg-black rounded-lg">
           BACK HOME
         </button>
       </Link>

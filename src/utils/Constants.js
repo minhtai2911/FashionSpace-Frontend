@@ -71,3 +71,14 @@ export const ROLE_NAME = {
   ADMIN: "Admin",
   USER: "User",
 };
+export const ADMIN_PERMISSIONS = [
+  "DASHBOARD",
+  "PRODUCTS",
+  "COLORS",
+  "SIZES",
+  "CATEGORIES",
+  "USERS",
+  "ANALYSIS",
+  "ACCOUNT",
+];
+export const EMPLOYEE_PERMISSIONS = ["REVIEWS", "ORDERS", "ACCOUNT"];
