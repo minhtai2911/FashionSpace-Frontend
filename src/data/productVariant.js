@@ -6,7 +6,7 @@ export const getProductVariantsByProductId = async (productId) => {
     const response = await instance.get(
       `/productVariant/productId/${productId}`
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -15,7 +15,7 @@ export const getProductVariantsByProductId = async (productId) => {
 export const getProductVariantById = async (id) => {
   try {
     const response = await instance.get(`/productVariant/${id}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -30,7 +30,7 @@ export const getProductVariantByProductIdColorIdSizeId = async (
     const response = await instance.get(
       `/productVariant/${productId}/${colorId}/${sizeId}`
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -70,7 +70,7 @@ export const createProductVariant = async (
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -112,7 +112,7 @@ export const updateProductVariant = async (
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -139,7 +139,7 @@ export const deleteProductVariant = async (id) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -166,7 +166,7 @@ export const deleteProductVariantsByProductId = async (id) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;

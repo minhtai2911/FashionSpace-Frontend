@@ -12,14 +12,14 @@ function Account() {
   const [activeTab, setActiveTab] = useState("personal");
 
   const tabs = [
-    { id: "personal", label: "Personal Information" },
-    { id: "orders", label: "My Orders" },
-    { id: "password", label: "Password Manager" },
+    { id: "personal", label: "Thông tin cá nhân" },
+    { id: "orders", label: "Đơn hàng của tôi" },
+    { id: "password", label: "Quản lý mật khẩu" },
   ];
 
   return (
     <div>
-      <Banner title="My Account" route="Home / Account" />
+      <Banner title="Tài khoản" route="Trang chủ / Tài khoản" />
       <div className="px-40 justify-center flex">
         <div className="flex flex-row gap-x-20 mt-10">
           <div className="flex flex-col gap-y-5 ">

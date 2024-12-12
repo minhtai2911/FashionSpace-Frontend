@@ -38,7 +38,7 @@ function ForgotPassword() {
 
   const handleSubmit = async () => {
     if (!email) {
-      toast.error("Please enter your email!", { duration: 2000 });
+      toast.error("Vui lòng nhập email!", { duration: 2000 });
       return;
     }
 
@@ -57,9 +57,9 @@ function ForgotPassword() {
         toast.promise(
           sendOtpAndNavigate(),
           {
-            loading: "Sending OTP...",
-            success: "OTP sent successfully",
-            error: "Failed to send OTP",
+            loading: "Đang gửi mã OTP...",
+            success: "Mã OTP được gửi thành công",
+            error: "Gửi mã OTP thất bại",
           },
           { duration: 3000 }
         );
@@ -78,9 +78,9 @@ function ForgotPassword() {
     <>
       <div className="px-40 items-center h-screen flex gap-x-10">
         <div className="flex-1">
-          <p className="font-semibold text-3xl">Forgot Password?</p>
+          <p className="font-semibold text-3xl">Quên mật khẩu?</p>
           <p className="mt-2">
-            Don't worry. We'll sent you reset instructions.
+            Đừng lo lắng. Chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu cho bạn.
           </p>
           <div className="mt-8">
             <p className="font-medium text-base">
@@ -88,7 +88,7 @@ function ForgotPassword() {
             </p>
             <input
               className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-              placeholder="Enter your email"
+              placeholder="Nhập email của bạn"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             ></input>
@@ -97,12 +97,12 @@ function ForgotPassword() {
             onClick={handleSubmit}
             className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg"
           >
-            Submit
+            Gửi
           </button>
           <p className="mt-6 text-center">
-            Remember password?{" "}
+            Nhớ mật khẩu?{" "}
             <Link to="/login">
-              <u>Sign In</u>
+              <u>Đăng nhập</u>
             </Link>
           </p>
         </div>

@@ -6,9 +6,12 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { formatURL } from "../utils/format";
 import instance from "../services/axiosConfig";
+import { getAllImagesByProductId } from "../data/productImages";
+import { getCategoryById } from "../data/categories";
 
 function Slider({ products, usage }) {
   const [productImages, setProductImages] = useState({});
+  const [categories, setCategories] = useState({});
 
   useEffect(() => {
     new Swiper(".swiper", {
@@ -30,26 +33,21 @@ function Slider({ products, usage }) {
   }, []);
 
   useEffect(() => {
-    const fetchImages = async (id) => {
-      try {
-        const response = await instance.get(`/productImage/productId/${id}`);
-        return response.data;
-      } catch (error) {
-        console.error(`Error fetching images for product ${id}:`, error);
-        return [];
-      }
-    };
-
-    const fetchAllImages = async () => {
+    const fetchData = async () => {
       const images = {};
+      const categories = {};
       for (const product of products) {
-        const imagesForProduct = await fetchImages(product._id);
+        const imagesForProduct = await getAllImagesByProductId(product._id);
         images[product._id] = imagesForProduct;
+
+        const categoryForProduct = await getCategoryById(product.categoryId);
+        categories[product._id] = categoryForProduct.name;
       }
       setProductImages(images);
+      setCategories(categories);
     };
 
-    fetchAllImages();
+    fetchData();
   }, [products]);
 
   return (
@@ -61,7 +59,7 @@ function Slider({ products, usage }) {
               usage={usage}
               name={product.name}
               rating={product.rating}
-              category={product.category}
+              category={categories[product._id]}
               image={
                 productImages[product._id]?.[0]
                   ? formatURL(productImages[product._id][0].imagePath)

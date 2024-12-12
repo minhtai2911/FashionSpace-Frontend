@@ -227,19 +227,19 @@ export default function UpdateProduct() {
         variantIdsToDelete.map((variantId) => deleteProductVariant(variantId))
       );
 
-      toast.success("Product updated successfully", { duration: 2000 });
+      toast.success("Chỉnh sửa sản phẩm thành công", { duration: 2000 });
       navigate("/admin/products");
     } catch (error) {
       console.log(error);
-      toast.error("Error updating product: " + (error.message || error));
+      toast.error("Có lỗi khi chỉnh sửa sản phẩm: " + (error.message || error));
     }
   };
 
   return (
     <div className="p-10 w-full">
-      <p className="font-extrabold text-xl">Products / Update</p>
+      <p className="font-extrabold text-xl">Sản phẩm / Chỉnh sửa</p>
       <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col gap-y-5">
-        <p className="font-extrabold text-base">Update product</p>
+        <p className="font-extrabold text-base">Chỉnh sửa sản phẩm</p>
         <div className="flex flex-row gap-x-10 px-10 justify-between ">
           {photos.length === 0 && (
             <FileInput
@@ -292,7 +292,7 @@ export default function UpdateProduct() {
                     />
                   </svg>
                   <p className="mt-2 text-sm text-gray-500 font-semibold">
-                    Upload photos
+                    Tải ảnh
                   </p>
                 </div>
               )}
@@ -332,7 +332,7 @@ export default function UpdateProduct() {
                       />
                     </svg>
                     <p className="mt-2 text-sm text-gray-500 font-semibold">
-                      Add More
+                      Thêm
                     </p>
                   </div>
                   <FileInput
@@ -348,9 +348,7 @@ export default function UpdateProduct() {
 
           <div className="flex-[2] flex flex-col gap-y-5">
             <div className="flex flex-col gap-y-2">
-              <p className="font-manrope font-semibold">
-                Product name <b className="text-[#EF0606]">*</b>
-              </p>
+              <p className="font-manrope font-semibold">Tên sản phẩm</p>
               <input
                 id="productName"
                 value={productName}
@@ -361,9 +359,7 @@ export default function UpdateProduct() {
             </div>
             <div className="flex flex-row gap-x-10">
               <div className="flex flex-col gap-y-2 flex-1">
-                <p className="font-manrope font-semibold">
-                  Category <b className="text-[#EF0606]">*</b>
-                </p>
+                <p className="font-manrope font-semibold">Danh mục</p>
                 <select
                   id="categoryId"
                   value={categoryId}
@@ -383,9 +379,7 @@ export default function UpdateProduct() {
                 </select>
               </div>
               <div className="flex flex-col flex-1 gap-y-2">
-                <p className="font-manrope font-semibold">
-                  Price <b className="text-[#EF0606]">*</b>
-                </p>
+                <p className="font-manrope font-semibold">Đơn giá</p>
                 <input
                   id="price"
                   value={price}
@@ -396,12 +390,9 @@ export default function UpdateProduct() {
               </div>
             </div>
             <div className="flex flex-col gap-y-2">
-              <p className="font-manrope font-semibold">
-                Description <b className="text-[#EF0606]">*</b>
-              </p>
+              <p className="font-manrope font-semibold">Mô tả</p>
               <textarea
                 rows="4"
-                placeholder="Write a brief description about product..."
                 id="description"
                 value={description}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm resize-none"
@@ -411,14 +402,12 @@ export default function UpdateProduct() {
             </div>
           </div>
         </div>
-        <p className="font-extrabold text-base">Variants</p>
+        <p className="font-extrabold text-base">Biến thể</p>
         {variants.map((variant, index) => (
           <main key={index} className="relative mb-2">
             <div className="flex gap-x-10 px-10">
               <div className="flex flex-col gap-y-2 flex-1">
-                <p className="font-manrope font-semibold">
-                  Size <b className="text-[#EF0606]">*</b>
-                </p>
+                <p className="font-manrope font-semibold">Kích cỡ</p>
                 <select
                   id="size"
                   value={variant.size}
@@ -429,7 +418,7 @@ export default function UpdateProduct() {
                   required
                 >
                   <option value={variant.size._id ?? ""}>
-                    {variant.size.size ?? "Choose Size"}
+                    {variant.size.size ?? "Chọn kích cỡ"}
                   </option>
                   {sizes.map((size) => (
                     <option key={size._id} value={size._id}>
@@ -440,9 +429,7 @@ export default function UpdateProduct() {
               </div>
               <div className="flex-[2] flex flex-row gap-x-10">
                 <div className="flex flex-col gap-y-2 flex-1">
-                  <p className="font-manrope font-semibold">
-                    Color <b className="text-[#EF0606]">*</b>
-                  </p>
+                  <p className="font-manrope font-semibold">Màu sắc</p>
                   <select
                     id="color"
                     value={variant.color}
@@ -453,7 +440,7 @@ export default function UpdateProduct() {
                     required
                   >
                     <option value={variant.color._id ?? ""}>
-                      {variant.color.color ?? "Choose Color"}
+                      {variant.color.color ?? "Chọn màu sắc"}
                     </option>
                     {colors.map((color) => (
                       <option key={color._id} value={color._id}>
@@ -463,9 +450,7 @@ export default function UpdateProduct() {
                   </select>
                 </div>
                 <div className="flex flex-col flex-1 gap-y-2">
-                  <p className="font-manrope font-semibold">
-                    Quantity <b className="text-[#EF0606]">*</b>
-                  </p>
+                  <p className="font-manrope font-semibold">Số lượng</p>
                   <input
                     id="quantity"
                     value={variant.quantity}
@@ -521,7 +506,7 @@ export default function UpdateProduct() {
                 stroke-linejoin="round"
               />
             </svg>
-            <p className="font-extrabold text-sm">Add Variant</p>
+            <p className="font-extrabold text-sm">Thêm biến thể</p>
           </button>
         </div>
       </div>
@@ -529,7 +514,7 @@ export default function UpdateProduct() {
         className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold mt-10"
         onClick={handleUpdateProduct}
       >
-        Save changes
+        Lưu thay đổi
       </button>
     </div>
   );

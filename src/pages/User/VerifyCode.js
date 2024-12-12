@@ -54,7 +54,7 @@ function VerifyCode() {
         OTP: verificationCode,
       });
       if (response.status === 200) {
-        toast.success("Verify successfully", { duration: 2000 });
+        toast.success("Xác thực thành công", { duration: 2000 });
         const { refreshToken } = response.data.data;
         navigate("/setPassword", { state: { refreshToken } });
       }
@@ -77,15 +77,15 @@ function VerifyCode() {
       await toast.promise(
         instance.post("/auth/sendOTP", { email: email, OTP: otp }),
         {
-          loading: "Sending OTP...",
-          success: "OTP sent successfully",
-          error: "Failed to send OTP",
+          loading: "Đang gửi mã OTP...",
+          success: "Mã OTP được gửi thành công",
+          error: "Gửi mã OTP thất bại",
         }
       );
       setTimer(60);
     } catch (error) {
       console.log(error);
-      toast.error(error?.response?.data?.message || "An error occured", {
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
         duration: 2000,
       });
     }
@@ -94,17 +94,17 @@ function VerifyCode() {
   return (
     <div className="px-40 items-center h-screen flex gap-x-10">
       <div className="flex-1">
-        <p className="font-semibold text-3xl">Verify Code</p>
+        <p className="font-semibold text-3xl">Nhập mã xác thực</p>
         <p className="mt-2">
-          Please enter the code we sent to email <b>{email}</b>
+          Hãy nhập mã chúng tôi đã gửi đến email <b>{email}</b>
         </p>
         <div className="mt-2 flex flex-row gap-x-2">
           {timer > 0 ? (
             <p>
-              The verification code will expire in: <b>{timer}s</b>
+              Mã xác thực sẽ hết hạn trong: <b>{timer}s</b>
             </p>
           ) : (
-            <p>The verification code has been expired</p>
+            <p>Mã xác thực đã hết hạn</p>
           )}
         </div>
         <div className="mt-4">
@@ -128,16 +128,16 @@ function VerifyCode() {
           onClick={handleSubmit}
           className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg"
         >
-          Verify
+          Xác thực
         </button>
         <p className="mt-6 text-center">
-          Didn't receive verification code?{" "}
+          Chưa nhận được mã xác thực?{" "}
           <button
             className="cursor-pointer disabled:cursor-not-allowed"
             onClick={handleResendCode}
             disabled={timer > 0}
           >
-            <u className="hover:text-[#818181]">Resend code</u>
+            <u className="hover:text-[#818181]">Gửi lại mã</u>
           </button>
         </p>
       </div>

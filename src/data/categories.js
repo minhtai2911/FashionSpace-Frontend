@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 export const getAllCategories = async () => {
   try {
     const response = await instance.get("/category");
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -14,7 +14,7 @@ export const getAllCategories = async () => {
 export const getCategoryById = async (id) => {
   try {
     const response = await instance.get(`/category/${id}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -45,7 +45,7 @@ export const createCategory = async (category, gender) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -75,7 +75,7 @@ export const updateCategory = async (id, name, gender) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -101,7 +101,7 @@ export const deleteCategoryById = async (id) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }

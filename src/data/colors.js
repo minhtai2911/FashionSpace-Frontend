@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 export const getAllColors = async () => {
   try {
     const response = await instance.get("/productColor");
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -14,7 +14,7 @@ export const getAllColors = async () => {
 export const getColorById = async (id) => {
   try {
     const response = await instance.get(`/productColor/${id}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -45,7 +45,7 @@ export const createColor = async (color) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -75,7 +75,7 @@ export const updateColor = async (id, color) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -101,7 +101,7 @@ export const deleteColorById = async (id) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }

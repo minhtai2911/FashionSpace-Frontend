@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
           },
         }
       );
-      toast.success("Sign up successfully", { duration: 2000 });
+      toast.success("Đăng ký thành công", { duration: 2000 });
       const id = response.data.data._id;
       const sendMailResponse = await toast.promise(
         instance.post(
@@ -54,14 +54,14 @@ export const AuthProvider = ({ children }) => {
           }
         ),
         {
-          loading: "Sending verification email...",
-          success: "Verification email sent successfully",
-          error: "Failed to send verification email",
+          loading: "Đang gửi email xác thực...",
+          success: "Email xác thực được gửi thành công",
+          error: "Gửi email xác thực thất bại",
         }
       );
     } catch (error) {
       console.log(error);
-      toast.error(error?.response?.data?.message || "An error occurred", {
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
         duration: 2000,
       });
     }
@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }) => {
       await Promise.all(promises);
     } catch (error) {
       console.log(error);
-      toast.error("Failed to sync cart");
+      toast.error("Đồng bộ giỏ hàng thất bại");
     }
   };
 
@@ -202,42 +202,42 @@ export const AuthProvider = ({ children }) => {
           Cookies.remove("accessToken");
           Cookies.remove("refreshToken");
           Cookies.remove("user");
-          toast.success("Log out successfully", { duration: 2000 });
+          toast.success("Đăng xuất thành công", { duration: 2000 });
           navigate("/login");
         }
       }
     } catch (error) {
       console.log(error);
-      toast.error(error?.response?.data?.message || "Failed to log out", {
+      toast.error(error?.response?.data?.message || "Đăng xuất thất bại", {
         duration: 2000,
       });
     }
   };
 
-  const getUserById = async (id) => {
-    try {
-      const refreshToken = Cookies.get("refreshToken");
-      const tokenResponse = await instance.post(
-        "/auth/refreshToken",
-        { refreshToken: refreshToken },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const accessToken = tokenResponse.data.accessToken;
-      const response = await instance.get(`/user/${id}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // const getUserById = async (id) => {
+  //   try {
+  //     const refreshToken = Cookies.get("refreshToken");
+  //     const tokenResponse = await instance.post(
+  //       "/auth/refreshToken",
+  //       { refreshToken: refreshToken },
+  //       {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
+  //     const accessToken = tokenResponse.data.accessToken;
+  //     const response = await instance.get(`/user/${id}`, {
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${accessToken}`,
+  //       },
+  //     });
+  //     return response.data;
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   const contextData = {
     user: user,
@@ -247,7 +247,7 @@ export const AuthProvider = ({ children }) => {
     signup: signup,
     logout: logout,
     createCart: createCart,
-    getUserById: getUserById,
+    // getUserById: getUserById,
   };
 
   useEffect(() => {

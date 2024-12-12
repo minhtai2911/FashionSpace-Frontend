@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 export const getReviewResponseByReviewId = async (reviewId) => {
   try {
     const response = await instance.get(`/reviewResponse/reviewId/${reviewId}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -38,7 +38,7 @@ export const createReviewResponse = async (reviewId, content) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;

@@ -15,7 +15,7 @@ import { getProductById } from "../../data/products";
 import { getSizeById } from "../../data/sizes";
 import { getColorById } from "../../data/colors";
 import { getCategoryById } from "../../data/categories";
-import { formatDate, formatURL } from "../../utils/format";
+import { formatDate, formatToVND, formatURL } from "../../utils/format";
 import { getAllImagesByProductId } from "../../data/productImages";
 import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import Rating from "../../components/Rating";
@@ -98,9 +98,9 @@ export default function MyOrders() {
     );
     if (response) {
       setOpenAddReviewModal(false);
-      toast.success("Send review successfully", { duration: 2000 });
+      toast.success("Gửi đánh giá thành công", { duration: 2000 });
     } else {
-      toast.error("Failed to send review", { duration: 2000 });
+      toast.error("Gửi đánh giá thất bại", { duration: 2000 });
     }
   };
 
@@ -134,29 +134,34 @@ export default function MyOrders() {
   return (
     <>
       <div>
-        <h2 className="text-2xl font-semibold mb-4">Orders: {orders.length}</h2>
+        <h2 className="text-2xl font-semibold mb-4">
+          Số đơn hàng: {orders.length}
+        </h2>
         {orders.length > 0 ? (
           orders.map((order) => (
             <table key={order._id} className="mb-5 w-full">
               <tr className="bg-[#0A0A0A]">
                 <td className="py-2 px-4 text-white rounded-tl-lg w-[25%]">
-                  Order ID
+                  Mã đơn hàng
                   <br />
                   {order._id}
                 </td>
-                <td className="p-2 text-white w-[25%]">
-                  Payment Method
+                <td className="p-2 text-white w-[20%]">
+                  Phương thức
                   <br />
                   {order.paymentDetails.paymentMethod}
                 </td>
-                <td className="p-2 text-white w-[25%]">
-                  Total Payment
-                  <br />${order.total.toFixed(2)}
-                </td>
-                <td className="py-2 px-4 text-white rounded-tr-lg w-[25%]">
-                  Estimated Delivery Date
+                <td className="p-2 text-white w-[20%]">
+                  Tổng đơn hàng
                   <br />
-                  {formatDate(order.tracking.expectedDeliveryDate)}
+                  {formatToVND(order.total)}
+                </td>
+                <td className="py-2 px-4 text-white rounded-tr-lg w-[35%]">
+                  {order.tracking.status === ORDER_STATUS.SHIPPED
+                    ? "Ngày giao hàng"
+                    : "Ngày giao hàng dự kiến"}
+                  <br />
+                  {formatDate(order.tracking.date)}
                 </td>
               </tr>
               <tbody className="border-l border-r border-b">
@@ -176,8 +181,9 @@ export default function MyOrders() {
                           <div>
                             <p className="font-medium">{item.product.name}</p>
                             <p className="font-light">
-                              Color: {item.color.color} | Size: {item.size.size}{" "}
-                              | Quantity: {order.details[index].quantity}
+                              Màu sắc: {item.color.color} | Kích cỡ:{" "}
+                              {item.size.size} | Số lượng:{" "}
+                              {order.details[index].quantity}
                             </p>
                           </div>
                         </div>
@@ -192,7 +198,7 @@ export default function MyOrders() {
                               setOpenAddReviewModal(true);
                             }}
                           >
-                            Add Review
+                            Thêm đánh giá
                           </button>
                         )}
                       </div>
@@ -203,7 +209,7 @@ export default function MyOrders() {
                 <tr className="font-medium">
                   <td colSpan={4} className="p-2">
                     <div className="p-2 flex items-center gap-x-2">
-                      Order Status:{" "}
+                      Trạng thái đơn hàng:{" "}
                       <p
                         className={`inline-block px-4 py-2 rounded ${getStatusClass(
                           order.tracking.status
@@ -215,7 +221,7 @@ export default function MyOrders() {
                   </td>
                 </tr>
 
-                {order.tracking.status !== "Shipped" && (
+                {order.tracking.status !== ORDER_STATUS.SHIPPED && (
                   <tr>
                     <td className="px-4 pb-4 pt-2" colSpan={4}>
                       <div className="flex gap-x-2">
@@ -223,13 +229,13 @@ export default function MyOrders() {
                           to={`/trackOrder/${order._id}`}
                           className="bg-black text-white px-4 py-2 rounded-md"
                         >
-                          Track Order
+                          Theo dõi đơn hàng
                         </Link>
                         <button
                           className="bg-red-500 text-white px-4 py-2 rounded-md"
                           onClick={handleCancelOrder}
                         >
-                          Cancel Order
+                          Hủy đơn hàng
                         </button>
                       </div>
                     </td>
@@ -239,7 +245,7 @@ export default function MyOrders() {
             </table>
           ))
         ) : (
-          <p>No orders found.</p>
+          <p>Không tìm thấy đơn hàng.</p>
         )}
       </div>
       <Modal
@@ -254,11 +260,11 @@ export default function MyOrders() {
         <Modal.Body className="px-10 pb-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Add Review
+              Thêm đánh giá
             </h3>
             <div className="flex flex-row gap-x-4 items-center">
               <p className="font-manrope font-semibold text-sm">
-                Rating <b className="text-[#EF0606]">*</b>
+                Số sao <b className="text-[#EF0606]">*</b>
               </p>
               <div className="flex flex-row gap-x-1">
                 {[...Array(5)].map((_, index) => (
@@ -288,7 +294,7 @@ export default function MyOrders() {
             </div>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope font-semibold text-sm">
-                Content <b className="text-[#EF0606]">*</b>
+                Bình luận <b className="text-[#EF0606]">*</b>
               </p>
               <textarea
                 value={review.content}
@@ -306,7 +312,7 @@ export default function MyOrders() {
               className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
               onClick={handleAddReview}
             >
-              Review
+              Đánh giá
             </button>
           </div>
         </Modal.Body>

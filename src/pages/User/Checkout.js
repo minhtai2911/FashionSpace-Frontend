@@ -17,6 +17,7 @@ import { createPaymentDetail } from "../../data/paymentDetail";
 import { createOrder } from "../../data/orders";
 import { useDispatch, useSelector } from "react-redux";
 import { removeItem } from "../../stores/cart";
+import { formatToVND } from "../../utils/format";
 
 const apiUrl = "https://api.mysupership.vn";
 const apiEndpointProvince = apiUrl + "/v1/partner/areas/province";
@@ -122,7 +123,7 @@ function Checkout() {
       );
       return orderAddressResponse;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "An error occurred", {
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
         duration: 2000,
       });
       return error;
@@ -168,7 +169,7 @@ function Checkout() {
       );
       return orderDetailResponse;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "An error occurred", {
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
         duration: 2000,
       });
     }
@@ -211,7 +212,7 @@ function Checkout() {
       return response;
     } catch (error) {
       console.log(error);
-      toast.error(error?.response?.data?.message || "An error occurred", {
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
         duration: 2000,
       });
       return error;
@@ -247,7 +248,7 @@ function Checkout() {
       );
       return response;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "An error occurred", {
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
         duration: 2000,
       });
       return error;
@@ -289,7 +290,7 @@ function Checkout() {
                   paymentDetail: paymentDetail.data,
                 };
 
-                toast.success("Create order successfully", {
+                toast.success("Tạo đơn hàng thành công", {
                   duration: 2000,
                 });
                 navigate("/orderCompleted", {
@@ -300,7 +301,7 @@ function Checkout() {
           }
         }
       } catch (error) {
-        toast.error(error?.response?.data?.message || "An error occurred", {
+        toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
           duration: 2000,
         });
       }
@@ -317,25 +318,25 @@ function Checkout() {
 
   return (
     <div>
-      <Banner title="Checkout" route="Home / Shopping Cart / Checkout" />
+      <Banner title="Thanh toán" route="Trang chủ / Giỏ hàng / Thanh toán" />
       <div className="flex flex-row gap-x-20 px-40 py-20">
         <div className="flex flex-col gap-y-6 w-[800px]">
-          <p className="font-medium text-2xl">Billing Details</p>
+          <p className="font-medium text-2xl">Chi tiết đơn hàng</p>
           <div>
             <p className="text-base">
-              Phone <b className="text-red-500">*</b>
+              Số điện thoại <b className="text-red-500">*</b>
             </p>
             <input
               className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
               type="number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="Enter phone number"
+              placeholder="Nhập số điện thoại"
             ></input>
           </div>
           <div>
             <p className="text-base">
-              City/Province <b className="text-red-500">*</b>
+              Tỉnh/Thành phố <b className="text-red-500">*</b>
             </p>
             <select
               id="city-province"
@@ -347,7 +348,7 @@ function Checkout() {
                 setCommunes([]);
               }}
             >
-              <option value="0">Select City</option>
+              <option value="0">Chọn tỉnh/thành phố</option>
               {provinces.map((province) => (
                 <option key={province.code} value={province.code}>
                   {province.name}
@@ -357,7 +358,7 @@ function Checkout() {
           </div>
           <div>
             <p className="text-base">
-              District <b className="text-red-500">*</b>
+              Quận/Huyện <b className="text-red-500">*</b>
             </p>
             <select
               id="district-town"
@@ -366,7 +367,7 @@ function Checkout() {
               onChange={(e) => setSelectedDistrict(e.target.value)}
               disabled={districts.length === 0}
             >
-              <option value="0">Select District</option>
+              <option value="0">Chọn quận/huyện</option>
               {districts.map((district) => (
                 <option key={district.code} value={district.code}>
                   {district.name}
@@ -376,7 +377,7 @@ function Checkout() {
           </div>
           <div>
             <p className="text-base">
-              Commune <b className="text-red-500">*</b>
+              Xã <b className="text-red-500">*</b>
             </p>
             <select
               id="ward-commune"
@@ -385,7 +386,7 @@ function Checkout() {
               disabled={communes.length === 0}
               onChange={(e) => setSelectedCommune(e.target.value)}
             >
-              <option value="0">Select Commune</option>
+              <option value="0">Chọn xã</option>
               {communes.map((commune) => (
                 <option key={commune.code} value={commune.code}>
                   {commune.name}
@@ -395,12 +396,12 @@ function Checkout() {
           </div>
           <div>
             <p className="text-base">
-              Street <b className="text-red-500">*</b>
+              Đường <b className="text-red-500">*</b>
             </p>
             <input
               type="text"
               className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-              placeholder="Enter street address"
+              placeholder="VD: Số 81, đường số 6"
               value={street}
               onChange={(e) => setStreet(e.target.value)}
             ></input>
@@ -408,42 +409,36 @@ function Checkout() {
         </div>
         <div className="flex flex-col h-fit gap-y-10">
           <div className="flex-1 border border-[#818181] rounded-lg p-5 flex flex-col gap-y-4">
-            <p className="font-bold text-xl">Order Summary</p>
+            <p className="font-bold text-xl">Tóm tắt đơn hàng</p>
             <hr className="border-[#818181]" />
             <div className="flex flex-col gap-y-2">
               <div className="flex flex-row justify-between">
-                <p className="text-[#4A4A4A]">Items</p>
+                <p className="text-[#4A4A4A]">Số lượng</p>
                 <p className="font-semibold">{orderSummary.totalItems}</p>
               </div>
               <div className="flex flex-row justify-between">
-                <p className="text-[#4A4A4A]">Sub Total</p>
+                <p className="text-[#4A4A4A]">Tổng</p>
                 <p className="font-semibold">
-                  ${orderSummary.subTotal.toFixed(2)}
+                  {formatToVND(orderSummary.subTotal)}
                 </p>
               </div>
               <div className="flex flex-row justify-between">
-                <p className="text-[#4A4A4A]">Shipping</p>
+                <p className="text-[#4A4A4A]">Phí vận chuyển</p>
                 <p className="font-semibold">
-                  ${orderSummary.shipping.toFixed(2)}
-                </p>
-              </div>
-              <div className="flex flex-row justify-between">
-                <p className="text-[#4A4A4A]">Taxes</p>
-                <p className="font-semibold">
-                  ${orderSummary.taxes.toFixed(2)}
+                  {formatToVND(orderSummary.shipping)}
                 </p>
               </div>
             </div>
             <hr className="border-[#818181]" />
             <div className="flex flex-row justify-between">
-              <p className="text-[#4A4A4A]">Total</p>
+              <p className="text-[#4A4A4A]">Tổng đơn hàng</p>
               <p className="font-semibold">
-                ${orderSummary.totalPrice.toFixed(2)}
+                {formatToVND(orderSummary.totalPrice)}
               </p>
             </div>
           </div>
           <div className="flex-1 border border-[#818181] rounded-lg p-5 flex flex-col gap-y-4">
-            <p className="font-bold text-xl">Payment Method</p>
+            <p className="font-bold text-xl">Phương thức thanh toán</p>
             <hr className="border-[#818181]" />
             <div className="flex flex-col gap-y-2">
               {PAYMENT_METHOD.map((method, index) => (
@@ -463,7 +458,7 @@ function Checkout() {
               className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full"
               onClick={handleSubmit}
             >
-              Place Order
+              Đặt hàng
             </button>
           </div>
         </div>

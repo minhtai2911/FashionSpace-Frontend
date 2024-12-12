@@ -17,7 +17,7 @@ export default function Error({ errorCode, title, content }) {
         />
       </svg>
       <h1 className="font-medium text-4xl mt-10 text-center">
-        Error {errorCode}
+        Lỗi {errorCode}
         <br />
         {title}
       </h1>
@@ -26,7 +26,7 @@ export default function Error({ errorCode, title, content }) {
       </p>
       <Link to={"/"}>
         <button className="px-6 py-3 text-white font-medium text-xs bg-black rounded-lg">
-          BACK HOME
+          Về Trang chủ
         </button>
       </Link>
     </div>

@@ -10,7 +10,7 @@ const EmailVerify = () => {
   const { setIsAuthenticated, setUser, setAuthTokens } =
     useContext(AuthContext);
   const [validUrl, setValidUrl] = useState(true);
-  const [redirectTimer, setRedirectTimer] = useState(5);
+  const [redirectTimer, setRedirectTimer] = useState(3);
   const [error, setError] = useState(null);
   const param = useParams();
   const navigate = useNavigate();
@@ -54,7 +54,7 @@ const EmailVerify = () => {
 
       redirectTimeout = setTimeout(() => {
         navigate("/");
-      }, 5000);
+      }, 3000);
     }
 
     return () => {
@@ -83,20 +83,17 @@ const EmailVerify = () => {
       </svg>
 
       <h1 className="font-medium text-4xl mt-8 text-center">
-        Congratulations!
-        <br />
-        <p className="mt-2">Your email address has been verified</p>
+        <p className="mt-2">Địa chỉ email của bạn đã được xác thực</p>
       </h1>
       <p className="mt-8 mb-14 ml-auto mr-auto max-w-96 text-center text-[#9E9E9E]">
-        Redirecting to Home in {redirectTimer}s...
+        Chuyển hướng đến Trang chủ trong {redirectTimer}s...
       </p>
     </div>
   ) : (
     <Error
       errorCode={error.status}
-      title={"It looks like something went wrong."}
-      content="Don't worry, our team is already on it. Please try refreshing the page
-        or come back later."
+      title={"Có vẻ như đã có lỗi xảy ra."}
+      content="Đừng lo lắng, đội ngũ của chúng tôi đã xử lý. Vui lòng thử làm mới trang hoặc quay lại sau."
     />
   );
 };

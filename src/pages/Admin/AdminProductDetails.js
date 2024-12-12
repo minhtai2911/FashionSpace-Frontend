@@ -47,9 +47,9 @@ export default function AdminProductDetails() {
 
   return (
     <div className="p-10 w-full">
-      <p className="font-extrabold text-xl">Products / Details</p>
+      <p className="font-extrabold text-xl">Sản phẩm / Chi tiết</p>
       <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col gap-y-5">
-        <p className="font-extrabold text-base">Product details</p>
+        <p className="font-extrabold text-base">Chi tiết sản phẩm</p>
         <div className="flex flex-row gap-x-10 px-10 justify-between ">
           <div className="flex flex-1 gap-2 pt-4 flex-wrap overflow-scroll rounded-lg h-fit max-h-80 justify-center items-center border-dashed border-2">
             {photos.map((photo, index) => (
@@ -63,7 +63,7 @@ export default function AdminProductDetails() {
           </div>
           <div className="flex-[2] flex flex-col gap-y-5">
             <div className="flex flex-col gap-y-2">
-              <p className="font-manrope font-semibold">Product name</p>
+              <p className="font-manrope font-semibold">Tên sản phẩm</p>
               <input
                 id="productName"
                 value={productName}
@@ -73,7 +73,7 @@ export default function AdminProductDetails() {
             </div>
             <div className="flex flex-row gap-x-10">
               <div className="flex flex-col gap-y-2 flex-1">
-                <p className="font-manrope font-semibold">Category</p>
+                <p className="font-manrope font-semibold">Danh mục </p>
                 <input
                   id="category"
                   value={category}
@@ -82,7 +82,7 @@ export default function AdminProductDetails() {
                 ></input>
               </div>
               <div className="flex flex-col flex-1 gap-y-2">
-                <p className="font-manrope font-semibold">Price</p>
+                <p className="font-manrope font-semibold">Đơn giá</p>
                 <input
                   id="price"
                   value={price}
@@ -92,10 +92,10 @@ export default function AdminProductDetails() {
               </div>
             </div>
             <div className="flex flex-col gap-y-2">
-              <p className="font-manrope font-semibold">Description</p>
+              <p className="font-manrope font-semibold">Mô tả</p>
               <textarea
                 rows="4"
-                placeholder="Write a brief description about product..."
+                placeholder="Viết mô tả ngắn gọn về sản phẩm..."
                 id="description"
                 value={description}
                 disabled
@@ -104,12 +104,12 @@ export default function AdminProductDetails() {
             </div>
           </div>
         </div>
-        <p className="font-extrabold text-base">Variants</p>
+        <p className="font-extrabold text-base">Biến thể</p>
         {variants.map((variant, index) => (
           <main key={index} className="relative mb-2">
             <div className="flex gap-x-10 px-10">
               <div className="flex flex-col gap-y-2 flex-1">
-                <p className="font-manrope font-semibold">Size</p>
+                <p className="font-manrope font-semibold">Kích cỡ</p>
                 <input
                   id="size"
                   value={variant?.size?.size}
@@ -119,7 +119,7 @@ export default function AdminProductDetails() {
               </div>
               <div className="flex-[2] flex flex-row gap-x-10">
                 <div className="flex flex-col gap-y-2 flex-1">
-                  <p className="font-manrope font-semibold">Color</p>
+                  <p className="font-manrope font-semibold">Màu sắc</p>
                   <input
                     id="color"
                     value={variant?.color?.color}
@@ -128,7 +128,7 @@ export default function AdminProductDetails() {
                   />
                 </div>
                 <div className="flex flex-col flex-1 gap-y-2">
-                  <p className="font-manrope font-semibold">Quantity</p>
+                  <p className="font-manrope font-semibold">Số lượng</p>
                   <input
                     id="quantity"
                     value={variant?.quantity}

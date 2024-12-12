@@ -268,12 +268,12 @@ export default function TrackOrder() {
 
   return (
     <div>
-      <Banner title="Track Order" route="Home / Track Order" />
+      <Banner title="Theo dõi đơn hàng" route="Trang chủ / Theo dõi đơn hàng" />
       {order && (
         <div className="px-80 flex w-full">
           <div className="flex flex-col mt-10 w-full">
-            <p className="text-2xl font-medium">Order Status</p>
-            <p className="mt-1">Order ID: {id}</p>
+            <p className="text-2xl font-medium">Trạng thái đơn hàng</p>
+            <p className="mt-1">Mã đơn hàng: {id}</p>
             <div className="border rounded-lg px-10 py-5 mt-6 flex overflow-scroll">
               {tracking.map((item, index) => (
                 <OrderStatus
@@ -289,7 +289,7 @@ export default function TrackOrder() {
             </div>
             <div className="border rounded-lg px-10 py-5 mt-6 flex">
               <div key={order._id} className="mb-5 w-full">
-                <p className="mb-3">Products</p>
+                <p className="mb-3">Sản phẩm</p>
                 <div className="space-y-4">
                   {order.detailedItems.map((item, index) => (
                     <div
@@ -307,8 +307,9 @@ export default function TrackOrder() {
                           <div>
                             <p className="font-medium">{item.product.name}</p>
                             <p className="font-light">
-                              Color: {item.color.color} | Size: {item.size.size}{" "}
-                              | Quantity: {order.details[index].quantity}
+                              Màu sắc: {item.color.color} | Kích cỡ:{" "}
+                              {item.size.size} | Số lượng:{" "}
+                              {order.details[index].quantity}
                             </p>
                           </div>
                         </div>

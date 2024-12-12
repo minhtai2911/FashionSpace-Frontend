@@ -6,41 +6,45 @@ import ProductItem from "../../components/ProductItem";
 import CheckBox from "../../components/CheckBox";
 import FilterItem from "../../components/FilterItem";
 import Pagination from "../../components/Pagination";
-import { PRODUCTS_PER_PAGE } from "../../utils/Constants";
+import {
+  MAX_PRICE,
+  MIN_PRICE,
+  PRICE_GAP,
+  PRODUCTS_PER_PAGE,
+} from "../../utils/Constants";
 import { SORT_BY } from "../../utils/Constants";
 import { getAllCategories, getCategoryById } from "../../data/categories";
 import { getAllImagesByProductId } from "../../data/productImages";
 import LoadingOverlay from "../../components/LoadingOverlay";
-import { formatURL } from "../../utils/format";
+import { formatToVND, formatURL } from "../../utils/format";
 
 function Shop() {
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(1000);
-  const [tempMinPrice, setTempMinPrice] = useState(minPrice);
-  const [tempMaxPrice, setTempMaxPrice] = useState(maxPrice);
+  const [minPrice, setMinPrice] = useState(MIN_PRICE);
+  const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
+  const [tempMinPrice, setTempMinPrice] = useState(MIN_PRICE);
+  const [tempMaxPrice, setTempMaxPrice] = useState(MAX_PRICE);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [sortCriteria, setSortCriteria] = useState(SORT_BY[0].value);
   const [currentPage, setCurrentPage] = useState(1);
   const [productData, setProductData] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const priceGap = 100;
 
   const handleMinPriceChange = (e) => {
     const value = parseInt(e.target.value);
-    if (maxPrice - value >= priceGap) {
+    if (maxPrice - value >= PRICE_GAP) {
       setTempMinPrice(value);
     } else {
-      setTempMinPrice(maxPrice - priceGap);
+      setTempMinPrice(maxPrice - PRICE_GAP);
     }
   };
 
   const handleMaxPriceChange = (e) => {
     const value = parseInt(e.target.value);
-    if (value - minPrice >= priceGap) {
+    if (value - minPrice >= PRICE_GAP) {
       setTempMaxPrice(value);
     } else {
-      setTempMaxPrice(minPrice + priceGap);
+      setTempMaxPrice(minPrice + PRICE_GAP);
     }
   };
 
@@ -59,10 +63,10 @@ function Shop() {
   };
 
   const resetPrice = () => {
-    setMinPrice(0);
-    setMaxPrice(1000);
-    setTempMinPrice(0);
-    setTempMaxPrice(1000);
+    setMinPrice(MIN_PRICE);
+    setMaxPrice(MAX_PRICE);
+    setTempMinPrice(MIN_PRICE);
+    setTempMaxPrice(MAX_PRICE);
   };
 
   const clearAllFilters = () => {
@@ -74,8 +78,8 @@ function Shop() {
     const progress = document.querySelector("#slider #progress");
 
     const updateProgress = () => {
-      const minPercentage = (tempMinPrice / 1000) * 100;
-      const maxPercentage = (tempMaxPrice / 1000) * 100;
+      const minPercentage = (tempMinPrice / MAX_PRICE) * 100;
+      const maxPercentage = (tempMaxPrice / MAX_PRICE) * 100;
 
       progress.style.left = minPercentage + "%";
       progress.style.right = 100 - maxPercentage + "%";
@@ -154,13 +158,13 @@ function Shop() {
 
   return (
     <div>
-      <Banner title={"Shop"} route={"Home / Shop"} />
+      <Banner title={"Cửa hàng"} route={"Trang chủ / Cửa hàng"} />
       <div className="flex gap-x-10 py-10 px-28">
-        <div className="flex flex-col w-[200px] gap-y-4 text-[20px] font-bold">
-          <div className="">Filter Options</div>
+        <div className="flex flex-col w-[260px] gap-y-4 text-[20px] font-bold">
+          <div className="">Tùy chọn lọc</div>
           <div className="h-[1.5px] bg-[#C9C9C9] opacity-60"></div>
           <div className="flex flex-col gap-y-3">
-            <div>Category</div>
+            <div>Danh mục</div>
             <div className="flex flex-col gap-y-2 font-normal text-[16px] max-h-[200px] overflow-y-auto">
               {categories.map((category, index) => (
                 <div
@@ -179,14 +183,14 @@ function Shop() {
           <div className="h-[1.5px] bg-[#C9C9C9] opacity-60"></div>
           <div>
             <div className="flex flex-col gap-y-3 mb-3">
-              <div>Price</div>
+              <div>Giá</div>
               <div
                 id="price"
                 className="flex font-normal text-[#4A4A4A] text-base"
               >
-                <span>${tempMinPrice}</span>
+                <span>{formatToVND(tempMinPrice)}</span>
                 <div className="ml-1 mr-1">-</div>
-                <span>${tempMaxPrice}</span>
+                <span>{formatToVND(tempMaxPrice)}</span>
               </div>
             </div>
             <div id="slider" className="relative h-[5px] bg-[#C9C9C9] rounded">
@@ -199,18 +203,18 @@ function Shop() {
               <input
                 type="range"
                 id="range-min"
-                min="0"
-                max="1000"
-                step="10"
+                min={MIN_PRICE}
+                max={MAX_PRICE}
+                step={PRICE_GAP}
                 value={tempMinPrice}
                 onChange={handleMinPriceChange}
               />
               <input
                 type="range"
                 id="range-max"
-                min="0"
-                max="1000"
-                step="10"
+                min={MIN_PRICE}
+                max={MAX_PRICE}
+                step={PRICE_GAP}
                 value={tempMaxPrice}
                 onChange={handleMaxPriceChange}
               />
@@ -219,13 +223,13 @@ function Shop() {
               onClick={applyFilters}
               className="px-10 py-2 text-white font-medium text-base bg-black rounded-lg w-full mt-6"
             >
-              Apply
+              Áp dụng
             </button>
           </div>
         </div>
         <div className="flex flex-col ml-20 gap-y-10 w-full">
           {isLoading ? (
-            <LoadingOverlay content={"Fetching products..."} />
+            <LoadingOverlay content={"Đang lấy sản phẩm..."} />
           ) : (
             <>
               <div className="flex flex-col gap-y-5">
@@ -233,19 +237,19 @@ function Shop() {
                   <div>
                     {filteredProducts.length > 0 ? (
                       <div>
-                        Showing {(currentPage - 1) * PRODUCTS_PER_PAGE + 1} -{" "}
+                        Hiển thị {(currentPage - 1) * PRODUCTS_PER_PAGE + 1} -{" "}
                         {Math.min(
                           currentPage * PRODUCTS_PER_PAGE,
                           filteredProducts.length
                         )}{" "}
-                        of {filteredProducts.length} results
+                        của {filteredProducts.length} kết quả
                       </div>
                     ) : (
-                      <div>Showing 0 - 0 of 0 result</div>
+                      <div>Hiển thị 0 - 0 của 0 kết quả</div>
                     )}
                   </div>
                   <div>
-                    Sort by:
+                    Sắp xếp theo:
                     <select
                       value={sortCriteria}
                       onChange={(e) => setSortCriteria(e.target.value)}
@@ -263,7 +267,7 @@ function Shop() {
                   className="flex flex-wrap items-center gap-2 max-w-full"
                   id="filter-container"
                 >
-                  <span className="mr-2">Active Filter:</span>
+                  <span className="mr-2">Bộ lọc hiện tại:</span>
                   <div className="flex gap-3 flex-wrap">
                     {selectedCategories.map((category, index) => (
                       <FilterItem
@@ -272,22 +276,24 @@ function Shop() {
                         onRemove={() => handleRemoveCategory(category)}
                       />
                     ))}
-                    {(minPrice !== 0 || maxPrice !== 1000) && (
+                    {(minPrice !== MIN_PRICE || maxPrice !== MAX_PRICE) && (
                       <FilterItem
                         key="price-range"
-                        name={`Price: $${minPrice} - $${maxPrice}`}
+                        name={`Giá: ${formatToVND(minPrice)} - ${formatToVND(
+                          maxPrice
+                        )}`}
                         onRemove={resetPrice}
                       />
                     )}
                   </div>
                   {(selectedCategories.length > 0 ||
-                    minPrice !== 0 ||
-                    maxPrice !== 1000) && (
+                    minPrice !== MIN_PRICE ||
+                    maxPrice !== MAX_PRICE) && (
                     <div
                       className="underline ml-2 cursor-pointer whitespace-nowrap"
                       onClick={clearAllFilters}
                     >
-                      Clear All
+                      Xóa tất cả
                     </div>
                   )}
                 </div>
@@ -314,7 +320,7 @@ function Shop() {
                   ))
                 ) : (
                   <div className="text-center w-full text-3xl font-bold">
-                    <p>No products found matching your filters.</p>
+                    <p>Không có sản phẩm tương ứng với bộ lọc của bạn.</p>
                   </div>
                 )}
               </div>

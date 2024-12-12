@@ -21,7 +21,7 @@ export const getAllOrders = async () => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -47,7 +47,7 @@ export const getOrderById = async (id) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -79,7 +79,7 @@ export const getOrderByUserId = async (userId) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -119,7 +119,7 @@ export const createOrder = async (
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -158,7 +158,7 @@ export const updateOrderById = async (
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }

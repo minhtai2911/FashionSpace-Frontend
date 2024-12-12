@@ -16,13 +16,13 @@ function SetNewPassword() {
       /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
 
     if (!password || !confirmPassword) {
-      toast.error("Please fill in all fields", { duration: 2000 });
+      toast.error("Vui lòng điền vào các trường", { duration: 2000 });
       return;
     }
 
     if (!passwordPattern.test(password)) {
       toast.error(
-        "Password must be at least 8 characters long, contain at least one number and one special character",
+        "Mật khẩu cần ít nhất 8 kí tự, chứa ít nhất 1 số và 1 kí tự đặc biệt",
         {
           duration: 2000,
         }
@@ -31,7 +31,7 @@ function SetNewPassword() {
     }
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match", { duration: 2000 });
+      toast.error("Mật khẩu không trùng khớp", { duration: 2000 });
       return;
     }
 
@@ -60,11 +60,11 @@ function SetNewPassword() {
         }
       );
       if (response.status === 200) {
-        toast.success("Password reset successfully!", { duration: 2000 });
+        toast.success("Đặt lại mật khẩu thành công!", { duration: 2000 });
         navigate("/login");
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "An error occurred!", {
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
         duration: 2000,
       });
     }
@@ -73,10 +73,10 @@ function SetNewPassword() {
   return (
     <div className="px-40 items-center h-screen flex gap-x-10">
       <div className="flex-1">
-        <p className="font-semibold text-3xl">Set new password</p>
+        <p className="font-semibold text-3xl">Đặt mật khẩu mới</p>
         <div className="mt-8">
           <p className="font-medium text-base">
-            Password <b className="text-red-500">*</b>
+            Mật khẩu <b className="text-red-500">*</b>
           </p>
           <input
             className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
@@ -87,7 +87,7 @@ function SetNewPassword() {
         </div>
         <div className="mt-4">
           <p className="font-medium text-base">
-            Confirm Password <b className="text-red-500">*</b>
+            Xác nhận mật khẩu <b className="text-red-500">*</b>
           </p>
           <input
             className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
@@ -100,7 +100,7 @@ function SetNewPassword() {
           className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg"
           onClick={handleResetPassword}
         >
-          Reset Password
+          Đặt lại mật khẩu
         </button>
       </div>
       <div className="flex-1">

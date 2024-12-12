@@ -5,7 +5,7 @@ import { getOrderById, updateOrderById } from "../../data/orders";
 import { getOrderDetailsByOrderId } from "../../data/orderDetail";
 import { getPaymentDetailById } from "../../data/paymentDetail";
 import { getUserById } from "../../data/users";
-import { formatDate } from "../../utils/format";
+import { formatDate, formatToVND } from "../../utils/format";
 import { getProductVariantById } from "../../data/productVariant";
 import { getProductById } from "../../data/products";
 import { getSizeById } from "../../data/sizes";
@@ -103,7 +103,7 @@ export default function UpdateOrder() {
         deliveryDate
       );
       if (response) {
-        toast.success("Update order successfully", { duration: 2000 });
+        toast.success("Cập nhật đơn hàng thành công", { duration: 2000 });
         navigate("/admin/orders");
       }
     } catch (error) {
@@ -113,14 +113,16 @@ export default function UpdateOrder() {
 
   return (
     <div className="p-10 w-full">
-      <p className="font-extrabold text-xl">Orders / Update</p>
+      <p className="font-extrabold text-xl">Đơn hàng / Cập nhật</p>
       <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col gap-y-10">
         <div className="flex flex-col gap-y-5">
-          <p className="font-extrabold">Order Information</p>
+          <p className="font-extrabold">Thông tin đơn hàng</p>
           <div className="px-6 flex flex-col gap-y-5">
             <div className="flex flex-row justify-between gap-x-10">
               <div className="flex flex-col gap-y-2 flex-1">
-                <p className="font-manrope font-semibold text-sm">Order ID</p>
+                <p className="font-manrope font-semibold text-sm">
+                  Mã đơn hàng
+                </p>
                 <input
                   value={orderWithDetails._id || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
@@ -129,7 +131,7 @@ export default function UpdateOrder() {
               </div>
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">
-                  Customer Name
+                  Tên khách hàng
                 </p>
                 <input
                   value={orderWithDetails?.user?.fullName || ""}
@@ -138,7 +140,7 @@ export default function UpdateOrder() {
                 />
               </div>
               <div className="flex flex-col gap-y-2 flex-1">
-                <p className="font-manrope font-semibold text-sm">Status</p>
+                <p className="font-manrope font-semibold text-sm">Trạng thái</p>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
@@ -155,7 +157,7 @@ export default function UpdateOrder() {
             <div className="flex flex-row justify-between gap-x-10">
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">
-                  Payment Method
+                  Phương thức thanh toán
                 </p>
                 <input
                   value={orderWithDetails?.paymentDetails?.paymentMethod || ""}
@@ -165,7 +167,7 @@ export default function UpdateOrder() {
               </div>
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">
-                  Payment Status
+                  Trạng thái thanh toán
                 </p>
                 <input
                   value={orderWithDetails?.paymentDetails?.status || ""}
@@ -174,9 +176,9 @@ export default function UpdateOrder() {
                 />
               </div>
               <div className="flex flex-col gap-y-2 flex-1">
-                <p className="font-manrope font-semibold text-sm">Amount</p>
+                <p className="font-manrope font-semibold text-sm">Tổng tiền</p>
                 <input
-                  value={`$ ${orderWithDetails.total}` || ""}
+                  value={`${formatToVND(orderWithDetails.total)}` || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
                   disabled
                 />
@@ -184,9 +186,7 @@ export default function UpdateOrder() {
             </div>
             <div className="flex flex-row justify-between gap-x-10">
               <div className="flex flex-col gap-y-2 flex-1">
-                <p className="font-manrope font-semibold text-sm">
-                  Creation Date
-                </p>
+                <p className="font-manrope font-semibold text-sm">Ngày tạo</p>
                 <input
                   value={formatDate(orderWithDetails.createdDate) || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
@@ -195,7 +195,7 @@ export default function UpdateOrder() {
               </div>
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">
-                  Delivery Date
+                  Ngày giao hàng dự kiến
                 </p>
                 <input
                   type="date"
@@ -208,7 +208,7 @@ export default function UpdateOrder() {
               </div>
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">
-                  Current Address
+                  Địa chỉ hiện tại
                 </p>
                 <input
                   value={currentAddress}
@@ -220,16 +220,16 @@ export default function UpdateOrder() {
           </div>
         </div>
         <div className="flex flex-col gap-y-5">
-          <p className="font-extrabold">Order Details</p>
+          <p className="font-extrabold">Chi tiết đơn hàng</p>
           <div className="px-6">
             <Table hoverable>
               <Table.Head className="normal-case text-base">
-                <Table.HeadCell>Product Name</Table.HeadCell>
-                <Table.HeadCell>Category</Table.HeadCell>
-                <Table.HeadCell>Size</Table.HeadCell>
-                <Table.HeadCell>Color</Table.HeadCell>
-                <Table.HeadCell>Price</Table.HeadCell>
-                <Table.HeadCell>Quantity</Table.HeadCell>
+                <Table.HeadCell>Tên sản phẩm</Table.HeadCell>
+                <Table.HeadCell>Danh mục</Table.HeadCell>
+                <Table.HeadCell>Kích cỡ</Table.HeadCell>
+                <Table.HeadCell>Màu sắc</Table.HeadCell>
+                <Table.HeadCell>Đơn giá</Table.HeadCell>
+                <Table.HeadCell>Số lượng</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
                 {itemDetails.map((item) => (
@@ -243,7 +243,7 @@ export default function UpdateOrder() {
                     <Table.Cell>{item.category.name}</Table.Cell>
                     <Table.Cell>{item.size.size}</Table.Cell>
                     <Table.Cell>{item.color.color}</Table.Cell>
-                    <Table.Cell>{item.product.price}</Table.Cell>
+                    <Table.Cell>{formatToVND(item.product.price)}</Table.Cell>
                     <Table.Cell>{item.quantity}</Table.Cell>
                   </Table.Row>
                 ))}
@@ -256,7 +256,7 @@ export default function UpdateOrder() {
         className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold mt-10"
         onClick={handleUpdateOrder}
       >
-        Save changes
+        Lưu thay đổi
       </button>
     </div>
   );

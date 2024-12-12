@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 export const getAllSizes = async () => {
   try {
     const response = await instance.get("/productSize");
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -14,7 +14,7 @@ export const getAllSizes = async () => {
 export const getSizeById = async (id) => {
   try {
     const response = await instance.get(`/productSize/${id}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -25,7 +25,7 @@ export const getSizesByCategory = async (categoryId) => {
     const response = await instance.get(
       `/productSize/categoryId/${categoryId}`
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -56,7 +56,7 @@ export const createSize = async (categoryId, size) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -90,7 +90,7 @@ export const updateSize = async (id, categoryId, size) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -117,7 +117,7 @@ export const deleteSizeById = async (id) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;

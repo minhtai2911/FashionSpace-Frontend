@@ -1,6 +1,8 @@
 import { useContext, useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 
+import Cookies from "js-cookie";
+
 import SideBar from "../../components/SideBar";
 import Error from "../Error";
 
@@ -8,30 +10,31 @@ import { AuthContext } from "../../context/AuthContext";
 import { getUserRoleById } from "../../data/userRoles";
 
 export default function Admin() {
-  const { isAuthenticated, user } = useContext(AuthContext);
+  const { isAuthenticated } = useContext(AuthContext);
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const handleCheckRole = async () => {
-      if (!isAuthenticated || !user) {
+      if (!user) {
         setError({
           errorCode: 401,
           title: "Unauthorized",
-          content: "Authentication is required to access this page.",
+          content: "Cần xác thực để truy cập trang này.",
         });
         return;
       }
 
       const role = await getUserRoleById(user.roleId);
-      if (role.roleName !== "Admin") {
+      if (role.roleName === "Admin" || role.roleName === "Employee") {
+        setUserRole(role.roleName);
+      } else {
         setError({
           errorCode: 403,
           title: "Forbidden",
-          content: "You do not have the right to access this page",
+          content: "Bạn không có quyền truy cập trang này.",
         });
-      } else {
-        setUserRole(role.roleName);
       }
     };
 

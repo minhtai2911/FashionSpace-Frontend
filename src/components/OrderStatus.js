@@ -256,10 +256,10 @@ export default function OrderStatus({
         ></div>
       </div>
       <p className={`text-sm mt-3 ${isDisabled && "text-[#DEDEDE]"}`}>
-        {isDisabled ? `Expected` : date}
+        {isDisabled ? `Dự kiến` : date}
       </p>
       <p className={`text-sm mt-1 ${isDisabled && "text-[#DEDEDE]"}`}>
-        {isDisabled ? `Expected` : time}
+        {isDisabled ? `Dự kiến` : time}
       </p>
     </div>
   );

@@ -8,9 +8,10 @@ import { getAllOrders } from "../../data/orders";
 import { getOrderDetailsByOrderId } from "../../data/orderDetail";
 import { Link } from "react-router-dom";
 import { getPaymentDetailById } from "../../data/paymentDetail";
-import { ORDER_STATUS } from "../../utils/Constants";
+import { ORDER_STATUS, PAYMENT_STATUS } from "../../utils/Constants";
 import { getUserById } from "../../data/users";
 import { getOrderTrackingByOrderId } from "../../data/orderTracking";
+import { formatToVND } from "../../utils/format";
 
 export default function Orders() {
   const [orderWithDetails, setOrdersWithDetails] = useState([]);
@@ -34,12 +35,26 @@ export default function Orders() {
     }
   };
 
+  const getPaymentStatusClass = (status) => {
+    switch (status) {
+      case PAYMENT_STATUS.PAID:
+        return "bg-green-100 text-green-600";
+      case PAYMENT_STATUS.REFUNDED:
+        return "bg-orange-100 text-orange-600";
+      case PAYMENT_STATUS.UNPAID:
+        return "bg-red-100 text-red-600";
+      default:
+        return "bg-gray-100 text-gray-600";
+    }
+  };
+
   async function fetchOrders() {
     try {
       const fetchedOrders = await getAllOrders();
       const ordersWithDetails = await Promise.all(
         fetchedOrders.map(async (order) => {
           const user = await getUserById(order.userId);
+          console.log(user);
           const paymentDetails = await getPaymentDetailById(
             order.paymentDetailId
           );
@@ -69,12 +84,10 @@ export default function Orders() {
     fetchOrders();
   }, []);
 
-  console.log(orderWithDetails);
-
   return (
     <>
       <div className="p-10 w-full">
-        <p className="font-extrabold text-xl">Orders</p>
+        <p className="font-extrabold text-xl">Đơn hàng</p>
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
@@ -82,13 +95,13 @@ export default function Orders() {
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">
-                <Table.HeadCell>Order ID</Table.HeadCell>
-                <Table.HeadCell>Customer Name</Table.HeadCell>
-                <Table.HeadCell>Status</Table.HeadCell>
-                <Table.HeadCell>Amount</Table.HeadCell>
-                <Table.HeadCell>Payment Method</Table.HeadCell>
-                <Table.HeadCell>Payment Status</Table.HeadCell>
-                <Table.HeadCell>Action</Table.HeadCell>
+                <Table.HeadCell>Mã đơn hàng</Table.HeadCell>
+                <Table.HeadCell>Tên khách hàng</Table.HeadCell>
+                <Table.HeadCell>Trạng thái</Table.HeadCell>
+                <Table.HeadCell>Tổng tiền</Table.HeadCell>
+                <Table.HeadCell>Phương thức</Table.HeadCell>
+                <Table.HeadCell>Trạng thái thanh toán</Table.HeadCell>
+                <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
                 {orderWithDetails.map((order) => (
@@ -96,10 +109,10 @@ export default function Orders() {
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
                     key={order._id}
                   >
-                    <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                    <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white max-w-40 truncate overflow-hidden text-ellipsis">
                       {order._id}
                     </Table.Cell>
-                    <Table.Cell>{order.user.fullName}</Table.Cell>
+                    <Table.Cell>{order?.user?.fullName}</Table.Cell>
                     <Table.Cell>
                       <div
                         className={`px-3 py-1 rounded-lg text-center font-semibold ${getStatusClass(
@@ -109,11 +122,19 @@ export default function Orders() {
                         {order?.tracking?.status}
                       </div>
                     </Table.Cell>
-                    <Table.Cell>{order?.total}</Table.Cell>
+                    <Table.Cell>{formatToVND(order?.total)}</Table.Cell>
                     <Table.Cell>
                       {order?.paymentDetails?.paymentMethod}
                     </Table.Cell>
-                    <Table.Cell>{order?.paymentDetails?.status}</Table.Cell>
+                    <Table.Cell>
+                      <div
+                        className={`px-3 py-1 rounded-lg text-center font-semibold ${getPaymentStatusClass(
+                          order?.paymentDetails?.status
+                        )}`}
+                      >
+                        {order?.paymentDetails?.status}
+                      </div>
+                    </Table.Cell>
                     <Table.Cell>
                       <div className="flex flex-row gap-x-3">
                         <Link
@@ -134,7 +155,7 @@ export default function Orders() {
                                 clip-rule="evenodd"
                               />
                             </svg>
-                            <p className="text-[#0A0A0A]">View</p>
+                            <p className="text-[#0A0A0A]">Xem</p>
                           </div>
                         </Link>
                         <Link
@@ -158,7 +179,7 @@ export default function Orders() {
                                 fill="#475BE8"
                               />
                             </svg>
-                            <p className="text-blue-600">Edit</p>
+                            <p className="text-blue-600">Cập nhật</p>
                           </div>
                         </Link>
                       </div>

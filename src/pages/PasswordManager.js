@@ -16,18 +16,18 @@ export default function PasswordManager() {
     const passwordPattern =
       /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
     if (!currentPassword || !newPassword || !confirmNewPassword) {
-      toast.error("Please fill in all fields", { duration: 2000 });
+      toast.error("Vui lòng điền vào các trường", { duration: 2000 });
       return;
     }
     if (!passwordPattern.test(newPassword)) {
       toast.error(
-        "Password must be at least 8 characters long, contain at least one number and one special character",
+        "Mật khẩu cần ít nhất 8 kí tự, chứa ít nhất 1 số và 1 kí tự đặc biệt",
         { duration: 2000 }
       );
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      toast.error("New passwords do not match", { duration: 2000 });
+      toast.error("Mật khẩu không trùng khớp", { duration: 2000 });
       return;
     }
 
@@ -58,13 +58,13 @@ export default function PasswordManager() {
       );
 
       if (response.status === 200) {
-        toast.success("Update password successfully", { duration: 2000 });
+        toast.success("Cập nhật mật khẩu thành công", { duration: 2000 });
         setCurrentPassword("");
         setNewPassword("");
         setConfirmNewPassword("");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "An error occurred", {
+      toast.error(error.response?.data?.message || "Có lỗi xảy ra", {
         duration: 2000,
       });
     }
@@ -75,7 +75,7 @@ export default function PasswordManager() {
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block text-base font-semibold mb-1">
-            Password <b className="text-red-500">*</b>
+            Mật khẩu <b className="text-red-500">*</b>
           </label>
           <input
             type="password"
@@ -87,7 +87,7 @@ export default function PasswordManager() {
         </div>
         <div className="mb-4">
           <label className="block text-base font-semibold mb-1">
-            New Password <b className="text-red-500">*</b>
+            Mật khẩu mới <b className="text-red-500">*</b>
           </label>
           <input
             type="password"
@@ -99,7 +99,7 @@ export default function PasswordManager() {
         </div>
         <div className="mb-4">
           <label className="block text-base font-semibold mb-1">
-            Confirm New Password <b className="text-red-500">*</b>
+            Xác nhận mật khẩu mới <b className="text-red-500">*</b>
           </label>
           <input
             type="password"
@@ -113,7 +113,7 @@ export default function PasswordManager() {
           type="submit"
           className="bg-black text-white mt-3 font-semibold px-8 text-sm py-3 rounded-lg hover:bg-gray-800"
         >
-          Update Password
+          Cập nhật mật khẩu
         </button>
       </form>
     </div>

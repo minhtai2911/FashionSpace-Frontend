@@ -62,10 +62,10 @@ function Home() {
           </svg>
           <h1 className="text-4xl font-bold text-white mb-5">Fashion Space</h1>
           <h1 className="text-2xl font-bold text-white">
-            Dress To Express - Your Style, Your Statement
+            Diện Để Thể Hiện - Phong Cách Của Bạn, Tuyên Ngôn Của Bạn
           </h1>
           <p className="text-lg mt-2 text-white">
-            The intersection where classic style meets modern flair
+            Nơi giao thoa giữa phong cách cổ điển và nét hiện đại.
           </p>
         </div>
       </div>
@@ -73,13 +73,15 @@ function Home() {
         <FeatureBanner />
         <div className="mx-auto py-10">
           <div className="flex text-center justify-center items-center pb-2">
-            <h1 className="font-medium px-24 text-3xl">New Arrival</h1>
+            <h1 className="font-medium px-24 text-3xl">Sản phẩm mới</h1>
           </div>
           <Slider products={newArrivalProducts} usage={"new-arrival"} />
         </div>
         <div className="mx-auto py-10">
           <div className="flex text-center justify-center items-center pb-2">
-            <h1 className="font-medium px-24 text-3xl">Our Best Seller</h1>
+            <h1 className="font-medium px-24 text-3xl">
+              Sản phẩm bán chạy nhất
+            </h1>
           </div>
           <Slider products={bestSellerProducts} usage={"best-seller"} />
         </div>

@@ -51,7 +51,7 @@ function AuthSuccess() {
         Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
         navigate("/");
       } catch (error) {
-        toast.error(error?.response?.data?.message || "An error occured", {
+        toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
           duration: 2000,
         });
         navigate("/login");
@@ -60,7 +60,7 @@ function AuthSuccess() {
     handleAuthSuccess();
   }, []);
 
-  return <div>oke</div>;
+  return <div></div>;
 }
 
 export default AuthSuccess;

@@ -3,62 +3,62 @@ export const PRODUCTS_PER_PAGE = 12;
 export const SORT_BY = [
   {
     value: "price_asc",
-    title: "Price (Low to High)",
+    title: "Giá (Thấp đến Cao)",
   },
   {
     value: "price_desc",
-    title: "Price (High to Low)",
+    title: "Giá (Cao đến Thấp)",
   },
   {
     value: "rating_asc",
-    title: "Rating (Low to High)",
+    title: "Số sao (Thấp đến Cao)",
   },
   {
     value: "rating_desc",
-    title: "Rating (High to Low)",
+    title: "Số sao (Cao đến Thấp)",
   },
   {
     value: "name",
-    title: "Name",
+    title: "Tên",
   },
 ];
 export const PAYMENT_METHOD = [
   {
     value: "COD",
-    title: "Cash on Delivery",
+    title: "Thanh toán khi nhận hàng",
   },
   {
     value: "MOMO",
-    title: "Checkout with Momo",
+    title: "Thanh toán với Momo",
   },
 ];
 export const ORDER_STATUS = {
-  PENDING: "Pending",
-  ACCEPTED: "Accepted",
-  PROCESSING: "Processing",
-  IN_DELIVERY: "In Delivery",
-  SHIPPED: "Shipped",
-  CANCELLED: "Cancelled",
+  PENDING: "Đang chờ",
+  ACCEPTED: "Đã nhận đơn",
+  PROCESSING: "Đang xử lý",
+  IN_DELIVERY: "Đang giao",
+  SHIPPED: "Đã giao",
+  CANCELLED: "Đã hủy",
 };
 export const REVIEW_STATUS = {
-  REPLIED: "Replied",
-  NOT_REPLIED: "Not Replied",
+  REPLIED: "Đã trả lời",
+  NOT_REPLIED: "Chưa trả lời",
 };
 export const PAYMENT_STATUS = {
-  PAID: "Paid",
-  UNPAID: "Unpaid",
-  REFUNDED: "Refunded",
+  PAID: "Đã thanh toán",
+  UNPAID: "Chưa thanh toán",
+  REFUNDED: "Đã hoàn tiền",
 };
 export const FREE_SHIPPING = 300;
 export const SHIPPING_RATE = 0.05;
 export const GENDER = [
   {
     key: "Men",
-    value: "Men",
+    value: "Nam",
   },
   {
     key: "Women",
-    value: "Women",
+    value: "Nữ",
   },
   {
     key: "Unisex",
@@ -82,3 +82,6 @@ export const ADMIN_PERMISSIONS = [
   "ACCOUNT",
 ];
 export const EMPLOYEE_PERMISSIONS = ["REVIEWS", "ORDERS", "ACCOUNT"];
+export const MIN_PRICE = 0;
+export const MAX_PRICE = 10000000;
+export const PRICE_GAP = 100000;

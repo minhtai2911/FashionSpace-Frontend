@@ -16,6 +16,7 @@ import { saveAs } from "file-saver";
 
 import Calendar from "../../components/Calendar";
 import { getStatistics } from "../../data/statistic";
+import { formatToVND } from "../../utils/format";
 
 export default function Analysis() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -198,7 +199,7 @@ export default function Analysis() {
 
   return (
     <div className="p-10 w-full">
-      <p className="font-extrabold text-xl">Analysis</p>
+      <p className="font-extrabold text-xl">Báo cáo</p>
       <div className="bg-white rounded-lg mt-10 p-6 shadow-md w-full flex flex-col gap-y-5">
         <div className="flex flex-row gap-x-3 items-center">
           <div>
@@ -225,29 +226,29 @@ export default function Analysis() {
             required
           >
             <option value="week" className="font-medium font-manrope text-sm">
-              Week
+              Tuần
             </option>
             <option value="month" className="font-medium font-manrope text-sm">
-              Month
+              Tháng
             </option>
             <option value="year" className="font-medium font-manrope text-sm">
-              Year
+              Năm
             </option>
           </select>
           <button
             onClick={handleExportReport}
             className="px-6 py-3 h-full rounded-lg bg-[#0A0A0A] text-white text-sm font-extrabold ml-4"
           >
-            Export Report
+            Xuất báo cáo
           </button>
         </div>
         <div className="flex justify-between">
           <Table hoverable>
             <Table.Head className="normal-case text-sm">
-              <Table.HeadCell className="w-40">No</Table.HeadCell>
-              <Table.HeadCell className="w-40">Date</Table.HeadCell>
-              <Table.HeadCell className="w-40">Total Order</Table.HeadCell>
-              <Table.HeadCell className="w-40">Revenue</Table.HeadCell>
+              <Table.HeadCell className="w-40">STT</Table.HeadCell>
+              <Table.HeadCell className="w-40">Ngày</Table.HeadCell>
+              <Table.HeadCell className="w-40">Số đơn hàng</Table.HeadCell>
+              <Table.HeadCell className="w-40">Doanh thu</Table.HeadCell>
             </Table.Head>
             <Table.Body className="divide-y">
               {statistics.map((stat, index) => (
@@ -257,20 +258,20 @@ export default function Analysis() {
                     {`${stat.day}/${stat.month}/${stat.year}`}
                   </Table.Cell>
                   <Table.Cell>{stat.totalOrder}</Table.Cell>
-                  <Table.Cell>${stat.totalRevenue}</Table.Cell>
+                  <Table.Cell>{formatToVND(stat.totalRevenue)}</Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>
           </Table>
           <Table>
             <Table.Head className="normal-case text-sm">
-              <Table.HeadCell>Information</Table.HeadCell>
+              <Table.HeadCell>Thông tin</Table.HeadCell>
             </Table.Head>
             <Table.Body>
               <Table.Row>
                 <Table.Cell>
                   <div className="w-[400px] flex justify-between font-semibold">
-                    <p>Total Orders</p>
+                    <p>Tổng đơn hàng</p>
                     <p>{totalOrder}</p>
                   </div>
                 </Table.Cell>
@@ -278,8 +279,8 @@ export default function Analysis() {
               <Table.Row>
                 <Table.Cell>
                   <div className="w-[400px] flex justify-between font-semibold">
-                    <p>Total Revenue</p>
-                    <p>${totalRevenue}</p>
+                    <p>Tổng doanh thu</p>
+                    <p>{formatToVND(totalRevenue)}</p>
                   </div>
                 </Table.Cell>
               </Table.Row>
@@ -287,8 +288,8 @@ export default function Analysis() {
           </Table>
         </div>
         <div className="bg-white rounded-lg flex flex-col gap-y-2">
-          <p className="font-bold">Revenue</p>
-          <p className="text-2xl font-bold">${totalRevenue}</p>
+          <p className="font-bold">Doanh thu</p>
+          <p className="text-2xl font-bold">{formatToVND(totalRevenue)}</p>
           <ResponsiveContainer width="100%" height={250}>
             <AreaChart
               data={chartData}

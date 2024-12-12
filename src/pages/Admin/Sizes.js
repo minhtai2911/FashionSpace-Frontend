@@ -61,10 +61,10 @@ export default function Sizes() {
     try {
       await deleteSizeById(id);
       setSizes(sizes.filter((s) => s._id !== id));
-      toast.success("Delete size successfully", { duration: 2000 });
+      toast.success("Xóa kích cỡ thành công", { duration: 2000 });
     } catch (error) {
       console.error("Error deleting size:", error);
-      toast.error("Delete size failed", { duration: 2000 });
+      toast.error("Xóa kích cỡ thất bại", { duration: 2000 });
     }
   };
 
@@ -75,11 +75,11 @@ export default function Sizes() {
       sizeDetails.size
     );
     if (response) {
-      toast.success("Update size successfully", { duration: 2000 });
+      toast.success("Cập nhật kích cỡ thành công", { duration: 2000 });
       fetchSizes();
       setOpenUpdateModal(false);
     } else {
-      toast.error("Update size failed", { duration: 2000 });
+      toast.error("Cập nhật kích cỡ thất bại", { duration: 2000 });
     }
   };
 
@@ -90,7 +90,7 @@ export default function Sizes() {
   return (
     <>
       <div className="p-10 w-full">
-        <p className="font-extrabold text-xl">Sizes</p>
+        <p className="font-extrabold text-xl">Kích cỡ</p>
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
@@ -98,10 +98,10 @@ export default function Sizes() {
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">
-                <Table.HeadCell>Size ID</Table.HeadCell>
-                <Table.HeadCell>Category</Table.HeadCell>
-                <Table.HeadCell>Size Name</Table.HeadCell>
-                <Table.HeadCell>Action</Table.HeadCell>
+                <Table.HeadCell>Mã kích cỡ</Table.HeadCell>
+                <Table.HeadCell>Danh mục</Table.HeadCell>
+                <Table.HeadCell>Tên kích cỡ</Table.HeadCell>
+                <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
                 {sizes.map((size) => (
@@ -137,7 +137,7 @@ export default function Sizes() {
                                 clip-rule="evenodd"
                               />
                             </svg>
-                            <p className="text-[#0A0A0A]">View</p>
+                            <p className="text-[#0A0A0A]">Xem</p>
                           </div>
                         </button>
                         <button
@@ -164,7 +164,7 @@ export default function Sizes() {
                                 fill="#475BE8"
                               />
                             </svg>
-                            <p className="text-blue-600">Edit</p>
+                            <p className="text-blue-600">Sửa</p>
                           </div>
                         </button>
                         <button
@@ -186,7 +186,7 @@ export default function Sizes() {
                                 fill="#EF0606"
                               />
                             </svg>
-                            <p className="text-[#EF0606]">Delete</p>
+                            <p className="text-[#EF0606]">Xóa</p>
                           </div>
                         </button>
                       </div>
@@ -201,7 +201,7 @@ export default function Sizes() {
           className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10"
           onClick={() => setOpenCreateModal(true)}
         >
-          New Size
+          Thêm kích cỡ mới
         </button>
       </div>
       <Modal show={openCreateModal} size="lg" onClose={onCloseModal} popup>
@@ -209,11 +209,11 @@ export default function Sizes() {
         <Modal.Body className="px-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Sizes / Create
+              Kích cỡ / Thêm mới
             </h3>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope text-sm font-semibold">
-                Category <b className="text-[#EF0606]">*</b>
+                Danh mục <b className="text-[#EF0606]">*</b>
               </p>
               <select
                 id="categoryId"
@@ -223,7 +223,7 @@ export default function Sizes() {
                 required
               >
                 <option value="" className="font-medium font-manrope text-sm">
-                  Choose category
+                  Chọn danh mục
                 </option>
                 {categories.map((category) => (
                   <option
@@ -238,7 +238,7 @@ export default function Sizes() {
             </div>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope text-sm font-semibold">
-                Size <b className="text-[#EF0606]">*</b>
+                Kích cỡ <b className="text-[#EF0606]">*</b>
               </p>
               <input
                 id="size"
@@ -253,7 +253,7 @@ export default function Sizes() {
                 className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
                 onClick={handleCreateSize}
               >
-                Create Category
+                Thêm danh mục
               </button>
             </div>
           </div>
@@ -271,10 +271,10 @@ export default function Sizes() {
         <Modal.Body className="px-10 pb-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Categories / Details
+              Danh mục / Chi tiết
             </h3>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">Category</p>
+              <p className="font-manrope font-semibold text-sm">Danh mục</p>
               <input
                 value={sizeDetails.category}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
@@ -282,7 +282,7 @@ export default function Sizes() {
               />
             </div>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">Size</p>
+              <p className="font-manrope font-semibold text-sm">Kích cỡ</p>
               <input
                 value={sizeDetails.size}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
@@ -302,10 +302,10 @@ export default function Sizes() {
         <Modal.Body className="px-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Sizes / Update
+              Kích cỡ / Chỉnh sửa
             </h3>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">Category</p>
+              <p className="font-manrope font-semibold text-sm">Danh mục</p>
               <select
                 value={sizeDetails.categoryId}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
@@ -325,7 +325,7 @@ export default function Sizes() {
               </select>
             </div>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">Size Name</p>
+              <p className="font-manrope font-semibold text-sm">Tên kích cỡ</p>
               <input
                 value={sizeDetails.size}
                 className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
@@ -342,7 +342,7 @@ export default function Sizes() {
                 className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
                 onClick={handleUpdateSize}
               >
-                Save changes
+                Lưu thay đổi
               </button>
             </div>
           </div>

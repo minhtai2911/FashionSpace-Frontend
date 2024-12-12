@@ -9,13 +9,13 @@ export default function AdminAccount() {
   const [activeTab, setActiveTab] = useState("personal");
 
   const tabs = [
-    { id: "personal", label: "Personal Information" },
-    { id: "password", label: "Password Manager" },
+    { id: "personal", label: "Thông tin cá nhân" },
+    { id: "password", label: "Quản lý mật khẩu" },
   ];
 
   return (
     <div className="p-10 w-full">
-      <p className="font-extrabold text-xl">Account</p>
+      <p className="font-extrabold text-xl">Tài khoản</p>
       <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col gap-y-5">
         <div className="flex flex-row gap-x-20 mt-10">
           <div className="flex flex-col gap-y-5 ">

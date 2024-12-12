@@ -5,11 +5,11 @@ import { useSelector } from "react-redux";
 import Cookies from "js-cookie";
 
 import { getAllProducts } from "../data/products";
-import { formatURL } from "../utils/format";
+import { formatToVND, formatURL } from "../utils/format";
 import { getAllImagesByProductId } from "../data/productImages";
+import { getUserById } from "../data/users";
 function Header() {
-  const { isAuthenticated, logout, getUserById, user, setUser } =
-    useContext(AuthContext);
+  const { isAuthenticated, logout, user, setUser } = useContext(AuthContext);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,7 +48,7 @@ function Header() {
       }
     };
     fetchUserData();
-  }, [userId, getUserById, setUser]);
+  }, [userId, setUser]);
 
   useEffect(() => {
     let total = 0;
@@ -150,25 +150,25 @@ function Header() {
               to="/"
               className="text-[#413e3e] hover:text-red-600 font-semibold relative before:content-[''] before:absolute before:w-0 before:h-0.5 before:bg-red-600 before:transition-all before:duration-300 before:-bottom-1 before:left-1/2 before:transform before:translate-x-[-50%] hover:before:w-full"
             >
-              Home
+              Trang chủ
             </Link>
             <Link
               to="/products"
               className="text-[#413e3e] hover:text-red-600 font-semibold relative before:content-[''] before:absolute before:w-0 before:h-0.5 before:bg-red-600 before:transition-all before:duration-300 before:-bottom-1 before:left-1/2 before:transform before:translate-x-[-50%] hover:before:w-full"
             >
-              Shop
+              Cửa hàng
             </Link>
             <Link
               to="/about"
               className="text-[#413e3e] hover:text-red-600 font-semibold relative before:content-[''] before:absolute before:w-0 before:h-0.5 before:bg-red-600 before:transition-all before:duration-300 before:-bottom-1 before:left-1/2 before:transform before:translate-x-[-50%] hover:before:w-full"
             >
-              About Us
+              Giới thiệu
             </Link>
             <Link
               to="/contact"
               className="text-[#413e3e] hover:text-red-600 font-semibold relative before:content-[''] before:absolute before:w-0 before:h-0.5 before:bg-red-600 before:transition-all before:duration-300 before:-bottom-1 before:left-1/2 before:transform before:translate-x-[-50%] hover:before:w-full"
             >
-              Contact Us
+              Liên hệ
             </Link>
           </nav>
           <div className="flex items-center space-x-4 justify-between w-40">
@@ -240,7 +240,7 @@ function Header() {
                   } bg-white rounded-lg shadow-[0_1px_3px_0_rgba(0,0,0,0.3)] w-32`}
                 >
                   <div className="px-4 py-2 text-sm text-gray-700">
-                    Hello, {user?.fullName?.split(" ").pop()}
+                    Xin chào, {user?.fullName?.split(" ").pop()}
                   </div>
                   <hr className="mx-4" />
                   <ul className="pt-2 text-sm text-gray-700 text-gray-200">
@@ -281,7 +281,7 @@ function Header() {
                             </clipPath>
                           </defs>
                         </svg>
-                        <span>Settings</span>
+                        <span>Tài khoản</span>
                       </Link>
                     </li>
                   </ul>
@@ -323,7 +323,7 @@ function Header() {
                           stroke-linejoin="round"
                         />
                       </svg>
-                      <span className="text-[#dc2626]">Sign out</span>
+                      <span className="text-[#dc2626]">Đăng xuất</span>
                     </button>
                   </div>
                 </div>
@@ -389,7 +389,7 @@ function Header() {
                   className="w-full border-none focus:ring-0 focus:outline-none ml-[.75rem] mr-[1rem]"
                   type="text"
                   value={searchQuery}
-                  placeholder="Search product..."
+                  placeholder="Tìm kiếm sản phẩm..."
                   onChange={handleSearchChange}
                   autoComplete="off"
                 />
@@ -415,7 +415,7 @@ function Header() {
                             {product.name}
                           </p>
                           <p className="text-sm text-gray-500">
-                            ${product.price}
+                            {formatToVND(product.price)}
                           </p>
                         </div>
                       </div>

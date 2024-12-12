@@ -36,9 +36,9 @@ export default function Reviews() {
           const user = await getUserById(review.userId);
           return {
             ...review,
-            status: reviewResponse.length > 0 ? "Replied" : "Not Replied",
+            status: reviewResponse.length > 0 ? "Đã trả lời" : "Chưa trả lời",
             productName: product.name,
-            fullName: user.fullName,
+            fullName: user?.fullName,
           };
         })
       );
@@ -58,9 +58,9 @@ export default function Reviews() {
       await fetchData();
       setFeedback("");
       setOpenReplyModal(false);
-      toast.success("Reply sent successfully", { duration: 2000 });
+      toast.success("Gửi đánh giá thành công", { duration: 2000 });
     } else {
-      toast.error("Failed to send reply", { duration: 2000 });
+      toast.error("Gửi đánh giá thất bại", { duration: 2000 });
     }
   };
 
@@ -78,7 +78,7 @@ export default function Reviews() {
   return (
     <>
       <div className="p-10 w-full">
-        <p className="font-extrabold text-xl">Reviews</p>
+        <p className="font-extrabold text-xl">Đánh giá</p>
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
@@ -86,13 +86,13 @@ export default function Reviews() {
             </div>
             <Table hoverable className="overflow-scroll">
               <Table.Head className="normal-case text-base">
-                <Table.HeadCell>Review ID</Table.HeadCell>
-                <Table.HeadCell>Product Name</Table.HeadCell>
-                <Table.HeadCell>Customer Name</Table.HeadCell>
-                <Table.HeadCell>Rating</Table.HeadCell>
-                <Table.HeadCell className="truncate">Content</Table.HeadCell>
-                <Table.HeadCell>Status</Table.HeadCell>
-                <Table.HeadCell>Action</Table.HeadCell>
+                <Table.HeadCell>Mã đánh giá</Table.HeadCell>
+                <Table.HeadCell>Tên sản phẩm</Table.HeadCell>
+                <Table.HeadCell>Tên khách hàng</Table.HeadCell>
+                <Table.HeadCell>Số sao</Table.HeadCell>
+                <Table.HeadCell className="truncate">Bình luận</Table.HeadCell>
+                <Table.HeadCell>Trạng thái</Table.HeadCell>
+                <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
                 {reviews.map((review) => (
@@ -103,8 +103,8 @@ export default function Reviews() {
                     <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white max-w-40 truncate overflow-hidden text-ellipsis">
                       {review._id}
                     </Table.Cell>
-                    <Table.Cell>{review.productName}</Table.Cell>
-                    <Table.Cell>{review.fullName}</Table.Cell>
+                    <Table.Cell>{review?.productName}</Table.Cell>
+                    <Table.Cell>{review?.fullName}</Table.Cell>
                     <Table.Cell>
                       <div className="flex flex-row gap-x-1 items-center">
                         <svg
@@ -119,19 +119,19 @@ export default function Reviews() {
                             fill="#FFE066"
                           />
                         </svg>
-                        <p className="font-medium">{review.rating}</p>
+                        <p className="font-medium">{review?.rating}</p>
                       </div>
                     </Table.Cell>
                     <Table.Cell className="truncate whitespace-nowrap overflow-hidden text-ellipsis max-w-40">
-                      {review.content}
+                      {review?.content}
                     </Table.Cell>
                     <Table.Cell>
                       <div
                         className={`px-3 py-1 rounded-lg text-center font-semibold ${getStatusClass(
-                          review.status
+                          review?.status
                         )}`}
                       >
-                        {review.status}
+                        {review?.status}
                       </div>
                     </Table.Cell>
                     <Table.Cell>
@@ -157,7 +157,7 @@ export default function Reviews() {
                                 clip-rule="evenodd"
                               />
                             </svg>
-                            <p className="text-[#0A0A0A]">View</p>
+                            <p className="text-[#0A0A0A]">Xem</p>
                           </div>
                         </button>
                         <button
@@ -184,7 +184,7 @@ export default function Reviews() {
                                 fill="#475BE8"
                               />
                             </svg>
-                            <p className="text-blue-600">Reply</p>
+                            <p className="text-blue-600">Phản hồi</p>
                           </div>
                         </button>
                       </div>
@@ -208,10 +208,10 @@ export default function Reviews() {
         <Modal.Body className="px-10 pb-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Reviews / Details
+              Đánh giá / Chi tiết
             </h3>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">Product Name</p>
+              <p className="font-manrope font-semibold text-sm">Tên sản phẩm</p>
               <input
                 value={reviewDetails.productName}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
@@ -220,7 +220,7 @@ export default function Reviews() {
             </div>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope font-semibold text-sm">
-                Customer Name
+                Tên khách hàng
               </p>
               <input
                 value={reviewDetails.fullName}
@@ -229,14 +229,14 @@ export default function Reviews() {
               />
             </div>
             <div className="flex gap-x-2 items-center">
-              <p className="font-manrope font-semibold text-sm">Rating</p>
+              <p className="font-manrope font-semibold text-sm">Số sao</p>
               <Rating percentage={(reviewDetails.rating / 5) * 100} />
               <p className="font-manrope font-semibold text-sm">
                 {reviewDetails.rating?.toFixed(1)}
               </p>
             </div>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">Content</p>
+              <p className="font-manrope font-semibold text-sm">Bình luận</p>
               <textarea
                 value={reviewDetails.content}
                 rows={5}
@@ -260,11 +260,11 @@ export default function Reviews() {
         <Modal.Body className="px-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Reviews / Reply
+              Đánh giá / Phản hồi
             </h3>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope font-semibold">
-                Seller Feedback <b className="text-[#EF0606]">*</b>
+                Phản hồi của người bán <b className="text-[#EF0606]">*</b>
               </p>
               <textarea
                 rows={5}
@@ -280,7 +280,7 @@ export default function Reviews() {
                 className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
                 onClick={handleReplyReview}
               >
-                Reply
+                Phản hồi
               </button>
             </div>
           </div>

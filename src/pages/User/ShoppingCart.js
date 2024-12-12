@@ -12,6 +12,7 @@ import Banner from "../../components/Banner";
 import CheckBox from "../../components/CheckBox.js";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { getProductById } from "../../data/products.js";
+import { formatToVND } from "../../utils/format.js";
 
 function ShoppingCart() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -48,15 +49,11 @@ function ShoppingCart() {
     calculateOrderSummary();
   }, [selectedCartItems]);
 
-  const taxes = useMemo(() => subTotal * 0.1, [subTotal]);
   const shipping = useMemo(
     () => (subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : 5),
     [subTotal]
   );
-  const totalPrice = useMemo(
-    () => subTotal + shipping + taxes,
-    [subTotal, shipping, taxes]
-  );
+  const totalPrice = useMemo(() => subTotal + shipping, [subTotal, shipping]);
 
   const handleCheckboxChange = (productId, colorId, sizeId) => {
     const key = `${productId}-${colorId}-${sizeId}`;
@@ -98,7 +95,6 @@ function ShoppingCart() {
     totalItems,
     subTotal,
     shipping,
-    taxes,
     totalPrice,
   };
 
@@ -115,7 +111,7 @@ function ShoppingCart() {
   return (
     <>
       <div>
-        <Banner title={"Shopping Cart"} route={"Home / Shopping Cart"} />
+        <Banner title={"Giỏ hàng"} route={"Trang chủ / Giỏ hàng"} />
         <div className="flex flex-row gap-x-20 px-40 py-20">
           {/* Product List */}
           <div className="h-fit w-[800px]">
@@ -125,16 +121,16 @@ function ShoppingCart() {
                   <td className="rounded-tl-lg">&nbsp;</td>
                   <td className="">&nbsp;</td>
                   <td className="py-4 font-medium text-left text-white">
-                    Product
+                    Sản phẩm
                   </td>
                   <td className="px-2 py-4 font-medium text-left text-white">
-                    Price
+                    Đơn giá
                   </td>
                   <td className="px-2 py-4 font-medium text-left text-white">
-                    Quantity
+                    Số lượng
                   </td>
                   <td className="px-2 py-4 font-medium text-left text-white rounded-tr-lg">
-                    Sub Total
+                    Tổng đơn giá
                   </td>
                 </tr>
               </thead>
@@ -144,13 +140,13 @@ function ShoppingCart() {
                     <td colSpan={6}>
                       <div className="text-center w-full flex flex-row justify-center gap-x-5 items-center mt-5">
                         <p className="text-xl font-medium">
-                          There's no product in the cart.
+                          Không có sản phẩm trong giỏ hàng.
                         </p>
                         <Link
                           to="/products"
                           className="px-8 py-3 text-white font-medium bg-[#0A0A0A] rounded-lg"
                         >
-                          Go Shopping
+                          Đi đến Cửa hàng
                         </Link>
                       </div>
                     </td>
@@ -214,7 +210,7 @@ function ShoppingCart() {
                   }}
                   disabled={selectedCartItems.length === 0}
                 >
-                  Delete Selected Items
+                  Xóa sản phẩm đã chọn
                 </button>
                 <button
                   className="px-10 py-3 text-white font-medium bg-red-700 rounded-lg"
@@ -223,7 +219,7 @@ function ShoppingCart() {
                     setOpenModal(true);
                   }}
                 >
-                  Clear Shopping Cart
+                  Xóa giỏ hàng
                 </button>
               </div>
             )}
@@ -231,37 +227,33 @@ function ShoppingCart() {
 
           {/* Order Summary */}
           <div className="flex-1 border border-[#818181] rounded-lg p-5 flex flex-col gap-y-4 h-fit">
-            <p className="font-bold text-xl">Order Summary</p>
+            <p className="font-bold text-xl">Tóm tắt đơn hàng</p>
             <hr className="border-[#818181]" />
             <div className="flex flex-col gap-y-2">
               <div className="flex flex-row justify-between">
-                <p className="text-[#4A4A4A]">Items</p>
-                <p className="font-semibold">${totalItems}</p>
+                <p className="text-[#4A4A4A]">Số lượng</p>
+                <p className="font-semibold">{totalItems}</p>
               </div>
               <div className="flex flex-row justify-between">
-                <p className="text-[#4A4A4A]">Sub Total</p>
-                <p className="font-semibold">${subTotal.toFixed(2)}</p>
+                <p className="text-[#4A4A4A]">Tổng</p>
+                <p className="font-semibold">{formatToVND(subTotal)}</p>
               </div>
               <div className="flex flex-row justify-between">
-                <p className="text-[#4A4A4A]">Shipping</p>
-                <p className="font-semibold">${shipping.toFixed(2)}</p>
-              </div>
-              <div className="flex flex-row justify-between">
-                <p className="text-[#4A4A4A]">Taxes</p>
-                <p className="font-semibold">${taxes.toFixed(2)}</p>
+                <p className="text-[#4A4A4A]">Phí vận chuyển</p>
+                <p className="font-semibold">{formatToVND(shipping)}</p>
               </div>
             </div>
             <hr className="border-[#818181]" />
             <div className="flex flex-row justify-between">
-              <p className="text-[#4A4A4A]">Total</p>
-              <p className="font-semibold">${totalPrice.toFixed(2)}</p>
+              <p className="text-[#4A4A4A]">Tổng đơn hàng</p>
+              <p className="font-semibold">{formatToVND(totalPrice)}</p>
             </div>
             <button
               onClick={handleCheckout}
               className="px-10 py-3 text-white font-medium bg-black rounded-lg w-full disabled:bg-[#4A4A4A] disabled:cursor-not-allowed"
               disabled={selectedCartItems.length === 0}
             >
-              Proceed to Checkout
+              Chuyển đến Thanh toán
             </button>
           </div>
         </div>
@@ -277,11 +269,8 @@ function ShoppingCart() {
           <div className="text-center">
             <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
             <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-              Are you sure you want to{" "}
-              {type === "remove"
-                ? "delete selected products"
-                : "clear shopping cart"}
-              ?
+              Bạn có muốn{" "}
+              {type === "remove" ? "xóa sản phẩm đã chọn" : "xóa giỏ hàng"}?
             </h3>
             <div className="flex justify-center gap-4 ">
               <Button
@@ -291,10 +280,10 @@ function ShoppingCart() {
                   setOpenModal(false);
                 }}
               >
-                <p className="text-white">Yes, I'm sure</p>
+                <p className="text-white">Có, tôi muốn xóa</p>
               </Button>
               <Button color="gray" onClick={() => setOpenModal(false)}>
-                No, cancel
+                Không, hủy
               </Button>
             </div>
           </div>

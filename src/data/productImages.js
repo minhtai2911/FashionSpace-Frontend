@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 export const getAllImagesByProductId = async (productId) => {
   try {
     const response = await instance.get(`/productImage/productId/${productId}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -40,7 +40,7 @@ export const createProductImage = async (productId, images) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -75,7 +75,7 @@ export const updateProductImageById = async (id, productId, image) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -102,7 +102,7 @@ export const deleteProductImageById = async (id) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -132,7 +132,7 @@ export const deleteProductImagesByProductId = async (productId) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;

@@ -62,8 +62,9 @@ function SignIn() {
           },
         }
       );
-      toast.success("Login successfully", { duration: 1000 });
-      const { accessToken, refreshToken, ...data } = response.data;
+      toast.success("Đăng nhập thành công", { duration: 1000 });
+      console.log(response.data);
+      const { accessToken, refreshToken, ...data } = response.data.data;
 
       setUser(jwtDecode(accessToken));
       setIsAuthenticated(true);
@@ -74,7 +75,7 @@ function SignIn() {
     } catch (error) {
       setIsAuthenticated(false);
       if (error.status === 400) {
-        toast.error("Your account hasn't been verified");
+        toast.error("Tài khoản của bạn chưa được xác thực");
         const id = error.response.data.data._id;
         const sendMailResponse = await instance.post(
           "/auth/sendMailVerifyAccount",
@@ -106,13 +107,14 @@ function SignIn() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!data.email || !data.password) {
-      toast.error("Please fill in all fields", { duration: 2000 });
+      toast.error("Vui lòng điền vào các trường", { duration: 2000 });
       return;
     }
     try {
       await login(data.email, data.password);
       const user = JSON.parse(Cookies.get("user"));
       const role = await getUserRoleById(user.roleId);
+      console.log(role);
       if (role.roleName === "User") {
         await mergeUserCart(user.id);
         const state = location.state;
@@ -123,8 +125,10 @@ function SignIn() {
         } else {
           navigate("/");
         }
-      } else {
+      } else if (role.roleName === "Admin") {
         navigate("/admin");
+      } else if (role.roleName === "Employee") {
+        navigate("/admin/orders");
       }
     } catch (err) {
       console.log(err);
@@ -136,7 +140,7 @@ function SignIn() {
     if (urlParams.has("error")) {
       const errorType = urlParams.get("error");
       if (errorType === "auth") {
-        toast.error("Authentication failed. Please try again.", {
+        toast.error("Xác thực thất bại. Vui lòng thử lại.", {
           duration: 2000,
         });
       }
@@ -147,7 +151,7 @@ function SignIn() {
     <div>
       <div className="px-40 items-center h-screen flex gap-x-10">
         <div className="flex-1">
-          <p className="font-semibold text-3xl">Sign In</p>
+          <p className="font-semibold text-3xl">Đăng nhập</p>
           <form onSubmit={handleSubmit}>
             <div className="mt-4">
               <p className="font-medium text-base">
@@ -163,7 +167,7 @@ function SignIn() {
             </div>
             <div className="mt-4">
               <p className="font-medium text-base">
-                Password <b className="text-red-500">*</b>
+                Mật khẩu <b className="text-red-500">*</b>
               </p>
               <input
                 className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
@@ -176,23 +180,23 @@ function SignIn() {
             <div className="mt-4 flex flex-row items-center justify-between">
               <div className="flex-row gap-x-3 flex items-center">
                 <CheckBox />
-                <p className="text-base">Remember me</p>
+                <p className="text-base">Lưu đăng nhập</p>
               </div>
               <Link to="/forgotPassword" className="text-base">
-                Forgot password?
+                Quên mật khẩu?
               </Link>
             </div>
             <button
               type="submit"
               className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-8 text-white font-semibold text-lg"
             >
-              Sign In
+              Đăng nhập
             </button>
           </form>
 
           <div className="flex flex-row justify-between items-center gap-x-10 mt-4">
             <div className="flex-1 h-[1px] bg-[#DEDEDE]"></div>
-            <p className="text-[#818181]">or sign in with</p>
+            <p className="text-[#818181]">hoặc đăng nhập với</p>
             <div className="flex-1 h-[1px] bg-[#DEDEDE]"></div>
           </div>
           <button
@@ -224,13 +228,13 @@ function SignIn() {
                   fill="#1976D2"
                 />
               </svg>
-              <p className="font-medium">Sign in with Google</p>
+              <p className="font-medium">Đăng nhập với Google</p>
             </div>
           </button>
           <p className="mt-4 text-center">
-            Don't have an account?{" "}
+            Chưa có tài khoản?{" "}
             <Link to="/signup">
-              <u>Sign Up</u>
+              <u>Đăng ký</u>
             </Link>
           </p>
         </div>

@@ -7,7 +7,7 @@ import { getProductById } from "../../data/products";
 import { getSizeById } from "../../data/sizes";
 import { getColorById } from "../../data/colors";
 import { getAllImagesByProductId } from "../../data/productImages";
-import { formatDate, formatURL } from "../../utils/format";
+import { formatDate, formatToVND, formatURL } from "../../utils/format";
 import FeatureBanner from "../../components/FeatureBanner";
 
 function OrderCompleted() {
@@ -47,8 +47,8 @@ function OrderCompleted() {
   return (
     <div>
       <Banner
-        title={"Order Completed"}
-        route={"Home / Checkout / Order Completed"}
+        title={"Hoàn tất đơn hàng"}
+        route={"Trang chủ / Thanh toán / Hoàn tất đơn hàng"}
       />
       <div className="px-40">
         <div className="flex flex-col py-20 justify-center gap-y-10 items-center">
@@ -70,10 +70,10 @@ function OrderCompleted() {
               />
             </svg>
             <p className="text-xl font-bold text-center mt-5">
-              Your order is completed!
+              Đơn hàng của bạn đã hoàn tất!
             </p>
             <p className="text-sm text-gray-600 mt-1">
-              Thank you. Your order has been received!
+              Cảm ơn. Đơn hàng của bạn đã được gửi về chúng tôi!
             </p>
           </div>
           <table className="mb-4 w-8/12">
@@ -81,13 +81,14 @@ function OrderCompleted() {
               <td colSpan={4}>
                 <div className="bg-[#0A0A0A] rounded-t-lg py-6 grid grid-cols-3 divide-x items-center">
                   <p className="text-base text-white text-center">
-                    Order ID: {orderData.order._id}
+                    Mã đơn hàng: <br /> {orderData.order._id}
                   </p>
                   <p className="text-base text-white text-center">
-                    Payment Method: {orderData.paymentDetail.paymentMethod}
+                    Phương thức thanh toán <br />
+                    {orderData.paymentDetail.paymentMethod}
                   </p>
                   <p className="text-base text-white text-center">
-                    Estimated Delivery Date: <br />
+                    Ngày giao hàng dự kiên: <br />
                     {formatDate(orderData.order.deliveryDate)}
                   </p>
                 </div>
@@ -95,7 +96,7 @@ function OrderCompleted() {
             </tr>
             <tbody className="space-y-4 border-b border-r border-l mb-4">
               <tr>
-                <td className="px-10 pt-4 font-medium">Order Details</td>
+                <td className="px-10 pt-4 font-medium">Chi tiết đơn hàng</td>
               </tr>
               <tr>
                 <td colSpan={4} className="px-10 pt-4">
@@ -103,10 +104,12 @@ function OrderCompleted() {
                 </td>
               </tr>
               <tr>
-                <td className="px-10 pt-4 font-medium">Product</td>
-                <td className="font-medium pt-4">Price</td>
-                <td className="font-medium pt-4 text-center">Quantity</td>
-                <td className="font-medium pt-4 pr-10 text-right">Sub Total</td>
+                <td className="px-10 pt-4 font-medium">Sản phẩm</td>
+                <td className="font-medium pt-4">Đơn giá</td>
+                <td className="font-medium pt-4 text-center">Số lượng</td>
+                <td className="font-medium pt-4 pr-10 text-right">
+                  Tổng đơn giá
+                </td>
               </tr>
               {detailedItems.map((item) => (
                 <tr key={item.product.productId}>
@@ -120,17 +123,16 @@ function OrderCompleted() {
                       <div>
                         <p className="font-medium">{item.product.name}</p>
                         <p className="font-light">
-                          Color: {item.color.color} | Size: {item.size.size}
+                          Màu sắc: {item.color.color} | Kích cỡ:{" "}
+                          {item.size.size}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="pt-4">
-                    ${parseFloat(item.product.price).toFixed(2)}
-                  </td>
+                  <td className="pt-4">{formatToVND(item.product.price)}</td>
                   <td className="pt-4 text-center">{item.quantity}</td>
                   <td className="pt-4 px-10 text-right">
-                    ${parseFloat(item.product.price * item.quantity).toFixed(2)}
+                    {formatToVND(item.product.price * item.quantity)}
                   </td>
                 </tr>
               ))}
@@ -142,16 +144,8 @@ function OrderCompleted() {
               <tr>
                 <td className="px-10 pt-4 font-medium" colSpan={4}>
                   <div className="flex justify-between">
-                    <label>Shipping</label>
-                    <label>${shipping.toFixed(2)}</label>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-10 pt-4 font-medium" colSpan={4}>
-                  <div className="flex justify-between">
-                    <label>Taxes</label>
-                    <label>${taxes.toFixed(2)}</label>
+                    <label>Phí vận chuyển</label>
+                    <label>{formatToVND(shipping)}</label>
                   </div>
                 </td>
               </tr>
@@ -163,8 +157,8 @@ function OrderCompleted() {
               <tr>
                 <td className="px-10 py-4 font-medium" colSpan={4}>
                   <div className="flex justify-between">
-                    <label>Total</label>
-                    <label>${total.toFixed(2)}</label>
+                    <label>Tổng đơn hàng</label>
+                    <label>{formatToVND(total)}</label>
                   </div>
                 </td>
               </tr>

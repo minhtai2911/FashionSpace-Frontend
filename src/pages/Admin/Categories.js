@@ -40,10 +40,10 @@ export default function Categories() {
     try {
       await deleteCategoryById(id);
       setCategories(categories.filter((c) => c.id !== id));
-      toast.success("Delete category successfully", { duration: 2000 });
+      toast.success("Xóa danh mục thành công", { duration: 2000 });
     } catch (error) {
       console.error("Error deleting category:", error);
-      toast.error("Delete category failed", { duration: 2000 });
+      toast.error("Xóa danh mục thất bại", { duration: 2000 });
     }
   };
 
@@ -63,11 +63,11 @@ export default function Categories() {
       categoryDetails.gender
     );
     if (response) {
-      toast.success("Update category successfully", { duration: 2000 });
+      toast.success("Chỉnh sửa danh mục thành công", { duration: 2000 });
       fetchCategories();
       setOpenUpdateModal(false);
     } else {
-      toast.error("Update category failed", { duration: 2000 });
+      toast.error("Chỉnh sửa danh mục thất bại", { duration: 2000 });
     }
   };
 
@@ -78,155 +78,18 @@ export default function Categories() {
   return (
     <>
       <div className="p-10 w-full">
-        <p className="font-extrabold text-xl">Categories</p>
+        <p className="font-extrabold text-xl">Danh mục</p>
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
-              {/* <button
-                id="dropdownRadioButton"
-                data-dropdown-toggle="dropdownRadio"
-                class="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 "
-                type="button"
-              >
-                <svg
-                  class="w-3 h-3 text-gray-500 dark:text-gray-400 me-3"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm3.982 13.982a1 1 0 0 1-1.414 0l-3.274-3.274A1.012 1.012 0 0 1 9 10V6a1 1 0 0 1 2 0v3.586l2.982 2.982a1 1 0 0 1 0 1.414Z" />
-                </svg>
-                Last 30 days
-                <svg
-                  class="w-2.5 h-2.5 ms-2.5"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 10 6"
-                >
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 1 4 4 4-4"
-                  />
-                </svg>
-              </button>
-              <div
-                id="dropdownRadio"
-                class="z-10 hidden w-48 bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600"
-                data-popper-reference-hidden=""
-                data-popper-escaped=""
-                data-popper-placement="top"
-                style={{
-                  position: "absolute",
-                  inset: "auto auto 0px 0px",
-                  margin: "0px",
-                  transform: "translate3d(522.5px, 3847.5px, 0px)",
-                }}
-              >
-                <ul
-                  class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200"
-                  aria-labelledby="dropdownRadioButton"
-                >
-                  <li>
-                    <div class="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-                      <input
-                        id="filter-radio-example-1"
-                        type="radio"
-                        value=""
-                        name="filter-radio"
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
-                      />
-                      <label
-                        for="filter-radio-example-1"
-                        class="w-full ms-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300"
-                      >
-                        Last day
-                      </label>
-                    </div>
-                  </li>
-                  <li>
-                    <div class="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-                      <input
-                        checked=""
-                        id="filter-radio-example-2"
-                        type="radio"
-                        value=""
-                        name="filter-radio"
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
-                      />
-                      <label
-                        for="filter-radio-example-2"
-                        class="w-full ms-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300"
-                      >
-                        Last 7 days
-                      </label>
-                    </div>
-                  </li>
-                  <li>
-                    <div class="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-                      <input
-                        id="filter-radio-example-3"
-                        type="radio"
-                        value=""
-                        name="filter-radio"
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
-                      />
-                      <label
-                        for="filter-radio-example-3"
-                        class="w-full ms-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300"
-                      >
-                        Last 30 days
-                      </label>
-                    </div>
-                  </li>
-                  <li>
-                    <div class="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-                      <input
-                        id="filter-radio-example-4"
-                        type="radio"
-                        value=""
-                        name="filter-radio"
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
-                      />
-                      <label
-                        for="filter-radio-example-4"
-                        class="w-full ms-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300"
-                      >
-                        Last month
-                      </label>
-                    </div>
-                  </li>
-                  <li>
-                    <div class="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-                      <input
-                        id="filter-radio-example-5"
-                        type="radio"
-                        value=""
-                        name="filter-radio"
-                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 "
-                      />
-                      <label
-                        for="filter-radio-example-5"
-                        class="w-full ms-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300"
-                      >
-                        Last year
-                      </label>
-                    </div>
-                  </li>
-                </ul>
-              </div> */}
               <Search />
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">
-                <Table.HeadCell>Category ID</Table.HeadCell>
-                <Table.HeadCell>Category Name</Table.HeadCell>
-                <Table.HeadCell>Gender</Table.HeadCell>
-                <Table.HeadCell>Action</Table.HeadCell>
+                <Table.HeadCell>Mã danh mục</Table.HeadCell>
+                <Table.HeadCell>Tên danh mục</Table.HeadCell>
+                <Table.HeadCell>Giới tính</Table.HeadCell>
+                <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
                 {categories.map((category) => (
@@ -262,7 +125,7 @@ export default function Categories() {
                                 clip-rule="evenodd"
                               />
                             </svg>
-                            <p className="text-[#0A0A0A]">View</p>
+                            <p className="text-[#0A0A0A]">Xem</p>
                           </div>
                         </button>
                         <button
@@ -289,7 +152,7 @@ export default function Categories() {
                                 fill="#475BE8"
                               />
                             </svg>
-                            <p className="text-blue-600">Edit</p>
+                            <p className="text-blue-600">Sửa</p>
                           </div>
                         </button>
                         <button
@@ -311,7 +174,7 @@ export default function Categories() {
                                 fill="#EF0606"
                               />
                             </svg>
-                            <p className="text-[#EF0606]">Delete</p>
+                            <p className="text-[#EF0606]">Xóa</p>
                           </div>
                         </button>
                       </div>
@@ -326,7 +189,7 @@ export default function Categories() {
           className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10"
           onClick={() => setOpenCreateModal(true)}
         >
-          New Category
+          Thêm danh mục mới
         </button>
       </div>
       <Modal show={openCreateModal} size="lg" onClose={onCloseModal} popup>
@@ -334,11 +197,11 @@ export default function Categories() {
         <Modal.Body className="px-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Categories / Create
+              Danh mục / Thêm mới
             </h3>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope text-sm font-semibold">
-                Category Name<b className="text-[#EF0606]">*</b>
+                Tên danh mục<b className="text-[#EF0606]">*</b>
               </p>
               <input
                 id="category"
@@ -350,7 +213,7 @@ export default function Categories() {
             </div>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope text-sm font-semibold">
-                Gender <b className="text-[#EF0606]">*</b>
+                Giới tính <b className="text-[#EF0606]">*</b>
               </p>
               <select
                 value={gender}
@@ -358,7 +221,7 @@ export default function Categories() {
                 onChange={(e) => setGender(e.target.value)}
               >
                 <option value={""} className="font-medium font-manrope text-sm">
-                  Choose gender
+                  Chọn giới tính
                 </option>
                 {GENDER.map((gender) => (
                   <option
@@ -376,7 +239,7 @@ export default function Categories() {
                 className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
                 onClick={handleCreateCategory}
               >
-                Create Category
+                Thêm danh mục
               </button>
             </div>
           </div>
@@ -394,12 +257,10 @@ export default function Categories() {
         <Modal.Body className="px-10 pb-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Categories / Details
+              Danh mục / Chi tiết
             </h3>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">
-                Category Name
-              </p>
+              <p className="font-manrope font-semibold text-sm">Tên danh mục</p>
               <input
                 value={categoryDetails.name}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
@@ -407,7 +268,7 @@ export default function Categories() {
               />
             </div>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">Gender</p>
+              <p className="font-manrope font-semibold text-sm">Giới tính</p>
               <input
                 value={categoryDetails.gender}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
@@ -427,12 +288,10 @@ export default function Categories() {
         <Modal.Body className="px-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Categories / Update
+              Danh mục / Chỉnh sửa
             </h3>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">
-                Category Name
-              </p>
+              <p className="font-manrope font-semibold text-sm">Tên danh mục</p>
               <input
                 value={categoryDetails.name}
                 className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
@@ -445,7 +304,7 @@ export default function Categories() {
               />
             </div>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">Gender</p>
+              <p className="font-manrope font-semibold text-sm">Giới tính</p>
               <select
                 value={categoryDetails.gender}
                 className="w-full px-5 py-3 border border-[#808191] font-manrope font-medium focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
@@ -472,7 +331,7 @@ export default function Categories() {
                 className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
                 onClick={handleUpdateCategory}
               >
-                Save changes
+                Lưu thay đổi
               </button>
             </div>
           </div>

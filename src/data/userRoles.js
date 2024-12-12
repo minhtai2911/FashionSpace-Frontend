@@ -21,7 +21,7 @@ export const getAllUserRoles = async () => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -47,7 +47,7 @@ export const getUserRoleById = async (id) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }

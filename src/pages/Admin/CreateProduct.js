@@ -114,19 +114,19 @@ export default function CreateProduct() {
           })
         );
 
-        toast.success("Product created successfully", { duration: 2000 });
+        toast.success("Tạo sản phẩm thành công", { duration: 2000 });
         navigate("/admin/products");
       }
     } catch (error) {
-      toast.error("Error creating product: " + (error.message || error));
+      toast.error("Tạo sản phẩm thất bại " + (error.message || error));
     }
   };
 
   return (
     <div className="p-10 w-full">
-      <p className="font-extrabold text-xl">Products / Create</p>
+      <p className="font-extrabold text-xl">Sản phẩm / Thêm mới</p>
       <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col gap-y-5">
-        <p className="font-extrabold text-base">Create new product</p>
+        <p className="font-extrabold text-base">Thêm sản phẩm mới</p>
         <div className="flex flex-row gap-x-10 px-10 justify-between ">
           {photos.length === 0 && (
             <FileInput
@@ -179,7 +179,7 @@ export default function CreateProduct() {
                     />
                   </svg>
                   <p className="mt-2 text-sm text-gray-500 font-semibold">
-                    Upload photos
+                    Tải ảnh
                   </p>
                 </div>
               )}
@@ -219,7 +219,7 @@ export default function CreateProduct() {
                       />
                     </svg>
                     <p className="mt-2 text-sm text-gray-500 font-semibold">
-                      Add More
+                      Thêm
                     </p>
                   </div>
                   <FileInput
@@ -236,7 +236,7 @@ export default function CreateProduct() {
           <div className="flex-[2] flex flex-col gap-y-5">
             <div className="flex flex-col gap-y-2">
               <p className="font-manrope font-semibold">
-                Product name <b className="text-[#EF0606]">*</b>
+                Tên sản phẩm <b className="text-[#EF0606]">*</b>
               </p>
               <input
                 id="productName"
@@ -249,7 +249,7 @@ export default function CreateProduct() {
             <div className="flex flex-row gap-x-10">
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold">
-                  Category <b className="text-[#EF0606]">*</b>
+                  Danh mục <b className="text-[#EF0606]">*</b>
                 </p>
                 <select
                   id="categoryId"
@@ -259,7 +259,7 @@ export default function CreateProduct() {
                   required
                 >
                   <option value="" className="text-[#808191]">
-                    Choose category
+                    Chọn danh mục
                   </option>
                   {categories.map((category) => (
                     <option key={category._id} value={category._id}>
@@ -270,7 +270,7 @@ export default function CreateProduct() {
               </div>
               <div className="flex flex-col flex-1 gap-y-2">
                 <p className="font-manrope font-semibold">
-                  Price <b className="text-[#EF0606]">*</b>
+                  Đơn giá <b className="text-[#EF0606]">*</b>
                 </p>
                 <input
                   id="price"
@@ -283,11 +283,11 @@ export default function CreateProduct() {
             </div>
             <div className="flex flex-col gap-y-2">
               <p className="font-manrope font-semibold">
-                Description <b className="text-[#EF0606]">*</b>
+                Mô tả <b className="text-[#EF0606]">*</b>
               </p>
               <textarea
                 rows="4"
-                placeholder="Write a brief description about product..."
+                placeholder="Viết mô tả ngắn gọn về sản phẩm..."
                 id="description"
                 value={description}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm resize-none"
@@ -297,13 +297,13 @@ export default function CreateProduct() {
             </div>
           </div>
         </div>
-        <p className="font-extrabold text-base">Variants</p>
+        <p className="font-extrabold text-base">Biến thể</p>
         {variants.map((variant, index) => (
           <main key={index} className="relative mb-2">
             <div className="flex gap-x-10 px-10">
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold">
-                  Size <b className="text-[#EF0606]">*</b>
+                  Kích cỡ <b className="text-[#EF0606]">*</b>
                 </p>
                 <select
                   id="size"
@@ -315,7 +315,7 @@ export default function CreateProduct() {
                   required
                 >
                   <option value="" className="text-[#808191]">
-                    Choose size
+                    Chọn kích cỡ
                   </option>
                   {sizes.map((size) => (
                     <option key={size._id} value={size._id}>
@@ -327,7 +327,7 @@ export default function CreateProduct() {
               <div className="flex-[2] flex flex-row gap-x-10">
                 <div className="flex flex-col gap-y-2 flex-1">
                   <p className="font-manrope font-semibold">
-                    Color <b className="text-[#EF0606]">*</b>
+                    Màu sắc <b className="text-[#EF0606]">*</b>
                   </p>
                   <select
                     id="color"
@@ -339,7 +339,7 @@ export default function CreateProduct() {
                     required
                   >
                     <option value="" className="text-[#808191]">
-                      Choose color
+                      Chọn màu sắc
                     </option>
                     {colors.map((color) => (
                       <option key={color._id} value={color._id}>
@@ -350,7 +350,7 @@ export default function CreateProduct() {
                 </div>
                 <div className="flex flex-col flex-1 gap-y-2">
                   <p className="font-manrope font-semibold">
-                    Quantity <b className="text-[#EF0606]">*</b>
+                    Số lượng <b className="text-[#EF0606]">*</b>
                   </p>
                   <input
                     id="quantity"
@@ -407,7 +407,7 @@ export default function CreateProduct() {
                 stroke-linejoin="round"
               />
             </svg>
-            <p className="font-extrabold text-sm">Add Variant</p>
+            <p className="font-extrabold text-sm">Thêm biến thể</p>
           </button>
         </div>
       </div>
@@ -415,7 +415,7 @@ export default function CreateProduct() {
         className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold mt-10"
         onClick={handleCreateProduct}
       >
-        Create Product
+        Thêm sản phẩm
       </button>
     </div>
   );

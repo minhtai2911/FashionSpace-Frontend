@@ -38,10 +38,10 @@ export default function Colors() {
     try {
       await deleteColorById(id);
       setColors(colors.filter((c) => c._id !== id));
-      toast.success("Delete color successfully", { duration: 2000 });
+      toast.success("Xóa màu sắc thành công", { duration: 2000 });
     } catch (error) {
       console.error("Error deleting color:", error);
-      toast.error("Delete color failed", { duration: 2000 });
+      toast.error("Xóa màu sắc thất bại", { duration: 2000 });
     }
   };
 
@@ -61,11 +61,11 @@ export default function Colors() {
       colorDetails
     );
     if (response) {
-      toast.success("Update color successfully", { duration: 2000 });
+      toast.success("Chỉnh sửa màu sắc thành công", { duration: 2000 });
       fetchColors();
       setOpenUpdateModal(false);
     } else {
-      toast.error("Update color failed", { duration: 2000 });
+      toast.error("Chỉnh sửa màu sắc thất bại", { duration: 2000 });
     }
   };
 
@@ -76,7 +76,7 @@ export default function Colors() {
   return (
     <>
       <div className="p-10 w-full">
-        <p className="font-extrabold text-xl">Colors</p>
+        <p className="font-extrabold text-xl">Màu sắc</p>
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
@@ -84,9 +84,9 @@ export default function Colors() {
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">
-                <Table.HeadCell>Color ID</Table.HeadCell>{" "}
-                <Table.HeadCell>Color Name</Table.HeadCell>
-                <Table.HeadCell>Action</Table.HeadCell>
+                <Table.HeadCell>Mã màu sắc</Table.HeadCell>{" "}
+                <Table.HeadCell>Tên màu</Table.HeadCell>
+                <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
                 {colors.map((color) => (
@@ -121,7 +121,7 @@ export default function Colors() {
                                 clip-rule="evenodd"
                               />
                             </svg>
-                            <p className="text-[#0A0A0A]">View</p>
+                            <p className="text-[#0A0A0A]">Xem</p>
                           </div>
                         </button>
                         <button
@@ -148,7 +148,7 @@ export default function Colors() {
                                 fill="#475BE8"
                               />
                             </svg>
-                            <p className="text-blue-600">Edit</p>
+                            <p className="text-blue-600">Sửa</p>
                           </div>
                         </button>
                         <button
@@ -170,7 +170,7 @@ export default function Colors() {
                                 fill="#EF0606"
                               />
                             </svg>
-                            <p className="text-[#EF0606]">Delete</p>
+                            <p className="text-[#EF0606]">Xóa</p>
                           </div>
                         </button>
                       </div>
@@ -185,7 +185,7 @@ export default function Colors() {
           className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10"
           onClick={() => setOpenCreateModal(true)}
         >
-          New Color
+          Thêm màu mới
         </button>
       </div>
       <Modal show={openCreateModal} size="lg" onClose={onCloseModal} popup>
@@ -193,11 +193,11 @@ export default function Colors() {
         <Modal.Body className="px-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Colors / Create
+              Màu sắc / Thêm mới
             </h3>
             <div className="flex flex-col gap-y-1">
               <p className="font-manrope font-semibold text-sm">
-                Color <b className="text-[#EF0606]">*</b>
+                Tên màu <b className="text-[#EF0606]">*</b>
               </p>
               <input
                 id="color"
@@ -212,7 +212,7 @@ export default function Colors() {
                 className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
                 onClick={handleCreateColor}
               >
-                Create Color
+                Thêm màu sắc
               </button>
             </div>
           </div>
@@ -230,10 +230,10 @@ export default function Colors() {
         <Modal.Body className="px-10 pb-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Colors / Details
+              Màu sắc / Chi tiết
             </h3>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">Color</p>
+              <p className="font-manrope font-semibold text-sm">Tên màu</p>
               <input
                 value={colorDetails.color}
                 className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
@@ -253,10 +253,10 @@ export default function Colors() {
         <Modal.Body className="px-10">
           <div className="space-y-4">
             <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
-              Colors / Update
+              Màu sắc / Chỉnh sửa
             </h3>
             <div className="flex flex-col gap-y-1">
-              <p className="font-manrope font-semibold text-sm">Color Name</p>
+              <p className="font-manrope font-semibold text-sm">Tên màu</p>
               <input
                 value={colorDetails.color}
                 className="w-full px-5 font-semibold font-manrope py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
@@ -273,7 +273,7 @@ export default function Colors() {
                 className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
                 onClick={handleUpdateColor}
               >
-                Save changes
+                Lưu thay đổi
               </button>
             </div>
           </div>

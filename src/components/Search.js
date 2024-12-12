@@ -25,7 +25,7 @@ export default function Search() {
       </svg>
       <input
         type="text"
-        placeholder="Search..."
+        placeholder="Tìm kiếm..."
         className="w-40 font-semibold border-none outline-none bg-transparent text-gray-700 focus:ring-0 focus:outline-none placeholder:font-semibold text-sm"
       />
     </div>

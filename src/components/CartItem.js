@@ -4,7 +4,7 @@ import { getAllImagesByProductId } from "../data/productImages";
 import { getCategoryById } from "../data/categories";
 import { useDispatch } from "react-redux";
 import { changeQuantity } from "../stores/cart";
-import { formatURL } from "../utils/format";
+import { formatToVND, formatURL } from "../utils/format";
 import { getColorById } from "../data/colors";
 import { getSizeById } from "../data/sizes";
 
@@ -19,34 +19,6 @@ function CartItem(props) {
   const [price, setPrice] = useState("");
   const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   const fetchProductData = async () => {
-  //     const updatedProducts = await Promise.all(
-  //       products.map(async (product) => {
-  //         const images = await getAllImagesByProductId(product._id);
-  //         const category = await getCategoryById(product.categoryId);
-  //         return {
-  //           ...product,
-  //           images: images || [],
-  //           category: category.name,
-  //         };
-  //       })
-  //     );
-  //     setProductData(updatedProducts);
-  //   };
-
-  //   fetchProductData();
-  // }, []);
-
-  // useEffect(() => {
-  //   const findDetail = products.filter(
-  //     (product) =>
-  //       product.id === productId &&
-  //       product.color === color &&
-  //       product.size === size
-  //   )[0];
-  //   setDetail(findDetail);
-  // }, [productId, color, size]);
   useEffect(() => {
     const fetchProductData = async () => {
       try {
@@ -66,7 +38,7 @@ function CartItem(props) {
         setColor(color.color);
       } catch (error) {
         console.error("Failed to fetch color:", error);
-        setColor("Unknown Color");
+        setColor("Không rõ màu");
       }
     };
 
@@ -76,7 +48,7 @@ function CartItem(props) {
         setSize(size.size);
       } catch (error) {
         console.error("Failed to fetch size:", error);
-        setSize("Unknown Size");
+        setSize("Không rõ kích cỡ");
       }
     };
 
@@ -118,11 +90,11 @@ function CartItem(props) {
         <div>
           <h2 className="font-medium text-lg">{productName}</h2>
           <p className="font-light">
-            Color: {color} | Size: {size}
+            Màu sắc: {color} | Kích cỡ: {size}
           </p>
         </div>
       </td>
-      <td className="px-2 py-2">${price}</td>
+      <td className="px-2 py-2">{formatToVND(price)}</td>
       <td className="px-2 py-2">
         <div className="flex items-center justify-between border border-[#818181] rounded-lg w-40 py-1">
           <button
@@ -170,9 +142,7 @@ function CartItem(props) {
           </button>
         </div>
       </td>
-      <td className="px-2 py-2 font-medium">
-        ${(price * quantity).toFixed(2)}
-      </td>
+      <td className="px-2 py-2 font-medium">{formatToVND(price * quantity)}</td>
     </>
   );
 }

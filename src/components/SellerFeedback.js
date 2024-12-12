@@ -8,7 +8,7 @@ import { formatDate, formatURL } from "../utils/format";
 function SellerFeedback({ user = null, content = "", createdDate = "" }) {
   return (
     <div className="flex flex-col px-5 py-3 ml-14 rounded-lg bg-[#f2f2f2]">
-      <p className="font-medium mb-4">Seller Feedback</p>
+      <p className="font-medium mb-4">Phản hồi của người bán</p>
       <div className="flex flex-col gap-y-1">
         <div className="flex flex-row gap-x-2 items-center">
           <img

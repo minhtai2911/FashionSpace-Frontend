@@ -43,6 +43,7 @@ import Reviews from "./pages/Admin/Reviews";
 import OrderDetails from "./pages/Admin/OrderDetails";
 import UpdateOrder from "./pages/Admin/UpdateOrder";
 import TrackOrder from "./pages/User/TrackOrder";
+import Chatbot from "./components/Chatbot";
 
 function App() {
   const location = useLocation();
@@ -104,10 +105,13 @@ function App() {
     ) : null;
   };
 
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
   return (
     <div>
-      {!noHeaderRoutes.includes(location.pathname) &&
-        !location.pathname.startsWith("/admin") && <Header />}
+      {!noHeaderRoutes.includes(location.pathname) && !isAdminRoute && (
+        <Header />
+      )}
       <AdminRedirect />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -156,6 +160,9 @@ function App() {
           <Route path="account" element={<AdminAccount />} />
         </Route>
       </Routes>
+      {!noHeaderRoutes.includes(location.pathname) && !isAdminRoute && (
+        <Chatbot />
+      )}
     </div>
   );
 }

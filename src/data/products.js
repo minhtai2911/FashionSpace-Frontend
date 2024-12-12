@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 export const getAllProducts = async () => {
   try {
     const response = await instance.get("/product");
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -14,7 +14,7 @@ export const getAllProducts = async () => {
 export const getNewArrivalProducts = async () => {
   try {
     const response = await instance.get("/product/get/newArrivalProduct");
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -24,7 +24,7 @@ export const getNewArrivalProducts = async () => {
 export const getBestSellerProducts = async () => {
   try {
     const response = await instance.get("/product/get/bestSellerProduct");
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -34,7 +34,7 @@ export const getBestSellerProducts = async () => {
 export const getProductById = async (productId) => {
   try {
     const response = await instance.get(`/product/${productId}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -77,7 +77,7 @@ export const createProduct = async (
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -121,7 +121,7 @@ export const updateProduct = async (
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -148,7 +148,7 @@ export const deleteProduct = async (productId) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;

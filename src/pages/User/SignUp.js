@@ -40,12 +40,12 @@ function SignUp() {
       !data.password ||
       !data.confirmPassword
     ) {
-      toast.error("Please fill in all fields", { duration: 2000 });
+      toast.error("Vui lòng điền vào các trường", { duration: 2000 });
       return;
     }
     if (!passwordPattern.test(data.password)) {
       toast.error(
-        "Password must be at least 8 characters long, contain at least one number and one special character",
+        "Mật khẩu cần ít nhất 8 kí tự, chứa ít nhất 1 số và 1 kí tự đặc biệt",
         {
           duration: 2000,
         }
@@ -53,13 +53,16 @@ function SignUp() {
       return;
     }
     if (data.password !== data.confirmPassword) {
-      toast.error("Passwords do not match", { duration: 2000 });
+      toast.error("Mật khẩu không trùng khớp", { duration: 2000 });
       return;
     }
     if (!termsAndConditions) {
-      toast.error("Please agree to the terms and conditions", {
-        duration: 2000,
-      });
+      toast.error(
+        "Vui lòng đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư",
+        {
+          duration: 2000,
+        }
+      );
       return;
     }
     try {
@@ -70,7 +73,7 @@ function SignUp() {
         data.password
       );
     } catch (error) {
-      toast.error(error?.response?.data?.message || "An error occured", {
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
         duration: 2000,
       });
     }
@@ -80,15 +83,15 @@ function SignUp() {
     <>
       <div className="px-40 items-center h-screen flex gap-x-10 relative">
         <div className="flex-1">
-          <p className="font-semibold text-3xl">Sign Up</p>
+          <p className="font-semibold text-3xl">Đăng ký</p>
           <form onSubmit={handleSubmit}>
             <div className="flex-1 mt-4">
               <p className="font-medium text-base">
-                Full Name <b className="text-red-500">*</b>
+                Họ và tên <b className="text-red-500">*</b>
               </p>
               <input
                 className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%] "
-                placeholder="Enter your name"
+                placeholder="Nhập họ và tên"
                 name="fullName"
                 type="text"
                 value={data.fullName}
@@ -102,7 +105,7 @@ function SignUp() {
                 </p>
                 <input
                   className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-                  placeholder="Enter your email"
+                  placeholder="Nhập email"
                   name="email"
                   type="email"
                   value={data.email}
@@ -111,11 +114,11 @@ function SignUp() {
               </div>
               <div className="flex-1">
                 <p className="font-medium text-base">
-                  Phone <b className="text-red-500">*</b>
+                  Số điện thoại <b className="text-red-500">*</b>
                 </p>
                 <input
                   className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
-                  placeholder="Enter your phone"
+                  placeholder="Nhập số điện thoại"
                   name="phone"
                   type="text"
                   value={data.phone}
@@ -125,7 +128,7 @@ function SignUp() {
             </div>
             <div className="mt-4">
               <p className="font-medium text-base">
-                Password <b className="text-red-500">*</b>
+                Mật khẩu <b className="text-red-500">*</b>
               </p>
               <input
                 className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
@@ -137,7 +140,7 @@ function SignUp() {
             </div>
             <div className="mt-4">
               <p className="font-medium text-base">
-                Confirm Password <b className="text-red-500">*</b>
+                Xác nhận mật khẩu <b className="text-red-500">*</b>
               </p>
               <input
                 className="px-5 py-3 mt-2 border rounded-lg text-sm w-[100%]"
@@ -153,21 +156,22 @@ function SignUp() {
                 onChange={handleCheckboxChange}
               />
               <p className="text-base">
-                I agree with <u className="cursor-pointer">Terms & Condition</u>{" "}
-                and <u className="cursor-pointer">Privacy Policy</u>
+                Tôi đồng ý với{" "}
+                <u className="cursor-pointer">Điều khoản dịch vụ</u> và{" "}
+                <u className="cursor-pointer">Chính sách quyền riêng tư</u>
               </p>
             </div>
             <button
               type="submit"
               className="bg-[#0A0A0A] w-[100%] py-3 rounded-lg mt-4 text-white font-semibold text-lg"
             >
-              Sign Up
+              Đăng ký
             </button>
           </form>
           <p className="mt-4 text-center">
-            Alreay have an account?{" "}
+            Đã có tài khoản?{" "}
             <Link to="/login">
-              <u>Sign In</u>
+              <u>Đăng nhập</u>
             </Link>
           </p>
         </div>

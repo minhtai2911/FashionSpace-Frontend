@@ -25,7 +25,7 @@ export const getShoppingCartByUserId = async (userId) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -64,7 +64,7 @@ export const createShoppingCart = async (
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -100,7 +100,7 @@ export const getShoppingCartByUserIdProductVariantId = async (
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -133,7 +133,7 @@ export const updateShoppingCartQuantityById = async (id, quantity) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;
@@ -160,7 +160,7 @@ export const deleteShoppingCartById = async (id) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.log(error);
     return null;

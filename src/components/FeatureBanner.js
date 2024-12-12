@@ -32,10 +32,8 @@ function FeatureBanner() {
           </defs>
         </svg>
         <div className="flex flex-col justify-around">
-          <p className="text-sm font-medium">Free Shipping</p>
-          <p className="text-[#818181] text-xs">
-            Free shipping for orders above $300
-          </p>
+          <p className="text-sm font-medium">Miễn phí vận chuyển</p>
+          <p className="text-[#818181] text-xs">Cho đơn hàng từ 1.000.000đ</p>
         </div>
       </div>
       <div className="flex flex-row gap-x-2 items-center">
@@ -80,10 +78,8 @@ function FeatureBanner() {
           </defs>
         </svg>
         <div className="flex flex-col">
-          <p className="text-sm font-medium">Flexible Payment</p>
-          <p className="text-[#818181] text-xs">
-            Multiple secure payment options
-          </p>
+          <p className="text-sm font-medium">Thanh toán linh hoạt</p>
+          <p className="text-[#818181] text-xs">Nhiều phương thức thanh toán</p>
         </div>
       </div>
       <div className="flex flex-row gap-x-2 items-center">
@@ -118,8 +114,8 @@ function FeatureBanner() {
           </defs>
         </svg>
         <div className="flex flex-col">
-          <p className="text-sm font-medium">24/7 Support</p>
-          <p className="text-[#818181] text-xs">We support online all days.</p>
+          <p className="text-sm font-medium">Hỗ trợ 24/7</p>
+          <p className="text-[#818181] text-xs">Chúng tôi hỗ trợ mọi lúc</p>
         </div>
       </div>
     </div>

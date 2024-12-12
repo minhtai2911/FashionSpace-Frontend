@@ -21,33 +21,16 @@ export const getAllUsers = async () => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
 };
 
 export const getUserById = async (id) => {
-  const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
-    const response = await instance.get(`/user/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    return response.data;
+    const response = await instance.get(`/user/${id}`);
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -89,7 +72,7 @@ export const createUser = async (
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -123,7 +106,7 @@ export const updateUserById = async (id, fullName, phone, roleId) => {
         },
       }
     );
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }
@@ -149,7 +132,7 @@ export const deleteUserById = async (id) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     return null;
   }

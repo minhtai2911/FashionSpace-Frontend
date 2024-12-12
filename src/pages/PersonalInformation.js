@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 import toast from "react-hot-toast";
 import instance from "../services/axiosConfig";
 import { formatURL } from "../utils/format";
+import { getUserById } from "../data/users";
 
 export default function PersonalInformation({ user }) {
   const [data, setData] = useState({
@@ -14,34 +15,6 @@ export default function PersonalInformation({ user }) {
   });
   const [isLoaded, setIsLoaded] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
-
-  const fetchUserData = async (id) => {
-    const refreshToken = Cookies.get("refreshToken");
-    try {
-      if (refreshToken) {
-        const tokenResponse = await instance.post(
-          "/auth/refreshToken",
-          {
-            refreshToken: refreshToken,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const accessToken = tokenResponse.data.accessToken;
-        const response = await instance.get(`/user/${id}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        return response.data;
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -111,7 +84,7 @@ export default function PersonalInformation({ user }) {
       });
 
       if (response.status === 200) {
-        toast.success("Update information successfully", { duration: 2000 });
+        toast.success("Cập nhật thông tin thành công", { duration: 2000 });
         setData({
           avatarPath:
             data.avatarPath instanceof File
@@ -123,7 +96,7 @@ export default function PersonalInformation({ user }) {
         setIsChanged(false);
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "An error occured", {
+      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
         duration: 2000,
       });
     }
@@ -133,7 +106,7 @@ export default function PersonalInformation({ user }) {
     const getUserData = async () => {
       if (user && !isLoaded) {
         console.log(user);
-        const userData = await fetchUserData(user.id);
+        const userData = await getUserById(user.id);
         if (userData) {
           setData({
             avatarPath: userData.avatarPath || "",
@@ -195,7 +168,7 @@ export default function PersonalInformation({ user }) {
             htmlFor="fullName"
             className="block text-base font-semibold mb-1"
           >
-            Full Name
+            Họ và tên
           </label>
           <input
             name="fullName"
@@ -209,7 +182,7 @@ export default function PersonalInformation({ user }) {
             htmlFor="phoneNumber"
             className="block text-base font-semibold mb-1"
           >
-            Phone Number
+            Số điện thoại
           </label>
           <input
             name="phone"
@@ -223,7 +196,7 @@ export default function PersonalInformation({ user }) {
           disabled={!isChanged}
           className="px-8 py-3 text-sm font-semibold text-white bg-black rounded-lg disabled:bg-[#4A4A4A] disabled:cursor-not-allowed"
         >
-          Update Changes
+          Cập nhật thay đổi
         </button>
       </form>
     </div>

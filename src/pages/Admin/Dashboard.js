@@ -15,7 +15,7 @@ import { getAllProducts, getBestSellerProducts } from "../../data/products";
 import { getAllUsers, getUserById } from "../../data/users";
 import { getAllImagesByProductId } from "../../data/productImages";
 
-import { formatURL } from "../../utils/format";
+import { formatDate, formatToVND, formatURL } from "../../utils/format";
 import { ORDER_STATUS } from "../../utils/Constants";
 import { getPaymentDetailById } from "../../data/paymentDetail";
 import { getOrderDetailsByOrderId } from "../../data/orderDetail";
@@ -216,7 +216,7 @@ export default function Dashboard() {
       <p className="font-extrabold text-xl">Dashboard</p>
       <div className="flex flex-row gap-x-5 mt-10">
         <DashboardCard
-          title={"Total Orders"}
+          title={"Tổng đơn hàng"}
           value={orders.length}
           description={"We have sold 123 items"}
           icon={
@@ -238,8 +238,8 @@ export default function Dashboard() {
           }
         />
         <DashboardCard
-          title={"Total Revenue"}
-          value={`$${totalRevenue}`}
+          title={"Tổng doanh thu"}
+          value={`${formatToVND(totalRevenue)}`}
           description={"Available to payout"}
           icon={
             <svg
@@ -260,7 +260,7 @@ export default function Dashboard() {
           }
         />
         <DashboardCard
-          title={"Total Products"}
+          title={"Tổng sản phẩm"}
           value={products.length}
           description={"We have variety of products"}
           icon={
@@ -282,7 +282,7 @@ export default function Dashboard() {
           }
         />
         <DashboardCard
-          title={"Total Users"}
+          title={"Tổng người dùng"}
           value={users.length}
           description={"All users from database"}
           icon={
@@ -306,8 +306,8 @@ export default function Dashboard() {
       </div>
       <div className="flex flex-row mt-5 gap-x-5">
         <div className="flex-[2] p-6 bg-white rounded-lg shadow-md flex flex-col gap-y-2">
-          <p className="font-bold">Revenue (this year)</p>
-          <p className="text-2xl font-bold">${yearRevenue}</p>
+          <p className="font-bold">Doanh thu (năm nay)</p>
+          <p className="text-2xl font-bold">{formatToVND(yearRevenue)}</p>
           <ResponsiveContainer width="100%" height={250}>
             <AreaChart
               data={chartData}
@@ -335,13 +335,13 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
         <div className="flex-1 p-6 bg-white rounded-lg shadow-md flex flex-col gap-y-2">
-          <p className="font-bold">Best Seller Products</p>
+          <p className="font-bold">Sản phẩm bán chạy</p>
           <Table>
             <Table.Head className="normal-case text-sm">
               <Table.HeadCell></Table.HeadCell>
-              <Table.HeadCell>Product Name</Table.HeadCell>
-              <Table.HeadCell>Price</Table.HeadCell>
-              <Table.HeadCell>Rating</Table.HeadCell>
+              <Table.HeadCell>Tên sản phẩm</Table.HeadCell>
+              <Table.HeadCell>Đơn giá</Table.HeadCell>
+              <Table.HeadCell>Số đã bán</Table.HeadCell>
             </Table.Head>
             <Table.Body className="divide-y">
               {bestSellerProducts.map((product) => (
@@ -356,23 +356,9 @@ export default function Dashboard() {
                     />
                   </Table.Cell>
                   <Table.Cell className="min-w-40">{product.name}</Table.Cell>
-                  <Table.Cell>${product.price}</Table.Cell>
+                  <Table.Cell>{formatToVND(product.price)}</Table.Cell>
                   <Table.Cell>
-                    <div className="flex flex-row gap-x-1 items-center">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 40 40"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M20.0001 28.7833L26.9168 32.9667C28.1835 33.7333 29.7335 32.6 29.4001 31.1666L27.5668 23.3L33.6835 18C34.8001 17.0333 34.2001 15.2 32.7335 15.0833L24.6835 14.4L21.5335 6.96665C20.9668 5.61665 19.0335 5.61665 18.4668 6.96665L15.3168 14.3833L7.26679 15.0666C5.80012 15.1833 5.20012 17.0166 6.31679 17.9833L12.4335 23.2833L10.6001 31.15C10.2668 32.5833 11.8168 33.7167 13.0835 32.95L20.0001 28.7833Z"
-                          fill="#FFE066"
-                        />
-                      </svg>
-                      <p className="font-medium">{product.rating}</p>
-                    </div>
+                    <p className="font-medium">{product.soldQuantity}</p>
                   </Table.Cell>
                 </Table.Row>
               ))}
@@ -381,15 +367,15 @@ export default function Dashboard() {
         </div>
       </div>
       <div className="flex-1 p-6 mt-5 bg-white rounded-lg shadow-md flex flex-col gap-y-2">
-        <p className="font-bold">Recent Orders</p>
+        <p className="font-bold">Đơn hàng gần đây</p>
         <Table hoverable>
           <Table.Head className="normal-case text-base">
-            <Table.HeadCell>Order ID</Table.HeadCell>
-            <Table.HeadCell>Customer Name</Table.HeadCell>
-            <Table.HeadCell>Status</Table.HeadCell>
-            <Table.HeadCell>Amount</Table.HeadCell>
-            <Table.HeadCell>Payment Method</Table.HeadCell>
-            <Table.HeadCell>Payment Status</Table.HeadCell>
+            <Table.HeadCell>Mã đơn hàng</Table.HeadCell>
+            <Table.HeadCell>Ngày tạo</Table.HeadCell>
+            <Table.HeadCell>Tên khách hàng</Table.HeadCell>
+            <Table.HeadCell>Trạng thái</Table.HeadCell>
+            <Table.HeadCell>Tổng tiền</Table.HeadCell>
+            <Table.HeadCell>Phương thức</Table.HeadCell>
           </Table.Head>
           <Table.Body className="divide-y">
             {latestOrders.map((order) => (
@@ -400,6 +386,7 @@ export default function Dashboard() {
                 <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
                   {order._id}
                 </Table.Cell>
+                <Table.Cell>{formatDate(order.createdDate)}</Table.Cell>
                 <Table.Cell>{order.user.fullName}</Table.Cell>
                 <Table.Cell>
                   <div
@@ -410,9 +397,8 @@ export default function Dashboard() {
                     {order.tracking.status}
                   </div>
                 </Table.Cell>
-                <Table.Cell>{order.total}</Table.Cell>
+                <Table.Cell>{formatToVND(order.total)}</Table.Cell>
                 <Table.Cell>{order.paymentDetails.paymentMethod}</Table.Cell>
-                <Table.Cell>{order.paymentDetails.status}</Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>
