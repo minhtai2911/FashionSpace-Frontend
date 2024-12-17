@@ -43,6 +43,7 @@ export const ORDER_STATUS = {
 export const REVIEW_STATUS = {
   REPLIED: "Đã trả lời",
   NOT_REPLIED: "Chưa trả lời",
+  ALL: "Tất cả",
 };
 export const PAYMENT_STATUS = {
   PAID: "Đã thanh toán",
@@ -71,6 +72,32 @@ export const ROLE_NAME = {
   ADMIN: "Admin",
   USER: "User",
 };
+export const REVIEW_RATING = [
+  {
+    key: "Tất cả",
+    value: "All",
+  },
+  {
+    key: "5 sao",
+    value: 5,
+  },
+  {
+    key: "4 sao",
+    value: 4,
+  },
+  {
+    key: "3 sao",
+    value: 3,
+  },
+  {
+    key: "2 sao",
+    value: 2,
+  },
+  {
+    key: "1 sao",
+    value: 1,
+  },
+];
 export const ADMIN_PERMISSIONS = [
   "DASHBOARD",
   "PRODUCTS",

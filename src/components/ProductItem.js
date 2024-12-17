@@ -19,7 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { addToCart } from "../stores/cart";
 
-function ProductItem({ id, price, name, category, rating, image, usage }) {
+function ProductItem({ id, usage }) {
   const { isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -27,9 +27,12 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
   const [openModal, setOpenModal] = useState(false);
   const [openCartModal, setOpenCartModal] = useState(false);
   const [productName, setProductName] = useState("");
-  const [photos, setPhotos] = useState([]);
   const [variants, setVariants] = useState([]);
   const [colors, setColors] = useState([]);
+  const [price, setPrice] = useState(0);
+  const [category, setCategory] = useState("");
+  const [rating, setRating] = useState(0);
+  const [image, setImage] = useState(null);
   const [selectedColor, setSelectedColor] = useState();
   const [availableSizes, setAvailableSizes] = useState([]);
   const [selectedSize, setSelectedSize] = useState();
@@ -39,9 +42,13 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
   const fetchProduct = async () => {
     const product = await getProductById(id);
     setProductName(product.name);
+    setPrice(product.price);
+    setRating(product.rating);
+    const fetchedCategory = await getCategoryById(product.categoryId);
+    setCategory(fetchedCategory.name);
     const fetchedImages = await getAllImagesByProductId(id);
+    setImage(fetchedImages[0].imagePath);
     setMainImage(fetchedImages[0].imagePath);
-    setPhotos(fetchedImages);
   };
 
   const fetchVariants = async () => {
@@ -145,7 +152,7 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
             }`}
       >
         <Link
-          className="mx-3 mt-3 flex h-50 overflow-hidden rounded-xl relative z-10"
+          className="mx-2 mt-3 flex h-50 overflow-hidden rounded-xl relative z-10"
           to={`/products/details/${id}`}
         >
           {usage === "new-arrival" && (
@@ -167,8 +174,8 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
             />
           )}
           <img
-            className="object-cover h-64"
-            src={image ?? ""}
+            className="object-cover h-60"
+            src={formatURL(image)}
             alt="product image"
           />
         </Link>
@@ -187,7 +194,7 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
               className="tracking-tight font-bold text-base text-slate-900"
               id="product-name"
             >
-              {name}
+              {productName}
             </h5>
           </span>
           <div className="mt-2 mb-3 flex items-center justify-between">
@@ -209,7 +216,7 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
               >
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              <span className="ml-1 rounded bg-yellow-200 px-2.5 py-0.5 text-xs font-semibold">
+              <span className="ml-1 rounded bg-yellow-200 px-2.5 py-0.5 text-xs font-bold">
                 {rating ? rating.toFixed(1) : "Chưa có đánh giá"}
               </span>
             </div>
@@ -283,7 +290,7 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
                   <p className="font-medium text-base">{productName}</p>
                   <div className="flex flex-row items-center">
                     <Rating percentage={(rating / 5) * 100} />
-                    <p className="ml-2 text-lg">
+                    <p className="ml-2 text-sm font-medium">
                       {rating ? rating : "Chưa có đánh giá"}
                     </p>
                   </div>
@@ -452,7 +459,7 @@ function ProductItem({ id, price, name, category, rating, image, usage }) {
                   <p className="font-medium text-base">{productName}</p>
                   <div className="flex flex-row items-center">
                     <Rating percentage={(rating / 5) * 100} />
-                    <p className="ml-2 text-lg">
+                    <p className="ml-2 text-sm font-medium">
                       {rating ? rating : "Chưa có đánh giá"}
                     </p>
                   </div>

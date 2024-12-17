@@ -7,6 +7,8 @@ import {
   getAllReviews,
   getReviewById,
   getReviewsByProductId,
+  getReviewsNotReplied,
+  getReviewsReplied,
 } from "../../data/reviews";
 import { getProductById } from "../../data/products";
 import { getUserById } from "../../data/users";
@@ -17,7 +19,7 @@ import {
 
 import Rating from "../../components/Rating";
 import toast from "react-hot-toast";
-import { REVIEW_STATUS } from "../../utils/Constants";
+import { REVIEW_RATING, REVIEW_STATUS } from "../../utils/Constants";
 
 export default function Reviews() {
   const [reviews, setReviews] = useState([]);
@@ -25,24 +27,41 @@ export default function Reviews() {
   const [openReplyModal, setOpenReplyModal] = useState(false);
   const [reviewDetails, setReviewDetails] = useState({});
   const [feedback, setFeedback] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState(REVIEW_STATUS.ALL);
+  const [selectedRating, setSelectedRating] = useState("All");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchData = async () => {
     try {
-      const fetchedReviews = await getAllReviews();
+      const fetchedReviews = await getAllReviews(
+        selectedStatus,
+        selectedRating
+      );
+
       const data = await Promise.all(
         fetchedReviews.map(async (review) => {
           const product = await getProductById(review.productId);
-          const reviewResponse = await getReviewResponseByReviewId(review._id);
           const user = await getUserById(review.userId);
           return {
             ...review,
-            status: reviewResponse.length > 0 ? "Đã trả lời" : "Chưa trả lời",
+            status: review.reviewResponses
+              ? REVIEW_STATUS.REPLIED
+              : REVIEW_STATUS.NOT_REPLIED,
             productName: product.name,
             fullName: user?.fullName,
           };
         })
       );
-      setReviews(data);
+
+      const filteredData =
+        searchTerm !== ""
+          ? data.filter((review) =>
+              review.productName
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+            )
+          : data;
+      setReviews(filteredData);
     } catch (error) {
       console.error(error);
     }
@@ -50,7 +69,7 @@ export default function Reviews() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedStatus, selectedRating, searchTerm]);
 
   const handleReplyReview = async () => {
     const response = await createReviewResponse(reviewDetails._id, feedback);
@@ -81,8 +100,48 @@ export default function Reviews() {
         <p className="font-extrabold text-xl">Đánh giá</p>
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
-            <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
-              <Search />
+            <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center gap-x-3 pb-4">
+              <Search onChange={(e) => setSearchTerm(e.target.value)} />
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+                required
+              >
+                <option
+                  value={REVIEW_STATUS.NOT_REPLIED}
+                  className="font-medium font-manrope text-sm"
+                >
+                  {REVIEW_STATUS.NOT_REPLIED}
+                </option>
+                <option
+                  value={REVIEW_STATUS.REPLIED}
+                  className="font-medium font-manrope text-sm"
+                >
+                  {REVIEW_STATUS.REPLIED}
+                </option>
+                <option
+                  value={REVIEW_STATUS.ALL}
+                  className="font-medium font-manrope text-sm"
+                >
+                  {REVIEW_STATUS.ALL}
+                </option>
+              </select>
+              <select
+                value={selectedRating}
+                onChange={(e) => setSelectedRating(e.target.value)}
+                className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+                required
+              >
+                {REVIEW_RATING.map((item) => (
+                  <option
+                    value={item.value}
+                    className="font-medium font-manrope text-sm"
+                  >
+                    {item.key}
+                  </option>
+                ))}
+              </select>
             </div>
             <Table hoverable className="overflow-scroll">
               <Table.Head className="normal-case text-base">

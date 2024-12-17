@@ -1,4 +1,4 @@
-export default function Search() {
+export default function Search({ onChange }) {
   return (
     <div className="px-4 py-1 bg-[#F9F9F9] rounded-lg flex flex-row items-center gap-x-3 w-fit">
       <svg
@@ -27,6 +27,7 @@ export default function Search() {
         type="text"
         placeholder="Tìm kiếm..."
         className="w-40 font-semibold border-none outline-none bg-transparent text-gray-700 focus:ring-0 focus:outline-none placeholder:font-semibold text-sm"
+        onChange={onChange}
       />
     </div>
   );

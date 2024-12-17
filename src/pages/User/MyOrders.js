@@ -19,19 +19,25 @@ import { formatDate, formatToVND, formatURL } from "../../utils/format";
 import { getAllImagesByProductId } from "../../data/productImages";
 import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import Rating from "../../components/Rating";
-import { createReview } from "../../data/reviews";
+import {
+  createReview,
+  getReviewByProductIdAndUserId,
+  updateReview,
+} from "../../data/reviews";
 import toast from "react-hot-toast";
 
 export default function MyOrders() {
   const [orders, setOrders] = useState([]);
   const { user } = useContext(AuthContext);
   const [openAddReviewModal, setOpenAddReviewModal] = useState(false);
+  const [openEditReviewModal, setOpenEditReviewModal] = useState(false);
   const [review, setReview] = useState({
     productId: "",
     rating: 0,
     content: "",
   });
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [hasReview, setHasReview] = useState(false);
 
   async function fetchOrders() {
     try {
@@ -66,6 +72,14 @@ export default function MyOrders() {
               const size = await getSizeById(productVariant.sizeId);
               const color = await getColorById(productVariant.colorId);
               const category = await getCategoryById(product.categoryId);
+              const reviewHistory = await getReviewByProductIdAndUserId(
+                productVariant.productId
+              );
+
+              if (reviewHistory.length > 0) {
+                setHasReview(true);
+                setReview(reviewHistory[0]);
+              }
 
               return {
                 product: product,
@@ -101,6 +115,21 @@ export default function MyOrders() {
       toast.success("Gửi đánh giá thành công", { duration: 2000 });
     } else {
       toast.error("Gửi đánh giá thất bại", { duration: 2000 });
+    }
+  };
+
+  const handleUpdateReview = async () => {
+    const response = await updateReview(
+      review._id,
+      review.rating,
+      review.content
+    );
+
+    if (response) {
+      setOpenEditReviewModal(false);
+      toast.success("Chỉnh sửa đánh giá thành công", { duration: 2000 });
+    } else {
+      toast.error("Chỉnh sửa đánh giá thất bại", { duration: 2000 });
     }
   };
 
@@ -191,14 +220,20 @@ export default function MyOrders() {
                           <button
                             className="bg-black h-fit text-white px-4 py-2 rounded-md"
                             onClick={() => {
-                              setReview({
-                                ...review,
-                                productId: item.product._id,
-                              });
-                              setOpenAddReviewModal(true);
+                              if (!hasReview) {
+                                setReview({
+                                  ...review,
+                                  productId: item.product._id,
+                                });
+                                setOpenAddReviewModal(true);
+                              } else {
+                                setOpenEditReviewModal(true);
+                              }
                             }}
                           >
-                            Thêm đánh giá
+                            {!hasReview
+                              ? "Thêm đánh giá"
+                              : "Chỉnh sửa đánh giá"}
                           </button>
                         )}
                       </div>
@@ -313,6 +348,75 @@ export default function MyOrders() {
               onClick={handleAddReview}
             >
               Đánh giá
+            </button>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={openEditReviewModal}
+        size="lg"
+        onClose={() => {
+          setOpenEditReviewModal(false);
+        }}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body className="px-10 pb-10">
+          <div className="space-y-4">
+            <h3 className="text-xl text-center text-gray-900 dark:text-white font-manrope font-extrabold">
+              Chỉnh sửa đánh giá
+            </h3>
+            <div className="flex flex-row gap-x-4 items-center">
+              <p className="font-manrope font-semibold text-sm">
+                Số sao <b className="text-[#EF0606]">*</b>
+              </p>
+              <div className="flex flex-row gap-x-1">
+                {[...Array(5)].map((_, index) => (
+                  <svg
+                    key={index}
+                    width="24"
+                    height="24"
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    onMouseEnter={() => setHoveredRating(index + 1)}
+                    onMouseLeave={() => setHoveredRating(0)}
+                    onClick={() => setReview({ ...review, rating: index + 1 })}
+                  >
+                    <path
+                      d="M20.0001 28.7833L26.9168 32.9667C28.1835 33.7333 29.7335 32.6 29.4001 31.1666L27.5668 23.3L33.6835 18C34.8001 17.0333 34.2001 15.2 32.7335 15.0833L24.6835 14.4L21.5335 6.96665C20.9668 5.61665 19.0335 5.61665 18.4668 6.96665L15.3168 14.3833L7.26679 15.0666C5.80012 15.1833 5.20012 17.0166 6.31679 17.9833L12.4335 23.2833L10.6001 31.15C10.2668 32.5833 11.8168 33.7167 13.0835 32.95L20.0001 28.7833Z"
+                      fill={
+                        index < (hoveredRating || review.rating)
+                          ? "#FFE066"
+                          : "#DCDCDC"
+                      }
+                      className="cursor-pointer"
+                    />
+                  </svg>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-y-1">
+              <p className="font-manrope font-semibold text-sm">
+                Bình luận <b className="text-[#EF0606]">*</b>
+              </p>
+              <textarea
+                value={review.content}
+                rows={5}
+                className="w-full resize-none font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
+                onChange={(e) =>
+                  setReview({ ...review, content: e.target.value })
+                }
+                required
+              />
+            </div>
+          </div>
+          <div className="w-full flex justify-center">
+            <button
+              className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
+              onClick={!hasReview ? handleAddReview : handleUpdateReview}
+            >
+              {!hasReview ? "Đánh giá" : "Lưu thay đổi"}
             </button>
           </div>
         </Modal.Body>

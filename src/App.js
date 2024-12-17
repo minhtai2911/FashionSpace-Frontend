@@ -61,37 +61,46 @@ function App() {
   useLayoutEffect(() => {
     switch (location.pathname) {
       case "/products":
-        document.title = "Shop";
+        document.title = "Cửa hàng";
         break;
       case "/login":
-        document.title = "Sign In";
+        document.title = "Đăng nhập";
         break;
       case "/signup":
-        document.title = "Sign Up";
+        document.title = "Đăng ký";
         break;
       case "/verify":
-        document.title = "Verify Email";
+        document.title = "Xác thực email";
         break;
       case "/cart":
-        document.title = "Shopping Cart";
+        document.title = "Giỏ hàng";
         break;
       case "/checkout":
-        document.title = "Checkout";
+        document.title = "Thanh toán";
         break;
       case "/orderCompleted":
-        document.title = "Order Completed";
+        document.title = "Hoàn tất đơn hàng";
         break;
       case "/account":
-        document.title = "Account";
+        document.title = "Tài khoản";
         break;
       case "/forgotPassword":
-        document.title = "Forgot Password";
+        document.title = "Quên mật khẩu";
         break;
       case "/verifyCode":
-        document.title = "Verify Code";
+        document.title = "Xác thực mã";
         break;
       case "/setPassword":
-        document.title = "Set New Password";
+        document.title = "Đặt lại mật khẩu";
+        break;
+      case "/admin/orders":
+        document.title = "Đơn hàng";
+        break;
+      case "/admin/reviews":
+        document.title = "Đánh giá";
+        break;
+      case "/admin/account":
+        document.title = "Tài khoản";
         break;
       default:
         document.title = "Fashion Space";

@@ -1,7 +1,11 @@
 import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
-export const getAllOrders = async () => {
+export const getAllOrders = async (
+  orderTrackingStatus,
+  paymentMethod,
+  paymentStatus
+) => {
   const refreshToken = Cookies.get("refreshToken");
   try {
     const tokenResponse = await instance.post(
@@ -15,8 +19,23 @@ export const getAllOrders = async () => {
         },
       }
     );
+
+    const params = new URLSearchParams();
+
+    if (orderTrackingStatus) {
+      params.append("orderTrackingStatus", orderTrackingStatus);
+    }
+
+    if (paymentMethod) {
+      params.append("paymentMethod", paymentMethod);
+    }
+
+    if (paymentStatus) {
+      params.append("paymentStatus", paymentStatus);
+    }
+
     const accessToken = tokenResponse.data.accessToken;
-    const response = await instance.get("/order", {
+    const response = await instance.get(`/order?${params.toString()}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

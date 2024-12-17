@@ -15,6 +15,7 @@ import { formatToVND } from "../../utils/format";
 
 export default function Orders() {
   const [orderWithDetails, setOrdersWithDetails] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -54,7 +55,6 @@ export default function Orders() {
       const ordersWithDetails = await Promise.all(
         fetchedOrders.map(async (order) => {
           const user = await getUserById(order.userId);
-          console.log(user);
           const paymentDetails = await getPaymentDetailById(
             order.paymentDetailId
           );
@@ -74,7 +74,16 @@ export default function Orders() {
         })
       );
 
-      setOrdersWithDetails(ordersWithDetails);
+      const filteredOrders =
+        searchTerm !== ""
+          ? ordersWithDetails.filter((order) =>
+              order.user?.fullName
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+            )
+          : ordersWithDetails;
+
+      setOrdersWithDetails(filteredOrders);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -82,7 +91,7 @@ export default function Orders() {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [searchTerm]);
 
   return (
     <>
@@ -91,7 +100,7 @@ export default function Orders() {
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
-              <Search />
+              <Search onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">

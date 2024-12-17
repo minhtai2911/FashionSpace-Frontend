@@ -1,34 +1,54 @@
 import { useState, useEffect, useRef } from "react";
 import instance from "../services/axiosConfig";
+import ProductItem from "./ProductItem";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const chatRef = useRef(null);
+  const [content, setContent] = useState("");
   const inputRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
 
   const handleSend = async () => {
-    if (input.trim() === "") return;
-    setInput("");
+    if (content.trim() === "") return;
 
-    setMessages([...messages, { sender: "user", text: input }]);
+    const userMessage = { sender: "user", text: content };
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setContent("");
 
-    const response = await instance.post("/chatbot", {
-      message: input,
-    });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
 
-    const data = response.data;
+    try {
+      const response = await instance.post("/chatbot", { message: content });
+      const botMessage = {
+        sender: "bot",
+        text: response.data.message,
+        results: response.data.data,
+      };
+      setMessages((prevMessages) => [...prevMessages, botMessage]);
 
-    setMessages([
-      ...messages,
-      { sender: "user", text: input },
-      { sender: "bot", text: data.message },
-    ]);
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    } catch (error) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          sender: "bot",
+          text: "Xin lỗi, tôi không thể xử lý yêu cầu của bạn. Vui lòng thử lại.",
+        },
+      ]);
+
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -39,27 +59,19 @@ export default function Chatbot() {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (chatRef.current && !chatRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [chatRef]);
-
-  useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   return (
-    <div ref={chatRef}>
+    <div>
       <button
         onClick={toggleChat}
         style={{
@@ -95,7 +107,7 @@ export default function Chatbot() {
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-20 right-5 w-80 bg-white shadow-lg rounded-lg flex flex-col">
+        <div className="fixed bottom-20 right-5 w-80 bg-white shadow-lg rounded-lg flex flex-col z-20">
           <div className="flex justify-between items-center p-2 border-b border-gray-200">
             <div className="flex gap-x-1 items-center">
               <svg
@@ -143,7 +155,7 @@ export default function Chatbot() {
               </svg>
             </button>
           </div>
-          <div className="h-60 overflow-y-auto p-2 shadow-inner rounded-lg">
+          <div className="h-80 overflow-y-auto p-2 shadow-inner rounded-lg">
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -185,20 +197,28 @@ export default function Chatbot() {
                   className={`inline-block p-2 rounded-lg text-sm ${
                     msg.sender === "user"
                       ? "bg-[#0A0A0A] text-white"
-                      : "bg-gray-200 text-black ml-8 w-3/4"
+                      : "bg-gray-200 text-black ml-8 w-5/6"
                   } `}
                 >
                   {msg.text}
                 </p>
+                {msg.sender === "bot" && msg.results && (
+                  <div className="ml-8 mt-3 flex flex-col gap-y-3 w-11/12">
+                    {msg.results.map((result) => (
+                      <ProductItem key={result._id} id={result._id} />
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
           <div className="flex pb-4 border-t pt-2 pr-2">
             <input
               type="text"
-              value={input}
+              value={content}
               ref={inputRef}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}
               className="flex-grow text-sm p-2 border-none focus:outline-none focus:ring-0"
               placeholder="Nhập tin nhắn..."
