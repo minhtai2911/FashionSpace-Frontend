@@ -23,7 +23,7 @@ export const getAllUserRoles = async () => {
     });
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -49,6 +49,6 @@ export const getUserRoleById = async (id) => {
     });
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };

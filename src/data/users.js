@@ -23,7 +23,7 @@ export const getAllUsers = async () => {
     });
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -32,7 +32,7 @@ export const getUserById = async (id) => {
     const response = await instance.get(`/user/${id}`);
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -74,7 +74,7 @@ export const createUser = async (
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -108,7 +108,7 @@ export const updateUserById = async (id, fullName, phone, roleId) => {
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -134,6 +134,6 @@ export const deleteUserById = async (id) => {
     });
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };

@@ -7,7 +7,7 @@ export const getAllCategories = async () => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -17,7 +17,7 @@ export const getCategoryById = async (id) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -47,7 +47,7 @@ export const createCategory = async (category, gender) => {
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -77,7 +77,7 @@ export const updateCategory = async (id, name, gender) => {
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -103,6 +103,6 @@ export const deleteCategoryById = async (id) => {
     });
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };

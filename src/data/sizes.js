@@ -7,7 +7,7 @@ export const getAllSizes = async () => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -16,7 +16,7 @@ export const getSizeById = async (id) => {
     const response = await instance.get(`/productSize/${id}`);
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -28,7 +28,7 @@ export const getSizesByCategory = async (categoryId) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -59,7 +59,7 @@ export const createSize = async (categoryId, size) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -93,7 +93,7 @@ export const updateSize = async (id, categoryId, size) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -120,6 +120,6 @@ export const deleteSizeById = async (id) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };

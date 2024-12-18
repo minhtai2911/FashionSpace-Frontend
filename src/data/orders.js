@@ -42,7 +42,7 @@ export const getAllOrders = async (
     });
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -68,7 +68,7 @@ export const getOrderById = async (id) => {
     });
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -90,7 +90,7 @@ export const getOrderByUserId = async (userId) => {
     const response = await instance.get(
       "/order/get/userId",
       {
-        id: userId,
+        userId: userId,
       },
       {
         headers: {
@@ -100,7 +100,7 @@ export const getOrderByUserId = async (userId) => {
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -140,7 +140,7 @@ export const createOrder = async (
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -179,6 +179,6 @@ export const updateOrderById = async (
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };

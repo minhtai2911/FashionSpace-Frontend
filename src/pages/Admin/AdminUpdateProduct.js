@@ -79,39 +79,55 @@ export default function UpdateProduct() {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const product = await getProductById(id);
-      setProductName(product.name);
-      setPrice(product.price);
-      setDescription(product.description);
-      const fetchedCategory = await getCategoryById(product.categoryId);
-      setCategoryId(product.categoryId);
-      setCategory(fetchedCategory.name);
-      const fetchedSizes = await getSizesByCategory(product.categoryId);
-      setSizes(fetchedSizes);
-      const fetchedImages = await getAllImagesByProductId(id);
-      setPhotos(fetchedImages);
+      try {
+        const product = await getProductById(id);
+        setProductName(product.name);
+        setPrice(product.price);
+        setDescription(product.description);
+        const fetchedCategory = await getCategoryById(product.categoryId);
+        setCategoryId(product.categoryId);
+        setCategory(fetchedCategory.name);
+        const fetchedSizes = await getSizesByCategory(product.categoryId);
+        setSizes(fetchedSizes);
+        const fetchedImages = await getAllImagesByProductId(id);
+        setPhotos(fetchedImages);
+      } catch (error) {
+        toast.error(error.response.data.message);
+      }
     };
 
     const fetchVariants = async () => {
-      const fetchedVariants = await getProductVariantsByProductId(id);
-      const variantsData = await Promise.all(
-        fetchedVariants.map(async (variant) => {
-          const color = await getColorById(variant.colorId);
-          const size = await getSizeById(variant.sizeId);
-          return { size, color, quantity: variant.quantity };
-        })
-      );
-      setVariants(variantsData);
+      try {
+        const fetchedVariants = await getProductVariantsByProductId(id);
+        const variantsData = await Promise.all(
+          fetchedVariants.map(async (variant) => {
+            const color = await getColorById(variant.colorId);
+            const size = await getSizeById(variant.sizeId);
+            return { size, color, quantity: variant.quantity };
+          })
+        );
+        setVariants(variantsData);
+      } catch (error) {
+        toast.error(error.response.data.message);
+      }
     };
 
     const fetchCategories = async () => {
-      const fetchedCategories = await getAllCategories();
-      setCategories(fetchedCategories);
+      try {
+        const fetchedCategories = await getAllCategories();
+        setCategories(fetchedCategories);
+      } catch (error) {
+        toast.error(error.response.data.message);
+      }
     };
 
     const fetchColors = async () => {
-      const fetchedColors = await getAllColors();
-      setColors(fetchedColors);
+      try {
+        const fetchedColors = await getAllColors();
+        setColors(fetchedColors);
+      } catch (error) {
+        toast.error(error.response.data.message);
+      }
     };
 
     fetchProduct();
@@ -175,8 +191,6 @@ export default function UpdateProduct() {
         return map;
       }, {});
 
-      console.log({ existingVariantsMap });
-
       await Promise.all(
         variants.map(async (variant) => {
           console.log({ variant });
@@ -184,7 +198,6 @@ export default function UpdateProduct() {
           const existingVariant = existingVariantsMap[key];
 
           if (existingVariant) {
-            console.log({ existingVariant });
             const hasChanged =
               existingVariant.quantity !== variant.quantity ||
               existingVariant.sizeId !== variant.size ||
@@ -210,8 +223,6 @@ export default function UpdateProduct() {
         })
       );
 
-      console.log({ variants });
-
       const variantIdsToDelete = existingVariants
         .filter(
           (existing) =>
@@ -230,8 +241,7 @@ export default function UpdateProduct() {
       toast.success("Chỉnh sửa sản phẩm thành công", { duration: 2000 });
       navigate("/admin/products");
     } catch (error) {
-      console.log(error);
-      toast.error("Có lỗi khi chỉnh sửa sản phẩm: " + (error.message || error));
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 

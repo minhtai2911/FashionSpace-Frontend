@@ -18,7 +18,7 @@ import Calendar from "../../components/Calendar";
 import { getStatistics } from "../../data/statistic";
 import { formatToVND } from "../../utils/format";
 
-export default function Analysis() {
+export default function Report() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedView, setSelectedView] = useState("week");
   const [showPicker, setShowPicker] = useState(false);

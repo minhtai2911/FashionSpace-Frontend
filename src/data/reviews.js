@@ -1,7 +1,13 @@
 import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
-export const getAllReviews = async (status, rating) => {
+export const getAllReviews = async (
+  status,
+  rating,
+  productId,
+  userId,
+  orderId
+) => {
   try {
     const params = new URLSearchParams();
 
@@ -9,15 +15,29 @@ export const getAllReviews = async (status, rating) => {
       params.append("status", status);
     }
 
-    if (rating !== "All") {
+    if (rating) {
       params.append("rating", rating);
     }
+
+    if (productId) {
+      params.append("productId", productId);
+    }
+
+    if (userId) {
+      params.append("userId", userId);
+    }
+
+    if (orderId) {
+      params.append("orderId", orderId);
+    }
+
+    console.log(params.toString());
 
     const response = await instance.get(`/review?${params.toString()}`);
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -27,7 +47,7 @@ export const getReviewsByProductId = async (productId) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -37,7 +57,7 @@ export const getReviewById = async (id) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -62,11 +82,11 @@ export const getReviewByProductIdAndUserId = async (productId) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
-export const createReview = async (productId, rating, content) => {
+export const createReview = async (productId, rating, content, orderId) => {
   const refreshToken = Cookies.get("refreshToken");
   try {
     const tokenResponse = await instance.post(
@@ -87,6 +107,7 @@ export const createReview = async (productId, rating, content) => {
         productId: productId,
         rating: rating,
         content: content,
+        orderId: orderId,
       },
       {
         headers: {
@@ -96,7 +117,7 @@ export const createReview = async (productId, rating, content) => {
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -106,7 +127,7 @@ export const createReview = async (productId, rating, content) => {
 //     return response.data.data;
 //   } catch (error) {
 //     console.log(error);
-//     return null;
+//     throw error;
 //   }
 // };
 
@@ -116,7 +137,7 @@ export const createReview = async (productId, rating, content) => {
 //     return response.data.data;
 //   } catch (error) {
 //     console.log(error);
-//     return null;
+//     throw error;
 //   }
 // };
 
@@ -149,6 +170,6 @@ export const updateReview = async (id, rating, content) => {
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };

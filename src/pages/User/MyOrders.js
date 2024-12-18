@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
+import Cookies from "js-cookie";
 import { Modal } from "flowbite-react";
 
 import { AuthContext } from "../../context/AuthContext";
@@ -21,6 +21,7 @@ import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import Rating from "../../components/Rating";
 import {
   createReview,
+  getAllReviews,
   getReviewByProductIdAndUserId,
   updateReview,
 } from "../../data/reviews";
@@ -28,13 +29,14 @@ import toast from "react-hot-toast";
 
 export default function MyOrders() {
   const [orders, setOrders] = useState([]);
-  const { user } = useContext(AuthContext);
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const [openAddReviewModal, setOpenAddReviewModal] = useState(false);
   const [openEditReviewModal, setOpenEditReviewModal] = useState(false);
   const [review, setReview] = useState({
     productId: "",
     rating: 0,
     content: "",
+    orderId: "",
   });
   const [hoveredRating, setHoveredRating] = useState(0);
   const [hasReview, setHasReview] = useState(false);
@@ -72,8 +74,12 @@ export default function MyOrders() {
               const size = await getSizeById(productVariant.sizeId);
               const color = await getColorById(productVariant.colorId);
               const category = await getCategoryById(product.categoryId);
-              const reviewHistory = await getReviewByProductIdAndUserId(
-                productVariant.productId
+              const reviewHistory = await getAllReviews(
+                null,
+                null,
+                productVariant.productId,
+                user.id,
+                order._id
               );
 
               if (reviewHistory.length > 0) {
@@ -97,7 +103,6 @@ export default function MyOrders() {
           };
         })
       );
-      console.log(fetchedOrders);
       setOrders(fetchedOrders);
     } catch (error) {
       console.error("Error fetching order details:", error);
@@ -108,7 +113,8 @@ export default function MyOrders() {
     const response = await createReview(
       review.productId,
       review.rating,
-      review.content
+      review.content,
+      review.orderId
     );
     if (response) {
       setOpenAddReviewModal(false);
@@ -119,6 +125,7 @@ export default function MyOrders() {
   };
 
   const handleUpdateReview = async () => {
+    console.log(review._id, review.rating, review.content);
     const response = await updateReview(
       review._id,
       review.rating,
@@ -190,7 +197,9 @@ export default function MyOrders() {
                     ? "Ngày giao hàng"
                     : "Ngày giao hàng dự kiến"}
                   <br />
-                  {formatDate(order.tracking.date)}
+                  {order.tracking.status === ORDER_STATUS.SHIPPED
+                    ? formatDate(order.tracking.date)
+                    : formatDate(order.tracking.expectedDeliveryDate)}
                 </td>
               </tr>
               <tbody className="border-l border-r border-b">
@@ -224,6 +233,7 @@ export default function MyOrders() {
                                 setReview({
                                   ...review,
                                   productId: item.product._id,
+                                  orderId: order._id,
                                 });
                                 setOpenAddReviewModal(true);
                               } else {

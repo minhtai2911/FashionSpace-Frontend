@@ -21,6 +21,8 @@ export default function Sizes() {
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [sizeDetails, setSizeDetails] = useState({});
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   function onCloseModal() {
     setOpenCreateModal(false);
@@ -39,7 +41,22 @@ export default function Sizes() {
           };
         })
       );
-      setSizes(updatedSizes);
+
+      let filteredData =
+        searchTerm !== ""
+          ? updatedSizes.filter((s) =>
+              s.size.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          : updatedSizes;
+
+      filteredData =
+        selectedCategory !== "All"
+          ? filteredData.filter((s) =>
+              s.category.toLowerCase().includes(selectedCategory.toLowerCase())
+            )
+          : filteredData;
+
+      setSizes(filteredData);
       setCategories(fetchedCategories);
     } catch (error) {
       console.error("Error fetching sizes:", error);
@@ -53,39 +70,38 @@ export default function Sizes() {
       setSize("");
       setOpenCreateModal(false);
     } catch (error) {
-      console.error("Error creating size:", error);
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 
   const handleDeleteSize = async (id) => {
     try {
       await deleteSizeById(id);
-      setSizes(sizes.filter((s) => s._id !== id));
+      fetchSizes();
       toast.success("Xóa kích cỡ thành công", { duration: 2000 });
     } catch (error) {
-      console.error("Error deleting size:", error);
-      toast.error("Xóa kích cỡ thất bại", { duration: 2000 });
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 
   const handleUpdateSize = async () => {
-    const response = await updateSize(
-      sizeDetails._id,
-      sizeDetails.categoryId,
-      sizeDetails.size
-    );
-    if (response) {
+    try {
+      await updateSize(
+        sizeDetails._id,
+        sizeDetails.categoryId,
+        sizeDetails.size
+      );
       toast.success("Cập nhật kích cỡ thành công", { duration: 2000 });
       fetchSizes();
       setOpenUpdateModal(false);
-    } else {
-      toast.error("Cập nhật kích cỡ thất bại", { duration: 2000 });
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 
   useEffect(() => {
     fetchSizes();
-  }, []);
+  }, [searchTerm, selectedCategory]);
 
   return (
     <>
@@ -93,8 +109,33 @@ export default function Sizes() {
         <p className="font-extrabold text-xl">Kích cỡ</p>
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
-            <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
-              <Search />
+            <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center gap-x-3 pb-4">
+              <Search
+                placeholder={"Tên kích cỡ..."}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+                required
+              >
+                <option
+                  value={"All"}
+                  className="font-medium font-manrope text-sm"
+                >
+                  Tất cả
+                </option>
+                {categories.map((item) => (
+                  <option
+                    key={item._id}
+                    value={item.name}
+                    className="font-medium font-manrope text-sm"
+                  >
+                    {item.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">

@@ -43,14 +43,13 @@ export const ORDER_STATUS = {
 export const REVIEW_STATUS = {
   REPLIED: "Đã trả lời",
   NOT_REPLIED: "Chưa trả lời",
-  ALL: "Tất cả",
 };
 export const PAYMENT_STATUS = {
   PAID: "Đã thanh toán",
   UNPAID: "Chưa thanh toán",
   REFUNDED: "Đã hoàn tiền",
 };
-export const FREE_SHIPPING = 300;
+export const FREE_SHIPPING = 1000000;
 export const SHIPPING_RATE = 0.05;
 export const GENDER = [
   {
@@ -67,16 +66,21 @@ export const GENDER = [
   },
 ];
 export const TAX_RATE = 0.1;
-export const ROLE_NAME = {
-  EMPLOYEE: "Employee",
-  ADMIN: "Admin",
-  USER: "User",
-};
-export const REVIEW_RATING = [
+export const ROLE_NAME = [
   {
-    key: "Tất cả",
-    value: "All",
+    key: "Quản trị viên",
+    value: "Admin",
   },
+  {
+    key: "Nhân viên",
+    value: "Employee",
+  },
+  {
+    key: "Khách hàng",
+    value: "Customer",
+  },
+];
+export const REVIEW_RATING = [
   {
     key: "5 sao",
     value: 5,
@@ -105,7 +109,7 @@ export const ADMIN_PERMISSIONS = [
   "SIZES",
   "CATEGORIES",
   "USERS",
-  "ANALYSIS",
+  "REPORT",
   "ACCOUNT",
 ];
 export const EMPLOYEE_PERMISSIONS = ["REVIEWS", "ORDERS", "ACCOUNT"];

@@ -65,6 +65,7 @@ function ForgotPassword() {
         );
       } else {
         toast.error(response.data.message, { duration: 2000 });
+        return;
       }
     } catch (error) {
       console.log(error);

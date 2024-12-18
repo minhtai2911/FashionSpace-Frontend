@@ -62,25 +62,37 @@ export default function CreateProduct() {
     setVariants(newVariants);
   };
 
-  useEffect(() => {
-    const fetchCategories = async () => {
+  const fetchCategories = async () => {
+    try {
       const fetchedCategories = await getAllCategories();
       setCategories(fetchedCategories);
-    };
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  };
 
-    const fetchColors = async () => {
+  const fetchColors = async () => {
+    try {
       const fetchedColors = await getAllColors();
       setColors(fetchedColors);
-    };
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  };
 
+  useEffect(() => {
     fetchCategories();
     fetchColors();
   }, []);
 
   const handleCategoryChange = async (selectedCategory) => {
-    setCategoryId(selectedCategory);
-    const fetchedSizes = await getSizesByCategory(selectedCategory);
-    setSizes(fetchedSizes);
+    try {
+      setCategoryId(selectedCategory);
+      const fetchedSizes = await getSizesByCategory(selectedCategory);
+      setSizes(fetchedSizes);
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
   };
 
   const handleCreateProduct = async () => {
@@ -103,7 +115,7 @@ export default function CreateProduct() {
           }
         }
 
-        const variantResponses = await Promise.all(
+        await Promise.all(
           variants.map(async (variant) => {
             return await createProductVariant(
               productId,
@@ -118,7 +130,7 @@ export default function CreateProduct() {
         navigate("/admin/products");
       }
     } catch (error) {
-      toast.error("Tạo sản phẩm thất bại " + (error.message || error));
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 

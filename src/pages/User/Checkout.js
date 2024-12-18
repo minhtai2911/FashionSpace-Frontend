@@ -123,7 +123,7 @@ function Checkout() {
       );
       return orderAddressResponse;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
+      toast.error(error.response.data.message, {
         duration: 2000,
       });
       return error;
@@ -169,7 +169,7 @@ function Checkout() {
       );
       return orderDetailResponse;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
+      toast.error(error.response.data.message, {
         duration: 2000,
       });
     }
@@ -212,7 +212,7 @@ function Checkout() {
       return response;
     } catch (error) {
       console.log(error);
-      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
+      toast.error(error.response.data.message, {
         duration: 2000,
       });
       return error;
@@ -248,7 +248,7 @@ function Checkout() {
       );
       return response;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
+      toast.error(error.response.data.message, {
         duration: 2000,
       });
       return error;
@@ -256,21 +256,21 @@ function Checkout() {
   };
 
   const handleSubmit = async () => {
-    if (paymentMethod === "COD") {
-      try {
+    try {
+      if (paymentMethod === "COD") {
         const orderAddress = await handleCreateOrderAddress();
         if (orderAddress.status === 201) {
           const paymentDetail = await handleCreatePaymentDetail();
           if (paymentDetail.status === 201) {
             const order = await handleCreateOrder(
               orderSummary.totalPrice,
-              paymentDetail.data._id,
-              orderAddress.data._id,
+              paymentDetail.data.data._id,
+              orderAddress.data.data._id,
               orderSummary.shipping
             );
             if (order.status === 201) {
               const orderDetail = await handleCreateOrderDetails(
-                order.data._id
+                order.data.data._id
               );
               if (orderDetail.every((response) => response.status === 201)) {
                 if (type != "Buy Now") {
@@ -286,8 +286,8 @@ function Checkout() {
                 }
 
                 const orderData = {
-                  order: order.data,
-                  paymentDetail: paymentDetail.data,
+                  order: order.data.data,
+                  paymentDetail: paymentDetail.data.data,
                 };
 
                 toast.success("Tạo đơn hàng thành công", {
@@ -300,12 +300,12 @@ function Checkout() {
             }
           }
         }
-      } catch (error) {
-        toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
-          duration: 2000,
-        });
+      } else if (paymentMethod === "MOMO") {
       }
-    } else {
+    } catch (error) {
+      toast.error(error.response.data.message, {
+        duration: 2000,
+      });
     }
   };
 

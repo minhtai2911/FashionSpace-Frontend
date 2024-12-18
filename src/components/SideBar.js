@@ -162,9 +162,9 @@ const tabs = [
         />
       </svg>
     ),
-    path: "/admin/analysis",
+    path: "/admin/report",
     title: "Báo cáo",
-    permission: "ANALYSIS",
+    permission: "REPORT",
   },
 
   {

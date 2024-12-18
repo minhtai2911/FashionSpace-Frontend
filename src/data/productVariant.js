@@ -8,7 +8,7 @@ export const getProductVariantsByProductId = async (productId) => {
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -17,7 +17,7 @@ export const getProductVariantById = async (id) => {
     const response = await instance.get(`/productVariant/${id}`);
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -32,7 +32,7 @@ export const getProductVariantByProductIdColorIdSizeId = async (
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -73,7 +73,7 @@ export const createProductVariant = async (
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -115,7 +115,7 @@ export const updateProductVariant = async (
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -142,7 +142,7 @@ export const deleteProductVariant = async (id) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -169,6 +169,6 @@ export const deleteProductVariantsByProductId = async (id) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };

@@ -5,7 +5,7 @@ import { Modal, Button } from "flowbite-react";
 
 import { AuthContext } from "../../context/AuthContext.js";
 import { removeItem, clearCart, mergeCart } from "../../stores/cart.js";
-import { FREE_SHIPPING } from "../../utils/Constants.js";
+import { FREE_SHIPPING, SHIPPING_RATE } from "../../utils/Constants.js";
 
 import CartItem from "../../components/CartItem.js";
 import Banner from "../../components/Banner";
@@ -50,7 +50,8 @@ function ShoppingCart() {
   }, [selectedCartItems]);
 
   const shipping = useMemo(
-    () => (subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : 5),
+    () =>
+      subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : subTotal * SHIPPING_RATE,
     [subTotal]
   );
   const totalPrice = useMemo(() => subTotal + shipping, [subTotal, shipping]);

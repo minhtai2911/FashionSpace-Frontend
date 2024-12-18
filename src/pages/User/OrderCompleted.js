@@ -9,6 +9,7 @@ import { getColorById } from "../../data/colors";
 import { getAllImagesByProductId } from "../../data/productImages";
 import { formatDate, formatToVND, formatURL } from "../../utils/format";
 import FeatureBanner from "../../components/FeatureBanner";
+import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 
 function OrderCompleted() {
   const location = useLocation();
@@ -16,10 +17,10 @@ function OrderCompleted() {
   const items = orderSummary.items;
   const subTotal = orderSummary.subTotal;
   const shipping = orderSummary.shipping;
-  const taxes = orderSummary.taxes;
   const total = orderSummary.totalPrice;
 
   const [detailedItems, setDetailedItems] = useState([]);
+  const [expectedDeliveryDate, setExpectedDeliveryDate] = useState("");
 
   useEffect(() => {
     const fetchItemDetails = async () => {
@@ -39,6 +40,13 @@ function OrderCompleted() {
         })
       );
       setDetailedItems(fetchedItems);
+    };
+
+    const fetchOrderTracking = async () => {
+      const orderTracking = await getOrderTrackingByOrderId(
+        orderData.order._id
+      );
+      setExpectedDeliveryDate(orderTracking.expectedDeliveryDate);
     };
 
     fetchItemDetails();
@@ -89,7 +97,7 @@ function OrderCompleted() {
                   </p>
                   <p className="text-base text-white text-center">
                     Ngày giao hàng dự kiên: <br />
-                    {formatDate(orderData.order.deliveryDate)}
+                    {formatDate(expectedDeliveryDate)}
                   </p>
                 </div>
               </td>

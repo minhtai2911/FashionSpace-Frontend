@@ -155,7 +155,7 @@ export default function OrderDetails() {
                 </p>
                 <input
                   value={
-                    orderWithDetails?.tracking?.status === ORDER_STATUS.SHIPPED
+                    orderWithDetails?.tracking?.status !== ORDER_STATUS.SHIPPED
                       ? formatDate(
                           orderWithDetails?.tracking?.expectedDeliveryDate
                         )

@@ -28,7 +28,7 @@ export const getShoppingCartByUserId = async (userId) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -67,7 +67,7 @@ export const createShoppingCart = async (
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -103,7 +103,7 @@ export const getShoppingCartByUserIdProductVariantId = async (
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -136,7 +136,7 @@ export const updateShoppingCartQuantityById = async (id, quantity) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -163,6 +163,6 @@ export const deleteShoppingCartById = async (id) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };

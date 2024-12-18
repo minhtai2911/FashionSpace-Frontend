@@ -102,12 +102,10 @@ export default function UpdateOrder() {
         currentAddress,
         deliveryDate
       );
-      if (response) {
-        toast.success("Cập nhật đơn hàng thành công", { duration: 2000 });
-        navigate("/admin/orders");
-      }
+      toast.success("Cập nhật đơn hàng thành công", { duration: 2000 });
+      navigate("/admin/orders");
     } catch (error) {
-      console.error("Error updating order:", error);
+      toast.error(error.response.data.message);
     }
   };
 

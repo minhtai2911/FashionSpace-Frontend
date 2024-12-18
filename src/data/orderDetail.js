@@ -23,6 +23,6 @@ export const getOrderDetailsByOrderId = async (orderId) => {
     });
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };

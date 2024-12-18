@@ -9,7 +9,7 @@ import {
 import "./App.css";
 
 import Admin from "./pages/Admin/Admin";
-import Analysis from "./pages/Admin/Analysis";
+import Report from "./pages/Admin/Report";
 import Categories from "./pages/Admin/Categories";
 import Dashboard from "./pages/Admin/Dashboard";
 import Products from "./pages/Admin/AdminProducts";
@@ -35,7 +35,6 @@ import SignUp from "./pages/User/SignUp";
 import VerifyCode from "./pages/User/VerifyCode";
 
 import Header from "./components/Header";
-import SideBar from "./components/SideBar";
 import AdminProductDetails from "./pages/Admin/AdminProductDetails";
 import UpdateProduct from "./pages/Admin/AdminUpdateProduct";
 import Orders from "./pages/Admin/Orders";
@@ -102,6 +101,27 @@ function App() {
       case "/admin/account":
         document.title = "Tài khoản";
         break;
+      case "/admin/products":
+        document.title = "Sản phẩm";
+        break;
+      case "/admin/users":
+        document.title = "Người dùng";
+        break;
+      case "/admin/sizes":
+        document.title = "Kích cỡ";
+        break;
+      case "/admin/colors":
+        document.title = "Màu sắc";
+        break;
+      case "/admin/categories":
+        document.title = "Danh mục";
+        break;
+      case "/admin/report":
+        document.title = "Báo cáo";
+        break;
+      case "/admin/dashboard":
+        document.title = "Dashboard";
+        break;
       default:
         document.title = "Fashion Space";
     }
@@ -115,12 +135,13 @@ function App() {
   };
 
   const isAdminRoute = location.pathname.startsWith("/admin");
+  const isVerifyEmail = location.pathname.startsWith("/verify");
 
   return (
     <div>
-      {!noHeaderRoutes.includes(location.pathname) && !isAdminRoute && (
-        <Header />
-      )}
+      {!noHeaderRoutes.includes(location.pathname) &&
+        !isAdminRoute &&
+        !isVerifyEmail && <Header />}
       <AdminRedirect />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -158,7 +179,7 @@ function App() {
             element={<UpdateProduct />}
           />
           <Route path="categories" element={<Categories />} />
-          <Route path="analysis" element={<Analysis />} />
+          <Route path="report" element={<Report />} />
           <Route path="users" element={<Users />} />
           <Route path="sizes" element={<Sizes />} />
           <Route path="orders" element={<Orders />} />

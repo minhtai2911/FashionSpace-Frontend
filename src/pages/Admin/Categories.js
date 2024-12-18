@@ -20,6 +20,8 @@ export default function Categories() {
   const [categoryDetails, setCategoryDetails] = useState({});
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGender, setSelectedGender] = useState("All");
 
   function onCloseModal() {
     setOpenCreateModal(false);
@@ -27,12 +29,13 @@ export default function Categories() {
 
   const handleCreateCategory = async () => {
     try {
-      const createdCategory = await createCategory(category, gender);
-      setCategories([...categories, createdCategory]);
+      await createCategory(category, gender);
+      fetchCategories();
       setCategory("");
       setOpenCreateModal(false);
     } catch (error) {
       console.error("Error creating category:", error);
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 
@@ -42,38 +45,54 @@ export default function Categories() {
       setCategories(categories.filter((c) => c.id !== id));
       toast.success("Xóa danh mục thành công", { duration: 2000 });
     } catch (error) {
-      console.error("Error deleting category:", error);
-      toast.error("Xóa danh mục thất bại", { duration: 2000 });
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 
-  const fetchCategories = async () => {
+  async function fetchCategories() {
     try {
       const fetchedCategories = await getAllCategories();
-      setCategories(fetchedCategories);
+
+      let filteredData =
+        searchTerm !== ""
+          ? fetchedCategories.filter((c) =>
+              c.name.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          : fetchedCategories;
+
+      filteredData =
+        selectedGender !== "All"
+          ? filteredData.filter((c) => {
+              return c.gender
+                .toLowerCase()
+                .includes(selectedGender.toLowerCase());
+            })
+          : filteredData;
+
+      setCategories(filteredData);
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      toast.error(error.response.data.message);
     }
-  };
+  }
 
   const handleUpdateCategory = async () => {
-    const response = await updateCategory(
-      categoryDetails._id,
-      categoryDetails.name,
-      categoryDetails.gender
-    );
-    if (response) {
+    try {
+      await updateCategory(
+        categoryDetails._id,
+        categoryDetails.name,
+        categoryDetails.gender
+      );
       toast.success("Chỉnh sửa danh mục thành công", { duration: 2000 });
       fetchCategories();
       setOpenUpdateModal(false);
-    } else {
-      toast.error("Chỉnh sửa danh mục thất bại", { duration: 2000 });
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [searchTerm, selectedGender]);
 
   return (
     <>
@@ -81,8 +100,33 @@ export default function Categories() {
         <p className="font-extrabold text-xl">Danh mục</p>
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
-            <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
-              <Search />
+            <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center gap-x-3 pb-4">
+              <Search
+                placeholder={"Tên danh mục..."}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <select
+                value={selectedGender}
+                onChange={(e) => setSelectedGender(e.target.value)}
+                className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+                required
+              >
+                <option
+                  value={"All"}
+                  className="font-medium font-manrope text-sm"
+                >
+                  Tất cả
+                </option>
+                {GENDER.map((item) => (
+                  <option
+                    key={item.key}
+                    value={item.value}
+                    className="font-medium font-manrope text-sm"
+                  >
+                    {item.value}
+                  </option>
+                ))}
+              </select>
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">

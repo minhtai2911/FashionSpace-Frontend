@@ -23,7 +23,7 @@ export const getOrderTrackingByOrderId = async (orderId) => {
     });
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -63,6 +63,6 @@ export const createOrderTracking = async (
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };

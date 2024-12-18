@@ -7,7 +7,7 @@ export const getAllProducts = async () => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -17,7 +17,7 @@ export const getNewArrivalProducts = async () => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -27,7 +27,7 @@ export const getBestSellerProducts = async () => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -37,7 +37,7 @@ export const getProductById = async (productId) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -80,7 +80,7 @@ export const createProduct = async (
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -124,7 +124,7 @@ export const updateProduct = async (
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -151,6 +151,6 @@ export const deleteProduct = async (productId) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };

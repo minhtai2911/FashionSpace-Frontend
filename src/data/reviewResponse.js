@@ -7,7 +7,7 @@ export const getReviewResponseByReviewId = async (reviewId) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -41,6 +41,6 @@ export const createReviewResponse = async (reviewId, content) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };

@@ -34,8 +34,8 @@ export default function Reviews() {
   const fetchData = async () => {
     try {
       const fetchedReviews = await getAllReviews(
-        selectedStatus,
-        selectedRating
+        selectedStatus !== "All" ? selectedStatus : undefined,
+        selectedRating !== "All" ? selectedRating : undefined
       );
 
       const data = await Promise.all(
@@ -44,9 +44,10 @@ export default function Reviews() {
           const user = await getUserById(review.userId);
           return {
             ...review,
-            status: review.reviewResponses
-              ? REVIEW_STATUS.REPLIED
-              : REVIEW_STATUS.NOT_REPLIED,
+            status:
+              review.reviewResponses.length > 0
+                ? REVIEW_STATUS.REPLIED
+                : REVIEW_STATUS.NOT_REPLIED,
             productName: product.name,
             fullName: user?.fullName,
           };
@@ -72,14 +73,14 @@ export default function Reviews() {
   }, [selectedStatus, selectedRating, searchTerm]);
 
   const handleReplyReview = async () => {
-    const response = await createReviewResponse(reviewDetails._id, feedback);
-    if (response) {
+    try {
+      await createReviewResponse(reviewDetails._id, feedback);
       await fetchData();
       setFeedback("");
       setOpenReplyModal(false);
       toast.success("Gửi đánh giá thành công", { duration: 2000 });
-    } else {
-      toast.error("Gửi đánh giá thất bại", { duration: 2000 });
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 
@@ -101,13 +102,22 @@ export default function Reviews() {
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center gap-x-3 pb-4">
-              <Search onChange={(e) => setSearchTerm(e.target.value)} />
+              <Search
+                placeholder={"Tên sản phẩm..."}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
                 required
               >
+                <option
+                  value={"All"}
+                  className="font-medium font-manrope text-sm"
+                >
+                  Tất cả
+                </option>
                 <option
                   value={REVIEW_STATUS.NOT_REPLIED}
                   className="font-medium font-manrope text-sm"
@@ -120,12 +130,6 @@ export default function Reviews() {
                 >
                   {REVIEW_STATUS.REPLIED}
                 </option>
-                <option
-                  value={REVIEW_STATUS.ALL}
-                  className="font-medium font-manrope text-sm"
-                >
-                  {REVIEW_STATUS.ALL}
-                </option>
               </select>
               <select
                 value={selectedRating}
@@ -133,8 +137,15 @@ export default function Reviews() {
                 className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
                 required
               >
+                <option
+                  value={"All"}
+                  className="font-medium font-manrope text-sm"
+                >
+                  Tất cả
+                </option>
                 {REVIEW_RATING.map((item) => (
                   <option
+                    key={item.key}
                     value={item.value}
                     className="font-medium font-manrope text-sm"
                   >

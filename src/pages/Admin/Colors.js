@@ -18,6 +18,7 @@ export default function Colors() {
   const [colorDetails, setColorDetails] = useState({});
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   function onCloseModal() {
     setOpenCreateModal(false);
@@ -25,53 +26,60 @@ export default function Colors() {
 
   const handleCreateColor = async () => {
     try {
-      const createdColor = await createColor(color);
-      setColors([...colors, createdColor]);
+      await createColor(color);
+      fetchColors();
       setColor("");
       setOpenCreateModal(false);
     } catch (error) {
       console.error("Error creating color:", error);
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 
   const handleDeleteColor = async (id) => {
     try {
       await deleteColorById(id);
-      setColors(colors.filter((c) => c._id !== id));
+      fetchColors();
       toast.success("Xóa màu sắc thành công", { duration: 2000 });
     } catch (error) {
-      console.error("Error deleting color:", error);
-      toast.error("Xóa màu sắc thất bại", { duration: 2000 });
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 
-  const fetchColors = async () => {
+  async function fetchColors() {
     try {
       const fetchedColors = await getAllColors();
-      setColors(fetchedColors);
+      const filteredData =
+        searchTerm !== ""
+          ? fetchedColors.filter((c) => {
+              return c.color.toLowerCase().includes(searchTerm.toLowerCase());
+            })
+          : fetchedColors;
+
+      setColors(filteredData);
     } catch (error) {
-      console.error("Error fetching colors:", error);
+      toast.error(error.response.data.message);
     }
-  };
+  }
 
   const handleUpdateColor = async () => {
-    const response = await updateColor(
-      colorDetails._id,
-      colorDetails.color,
-      colorDetails
-    );
-    if (response) {
+    try {
+      const response = await updateColor(
+        colorDetails._id,
+        colorDetails.color,
+        colorDetails
+      );
       toast.success("Chỉnh sửa màu sắc thành công", { duration: 2000 });
       fetchColors();
       setOpenUpdateModal(false);
-    } else {
-      toast.error("Chỉnh sửa màu sắc thất bại", { duration: 2000 });
+    } catch (error) {
+      toast.error(error.response.data.message);
     }
   };
 
   useEffect(() => {
     fetchColors();
-  }, []);
+  }, [searchTerm]);
 
   return (
     <>
@@ -80,7 +88,10 @@ export default function Colors() {
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
             <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
-              <Search />
+              <Search
+                placeholder={"Tên màu..."}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">

@@ -7,7 +7,7 @@ export const getAllColors = async () => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -17,7 +17,7 @@ export const getColorById = async (id) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -47,7 +47,7 @@ export const createColor = async (color) => {
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -77,7 +77,7 @@ export const updateColor = async (id, color) => {
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -103,6 +103,6 @@ export const deleteColorById = async (id) => {
     });
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };

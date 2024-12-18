@@ -11,7 +11,7 @@ import { getProductVariantsByProductId } from "../../data/productVariant";
 import { getColorById } from "../../data/colors";
 import { getSizeById } from "../../data/sizes";
 import { createShoppingCart } from "../../data/shoppingCart";
-import { getReviewsByProductId } from "../../data/reviews";
+import { getAllReviews, getReviewsByProductId } from "../../data/reviews";
 import { getReviewResponseByReviewId } from "../../data/reviewResponse";
 import { getUserById } from "../../data/users";
 
@@ -24,7 +24,11 @@ import Review from "../../components/Review";
 import Pagination from "../../components/Pagination";
 import Slider from "../../components/Slider";
 import FeatureBanner from "../../components/FeatureBanner";
-import { FREE_SHIPPING, REVIEWS_PER_PAGE } from "../../utils/Constants";
+import {
+  FREE_SHIPPING,
+  REVIEWS_PER_PAGE,
+  SHIPPING_RATE,
+} from "../../utils/Constants";
 import { addToCart } from "../../stores/cart";
 import { formatToVND, formatURL } from "../../utils/format";
 import toast from "react-hot-toast";
@@ -141,7 +145,14 @@ function ProductDetails() {
   };
 
   const fetchReviews = async () => {
-    const fetchedReviews = await getReviewsByProductId(id);
+    const fetchedReviews = await getAllReviews(
+      undefined,
+      undefined,
+      id,
+      undefined,
+      undefined
+    );
+    console.log(fetchedReviews);
     const data = await Promise.all(
       fetchedReviews.map(async (review) => {
         const user = await getUserById(review.userId);
@@ -188,7 +199,7 @@ function ProductDetails() {
     if (productName) {
       document.title = productName;
     }
-  }, []);
+  }, [productName]);
 
   const handleAddToCart = async () => {
     const product = {
@@ -216,7 +227,8 @@ function ProductDetails() {
 
   const handleCheckout = () => {
     const subTotal = quantity * price;
-    const shipping = subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : 5;
+    const shipping =
+      subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : subTotal * SHIPPING_RATE;
     const totalPrice = subTotal + shipping;
     const selectedCartItems = [
       {
@@ -243,8 +255,6 @@ function ProductDetails() {
       }
     }
   };
-
-  console.log(reviews);
 
   return (
     <>

@@ -12,40 +12,41 @@ import { formatToVND } from "../../utils/format";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
   const handleDeleteProduct = async (productId) => {
     try {
-      const deleteImage = await deleteProductImagesByProductId(productId);
-      const deleteVariant = await deleteProductVariantsByProductId(productId);
-      const deleteProductResponse = await deleteProduct(productId);
+      await deleteProductImagesByProductId(productId);
+      await deleteProductVariantsByProductId(productId);
+      await deleteProduct(productId);
       toast.success("Lưu trữ sản phẩm thành công", { duration: 2000 });
     } catch (error) {
-      console.error("Error deleting product:", error);
+      toast.error(error.response.data.message);
     }
   };
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const fetchedProducts = await getAllProducts();
-        const updatedProducts = await Promise.all(
-          fetchedProducts.map(async (product) => {
-            const category = await getCategoryById(product.categoryId);
-            return {
-              ...product,
-              category: category.name,
-            };
-          })
-        );
-        setProducts(updatedProducts);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+  async function fetchProducts() {
+    try {
+      const fetchedProducts = await getAllProducts();
+      const updatedProducts = await Promise.all(
+        fetchedProducts.map(async (product) => {
+          const category = await getCategoryById(product.categoryId);
+          return {
+            ...product,
+            category: category.name,
+          };
+        })
+      );
+      setProducts(updatedProducts);
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  }
 
+  useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [searchTerm]);
 
   return (
     <div className="p-10 w-full">
@@ -53,7 +54,10 @@ export default function Products() {
       <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
         <div className="overflow-x-auto">
           <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
-            <Search />
+            <Search
+              placeholder={"Tên sản phẩm"}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
           <div className="overflow-x-auto">
             <Table hoverable>

@@ -14,7 +14,7 @@ import { formatToVND, formatURL } from "../utils/format";
 import BestSellerIcon from "../assets/icons/best-seller.svg";
 import NewArrivalIcon from "../assets/icons/new-arrival.svg";
 import Rating from "./Rating";
-import { FREE_SHIPPING } from "../utils/Constants";
+import { FREE_SHIPPING, SHIPPING_RATE } from "../utils/Constants";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { addToCart } from "../stores/cart";
@@ -108,7 +108,8 @@ function ProductItem({ id, usage }) {
 
   const handleCheckout = () => {
     const subTotal = quantity * price;
-    const shipping = subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : 5;
+    const shipping =
+      subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : subTotal * SHIPPING_RATE;
     const totalPrice = subTotal + shipping;
     const selectedCartItems = [
       {

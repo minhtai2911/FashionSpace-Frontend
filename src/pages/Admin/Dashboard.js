@@ -22,81 +22,7 @@ import { getOrderDetailsByOrderId } from "../../data/orderDetail";
 import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import { getStatistics } from "../../data/statistic";
 import dayjs from "dayjs";
-
-const data = [
-  {
-    name: "Jan",
-    revenue: 4000,
-    expense: 2400,
-    amt: 2400,
-  },
-  {
-    name: "Feb",
-    revenue: 3000,
-    expense: 1398,
-    amt: 2210,
-  },
-  {
-    name: "Mar",
-    revenue: 2000,
-    expense: 9800,
-    amt: 2290,
-  },
-  {
-    name: "Apr",
-    revenue: 2780,
-    expense: 3908,
-    amt: 2000,
-  },
-  {
-    name: "May",
-    revenue: 1890,
-    expense: 4800,
-    amt: 2181,
-  },
-  {
-    name: "Jun",
-    revenue: 2390,
-    expense: 3800,
-    amt: 2500,
-  },
-  {
-    name: "Jul",
-    revenue: 3490,
-    expense: 4300,
-    amt: 2100,
-  },
-  {
-    name: "Aug",
-    revenue: 3490,
-    expense: 1340,
-    amt: 2100,
-  },
-  {
-    name: "Sep",
-    revenue: 3490,
-    expense: 5160,
-    amt: 2100,
-  },
-  {
-    name: "Oct",
-    revenue: 3490,
-    expense: 8102,
-    amt: 2100,
-  },
-  {
-    name: "Nov",
-    revenue: 3490,
-    expense: 3012,
-    amt: 2100,
-  },
-  {
-    name: "Dec",
-    revenue: 3490,
-    expense: 1030,
-    amt: 2100,
-  },
-];
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
   const [orders, setOrders] = useState([]);
@@ -109,73 +35,97 @@ export default function Dashboard() {
   const [yearRevenue, setYearRevenue] = useState(0);
 
   async function fetchOrders() {
-    const fetchedOrders = await getAllOrders();
-    const ordersWithDetails = await Promise.all(
-      fetchedOrders.map(async (order) => {
-        const user = await getUserById(order.userId);
-        const paymentDetails = await getPaymentDetailById(
-          order.paymentDetailId
-        );
-        const details = await getOrderDetailsByOrderId(order._id);
-        const trackingData = await getOrderTrackingByOrderId(order._id);
-        const tracking = trackingData.length
-          ? trackingData[trackingData.length - 1]
-          : {};
+    try {
+      const fetchedOrders = await getAllOrders();
+      const ordersWithDetails = await Promise.all(
+        fetchedOrders.map(async (order) => {
+          const user = await getUserById(order.userId);
+          const paymentDetails = await getPaymentDetailById(
+            order.paymentDetailId
+          );
+          const details = await getOrderDetailsByOrderId(order._id);
+          const trackingData = await getOrderTrackingByOrderId(order._id);
+          const tracking = trackingData.length
+            ? trackingData[trackingData.length - 1]
+            : {};
 
-        return {
-          ...order,
-          user,
-          paymentDetails,
-          details,
-          tracking,
-        };
-      })
-    );
+          return {
+            ...order,
+            user,
+            paymentDetails,
+            details,
+            tracking,
+          };
+        })
+      );
 
-    setOrders(ordersWithDetails);
+      setOrders(ordersWithDetails);
 
-    const sortedOrders = ordersWithDetails.sort(
-      (a, b) => new Date(b.createdDate) - new Date(a.createdDate)
-    );
-    setLatestOrders(sortedOrders.slice(0, 5));
+      const sortedOrders = ordersWithDetails.sort(
+        (a, b) => new Date(b.createdDate) - new Date(a.createdDate)
+      );
+      setLatestOrders(sortedOrders.slice(0, 5));
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
+    }
   }
 
   const fetchProduct = async () => {
-    const data = await getAllProducts();
-    setProducts(data);
+    try {
+      const data = await getAllProducts();
+      setProducts(data);
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
+    }
   };
 
   const fetchUser = async () => {
-    const data = await getAllUsers();
-    setUsers(data);
+    try {
+      const data = await getAllUsers();
+      setUsers(data);
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
+    }
   };
 
   const fetchBestSellerProducts = async () => {
-    const fetchedBestSeller = await getBestSellerProducts();
-    const data = await Promise.all(
-      fetchedBestSeller.map(async (product) => {
-        const images = await getAllImagesByProductId(product._id);
-        return { ...product, images };
-      })
-    );
-    setBestSellerProducts(data);
+    try {
+      const fetchedBestSeller = await getBestSellerProducts();
+      const data = await Promise.all(
+        fetchedBestSeller.map(async (product) => {
+          const images = await getAllImagesByProductId(product._id);
+          return { ...product, images };
+        })
+      );
+      setBestSellerProducts(data);
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
+    }
   };
 
   const fetchStatistics = async () => {
-    const data = await getStatistics("", "", "");
-    const total = data.reduce((sum, stat) => {
-      return sum + stat.totalRevenue;
-    }, 0);
-    setTotalRevenue(total);
+    try {
+      const data = await getStatistics("", "", "");
+      const total = data.reduce((sum, stat) => {
+        return sum + stat.totalRevenue;
+      }, 0);
+      setTotalRevenue(total);
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
+    }
   };
 
   const fetchYearStatistics = async () => {
-    const data = await getStatistics("", "", dayjs().year());
-    const total = data.reduce((sum, stat) => {
-      return sum + stat.totalRevenue;
-    }, 0);
-    setStatistics(data);
-    setYearRevenue(total);
+    try {
+      const data = await getStatistics("", "", dayjs().year());
+      const total = data.reduce((sum, stat) => {
+        return sum + stat.totalRevenue;
+      }, 0);
+      setStatistics(data);
+      setYearRevenue(total);
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
+    }
   };
 
   const getStatusClass = (status) => {

@@ -6,7 +6,7 @@ export const getAllImagesByProductId = async (productId) => {
     const response = await instance.get(`/productImage/productId/${productId}`);
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -43,7 +43,7 @@ export const createProductImage = async (productId, images) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -78,7 +78,7 @@ export const updateProductImageById = async (id, productId, image) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -105,7 +105,7 @@ export const deleteProductImageById = async (id) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };
 
@@ -135,6 +135,6 @@ export const deleteProductImagesByProductId = async (productId) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };

@@ -15,6 +15,9 @@ import { formatToVND } from "../../utils/format";
 
 export default function Orders() {
   const [orderWithDetails, setOrdersWithDetails] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [selectedMethod, setSelectedMethod] = useState("All");
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
 
   const getStatusClass = (status) => {
@@ -74,7 +77,7 @@ export default function Orders() {
         })
       );
 
-      const filteredOrders =
+      let filteredOrders =
         searchTerm !== ""
           ? ordersWithDetails.filter((order) =>
               order.user?.fullName
@@ -82,6 +85,33 @@ export default function Orders() {
                 .includes(searchTerm.toLowerCase())
             )
           : ordersWithDetails;
+
+      filteredOrders =
+        selectedStatus !== "All"
+          ? filteredOrders.filter((o) =>
+              o.tracking.status
+                .toLowerCase()
+                .includes(selectedStatus.toLowerCase())
+            )
+          : filteredOrders;
+
+      filteredOrders =
+        selectedMethod !== "All"
+          ? filteredOrders.filter((o) =>
+              o.paymentDetails.paymentMethod
+                .toLowerCase()
+                .includes(selectedMethod.toLowerCase())
+            )
+          : filteredOrders;
+
+      filteredOrders =
+        selectedPaymentStatus !== "All"
+          ? filteredOrders.filter((o) =>
+              o.paymentDetails.status
+                .toLowerCase()
+                .includes(selectedPaymentStatus.toLowerCase())
+            )
+          : filteredOrders;
 
       setOrdersWithDetails(filteredOrders);
     } catch (error) {
@@ -91,7 +121,7 @@ export default function Orders() {
 
   useEffect(() => {
     fetchOrders();
-  }, [searchTerm]);
+  }, [searchTerm, selectedMethod, selectedPaymentStatus, selectedStatus]);
 
   return (
     <>
@@ -99,8 +129,47 @@ export default function Orders() {
         <p className="font-extrabold text-xl">Đơn hàng</p>
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
-            <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
-              <Search onChange={(e) => setSearchTerm(e.target.value)} />
+            <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center gap-x-3 pb-4">
+              <Search
+                placeholder={"Tên khách hàng..."}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+                required
+              >
+                <option value={"All"}>Tất cả</option>
+                {Object.values(ORDER_STATUS).map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedMethod}
+                onChange={(e) => setSelectedMethod(e.target.value)}
+                className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+                required
+              >
+                <option value={"All"}>Tất cả</option>
+                <option value={"MOMO"}>MOMO</option>
+                <option value={"COD"}>COD</option>
+              </select>
+              <select
+                value={selectedPaymentStatus}
+                onChange={(e) => setSelectedPaymentStatus(e.target.value)}
+                className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+                required
+              >
+                <option value={"All"}>Tất cả</option>
+                {Object.values(PAYMENT_STATUS).map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
             </div>
             <Table hoverable>
               <Table.Head className="normal-case text-base">

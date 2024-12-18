@@ -27,6 +27,6 @@ export const getStatistics = async (day, month, year) => {
     return response.data.data;
   } catch (error) {
     console.log(error);
-    return null;
+    throw error;
   }
 };

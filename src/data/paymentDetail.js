@@ -30,7 +30,7 @@ export const createPaymentDetail = async (paymentMethod, status) => {
     );
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };
 
@@ -39,6 +39,6 @@ export const getPaymentDetailById = async (id) => {
     const response = await instance.get(`/paymentDetail/${id}`);
     return response.data.data;
   } catch (error) {
-    return null;
+    throw error;
   }
 };

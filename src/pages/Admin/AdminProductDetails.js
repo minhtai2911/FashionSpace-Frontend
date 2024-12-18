@@ -7,6 +7,7 @@ import { getProductVariantsByProductId } from "../../data/productVariant";
 import { getSizeById } from "../../data/sizes";
 import { getAllImagesByProductId } from "../../data/productImages";
 import { formatURL } from "../../utils/format";
+import toast from "react-hot-toast";
 
 export default function AdminProductDetails() {
   const { id } = useParams();
@@ -17,8 +18,8 @@ export default function AdminProductDetails() {
   const [description, setDescription] = useState("");
   const [variants, setVariants] = useState([]);
 
-  useEffect(() => {
-    const fetchProduct = async () => {
+  const fetchProduct = async () => {
+    try {
       const product = await getProductById(id);
       setProductName(product.name);
       setPrice(product.price);
@@ -27,9 +28,13 @@ export default function AdminProductDetails() {
       setCategory(fetchedCategory.name);
       const fetchedImages = await getAllImagesByProductId(id);
       setPhotos(fetchedImages);
-    };
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
+    }
+  };
 
-    const fetchVariants = async () => {
+  const fetchVariants = async () => {
+    try {
       const fetchedVariants = await getProductVariantsByProductId(id);
       const variantsData = await Promise.all(
         fetchedVariants.map(async (variant) => {
@@ -39,8 +44,12 @@ export default function AdminProductDetails() {
         })
       );
       setVariants(variantsData);
-    };
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
+    }
+  };
 
+  useEffect(() => {
     fetchProduct();
     fetchVariants();
   }, [id]);

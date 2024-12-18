@@ -12,6 +12,7 @@ import {
 import { getAllUserRoles, getUserRoleById } from "../../data/userRoles";
 import Search from "../../components/Search";
 import toast from "react-hot-toast";
+import { ROLE_NAME } from "../../utils/Constants";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -25,12 +26,14 @@ export default function Users() {
   const [userDetails, setUserDetails] = useState({});
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRole, setSelectedRole] = useState("All");
 
   function onCloseCreateModal() {
     setOpenCreateModal(false);
   }
 
-  const fetchUsers = async () => {
+  async function fetchUsers() {
     try {
       const fetchedUsers = await getAllUsers();
       const updatedUsers = await Promise.all(
@@ -42,29 +45,43 @@ export default function Users() {
           };
         })
       );
-      setUsers(updatedUsers);
+
+      let filteredData =
+        searchTerm !== ""
+          ? updatedUsers.filter((u) =>
+              u.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          : updatedUsers;
+
+      filteredData =
+        selectedRole !== "All"
+          ? filteredData.filter((u) =>
+              u.role.toLowerCase().includes(selectedRole.toLowerCase())
+            )
+          : filteredData;
+
+      setUsers(filteredData);
     } catch (error) {
       console.error("Error fetching data:", error);
+    }
+  }
+
+  const fetchUserRoles = async () => {
+    try {
+      const fetchedUserRoles = await getAllUserRoles();
+      setUserRoles(fetchedUserRoles);
+    } catch (error) {
+      console.error("Error fetching user roles:", error);
     }
   };
 
   useEffect(() => {
-    const fetchUserRoles = async () => {
-      try {
-        const fetchedUserRoles = await getAllUserRoles();
-        setUserRoles(fetchedUserRoles);
-      } catch (error) {
-        console.error("Error fetching user roles:", error);
-      }
-    };
-
     fetchUsers();
     fetchUserRoles();
-  }, []);
+  }, [searchTerm, selectedRole]);
 
   const handleCreateUser = async () => {
     try {
-      console.log({ email, fullName, phone, password, userRole });
       const createdUser = await createUser(
         email,
         fullName,
@@ -72,8 +89,8 @@ export default function Users() {
         password,
         userRole
       );
-      toast.success("Tạo người dùng thành công", { duration: 2000 });
-      setUsers([...users, createdUser]);
+      toast.success("Thêm người dùng thành công", { duration: 2000 });
+      fetchUsers();
       setEmail("");
       setFullName("");
       setPhone("");
@@ -81,39 +98,35 @@ export default function Users() {
       setUserRole("");
       setOpenCreateModal(false);
     } catch (error) {
-      console.log(error);
-      toast.error("Tạo người dùng thất bại:" + error.response.data.message, {
+      toast.error(error.response.data.message, {
         duration: 2000,
       });
     }
   };
 
   const handleUpdateUser = async () => {
-    const response = await updateUserById(
-      userDetails._id,
-      userDetails.fullName,
-      userDetails.phone,
-      userDetails.roleId
-    );
-    if (response) {
+    try {
+      await updateUserById(
+        userDetails._id,
+        userDetails.fullName,
+        userDetails.phone,
+        userDetails.roleId
+      );
       toast.success("Cập nhật người dùng thành công", { duration: 2000 });
       fetchUsers();
       setOpenUpdateModal(false);
-    } else {
-      toast.error("Cập nhật người dùng thất bại", {
-        duration: 2000,
-      });
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
     }
   };
 
   const handleDeleteUser = async (id) => {
     try {
       await deleteUserById(id);
-      setUsers(users.filter((user) => user._id !== id));
+      fetchUsers();
       toast.success("Xóa người dùng thành công", { duration: 2000 });
     } catch (error) {
-      console.log(error);
-      toast.error("Xóa người dùng thất bại", {
+      toast.error(error.response.data.message, {
         duration: 2000,
       });
     }
@@ -125,8 +138,33 @@ export default function Users() {
         <p className="font-extrabold text-xl">Người dùng</p>
         <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
           <div className="overflow-x-auto">
-            <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
-              <Search />
+            <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center gap-x-3 pb-4">
+              <Search
+                placeholder={"Tên hoặc email..."}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+                required
+              >
+                <option
+                  value={"All"}
+                  className="font-medium font-manrope text-sm"
+                >
+                  Tất cả
+                </option>
+                {ROLE_NAME.map((item) => (
+                  <option
+                    key={item.key}
+                    value={item.value}
+                    className="font-medium font-manrope text-sm"
+                  >
+                    {item.key}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="overflow-x-auto">
               <Table hoverable>
