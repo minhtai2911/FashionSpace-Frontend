@@ -3,10 +3,7 @@ import Cookies from "js-cookie";
 
 export const getAllProducts = async (
   isActive,
-  categoryId,
   search,
-  page,
-  limit,
   minPrice,
   maxPrice,
   sortName
@@ -17,21 +14,21 @@ export const getAllProducts = async (
       params.append("isActive", isActive);
     }
 
-    if (categoryId) {
-      params.append("categoryId", categoryId);
-    }
+    // if (categoryId) {
+    //   params.append("categoryId", categoryId);
+    // }
 
     if (search) {
       params.append("search", search);
     }
 
-    if (page) {
-      params.append("page", page);
-    }
+    // if (page) {
+    //   params.append("page", page);
+    // }
 
-    if (limit) {
-      params.append("limit", limit);
-    }
+    // if (limit) {
+    //   params.append("limit", limit);
+    // }
 
     if (minPrice) {
       params.append("minPrice", minPrice);

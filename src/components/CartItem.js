@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAllProducts, getProductById } from "../data/products";
+import { getProductById } from "../data/products";
 import { getAllImagesByProductId } from "../data/productImages";
 import { getCategoryById } from "../data/categories";
 import { useDispatch } from "react-redux";

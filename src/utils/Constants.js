@@ -1,5 +1,5 @@
 export const REVIEWS_PER_PAGE = 4;
-export const PRODUCTS_PER_PAGE = 2;
+export const PRODUCTS_PER_PAGE = 10;
 export const SORT_BY = [
   {
     value: "price_asc",

@@ -30,8 +30,6 @@ function Shop() {
   const [categories, setCategories] = useState([]);
   const [isApplied, setIsApplied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [currentProducts, setCurrentProducts] = useState([]);
 
   const handleMinPriceChange = (e) => {
     const value = parseInt(e.target.value);
@@ -98,19 +96,42 @@ function Shop() {
     setMaxPrice(tempMaxPrice);
   };
 
-  async function fetchData() {
+  const filteredProducts = productData.filter((product) => {
+    const isInPriceRange =
+      product.price >= minPrice && product.price <= maxPrice;
+    const isInSelectedCategories =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(product.category);
+    return isInPriceRange && isInSelectedCategories;
+  });
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortCriteria) {
+      case "price_asc":
+        return a.price - b.price;
+      case "price_desc":
+        return b.price - a.price;
+      case "rating_asc":
+        return a.rating - b.rating;
+      case "rating_desc":
+        return b.rating - a.rating;
+      case "name":
+        return a.name.localeCompare(b.name);
+      default:
+        return 0;
+    }
+  });
+
+  const currentProducts = sortedProducts.slice(
+    (currentPage - 1) * PRODUCTS_PER_PAGE,
+    currentPage * PRODUCTS_PER_PAGE
+  );
+
+  const fetchData = async () => {
     setIsLoading(true);
+
     try {
-      const fetchedProducts = await getAllProducts(
-        1,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        minPrice,
-        maxPrice,
-        undefined
-      );
+      const fetchedProducts = await getAllProducts();
 
       const fetchedCategories = await getAllCategories();
       setCategories(fetchedCategories);
@@ -127,45 +148,12 @@ function Shop() {
         })
       );
       setProductData(updatedProducts);
-
-      const filteredProductsData = updatedProducts.filter((product) => {
-        const isInSelectedCategories =
-          selectedCategories.length === 0 ||
-          selectedCategories.includes(product.category);
-        return isInSelectedCategories;
-      });
-
-      setFilteredProducts(filteredProductsData);
-
-      const sortedProducts = [...filteredProductsData].sort((a, b) => {
-        switch (sortCriteria) {
-          case "price_asc":
-            return a.price - b.price;
-          case "price_desc":
-            return b.price - a.price;
-          case "rating_asc":
-            return a.rating - b.rating;
-          case "rating_desc":
-            return b.rating - a.rating;
-          case "name":
-            return a.name.localeCompare(b.name);
-          default:
-            return 0;
-        }
-      });
-
-      const currentProductsData = sortedProducts.slice(
-        (currentPage - 1) * PRODUCTS_PER_PAGE,
-        currentPage * PRODUCTS_PER_PAGE
-      );
-
-      setCurrentProducts(currentProductsData);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     fetchData();

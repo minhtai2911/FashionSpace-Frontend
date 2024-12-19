@@ -16,7 +16,7 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
-  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -39,14 +39,8 @@ export default function Products() {
       let isActive = undefined;
       if (selectedStatus === PRODUCT_STATUS.ACTIVE) isActive = 1;
       else if (selectedStatus === PRODUCT_STATUS.INACTIVE) isActive = 0;
-      const categoryId =
-        selectedCategoryId === "All" ? undefined : selectedCategoryId;
       const search = searchTerm === "" ? undefined : searchTerm;
-      const fetchedProducts = await getAllProducts(
-        isActive,
-        categoryId,
-        search
-      );
+      const fetchedProducts = await getAllProducts(isActive, search);
       const updatedProducts = await Promise.all(
         fetchedProducts.map(async (product) => {
           const category = await getCategoryById(product.categoryId);
@@ -56,9 +50,16 @@ export default function Products() {
           };
         })
       );
-      setCurrentPage(1);
 
-      setProducts(updatedProducts);
+      const filteredProducts =
+        selectedCategory !== "All"
+          ? updatedProducts.filter((p) =>
+              p.category.toLowerCase().includes(selectedCategory.toLowerCase())
+            )
+          : updatedProducts;
+
+      setCurrentPage(1);
+      setProducts(filteredProducts);
 
       const fetchedCategories = await getAllCategories();
       setCategories(fetchedCategories);
@@ -85,7 +86,7 @@ export default function Products() {
 
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm, selectedStatus, selectedCategoryId]);
+  }, [searchTerm, selectedStatus, selectedCategory]);
 
   return (
     <div className="p-10 w-full">
@@ -111,14 +112,14 @@ export default function Products() {
               ))}
             </select>
             <select
-              value={selectedCategoryId}
-              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
               required
             >
               <option value="All">Tất cả</option>
               {categories.map((category) => (
-                <option key={category._id} value={category._id}>
+                <option key={category._id} value={category.name}>
                   {category.name}
                 </option>
               ))}
