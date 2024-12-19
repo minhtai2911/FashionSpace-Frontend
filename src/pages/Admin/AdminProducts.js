@@ -3,18 +3,22 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import { Table } from "flowbite-react";
 
 import { archiveProductById, getAllProducts } from "../../data/products";
-import { getCategoryById } from "../../data/categories";
+import { getAllCategories, getCategoryById } from "../../data/categories";
 import Search from "../../components/Search";
 import { deleteProductImagesByProductId } from "../../data/productImages";
 import { deleteProductVariantsByProductId } from "../../data/productVariant";
 import toast from "react-hot-toast";
 import { formatToVND } from "../../utils/format";
-import { PRODUCT_STATUS } from "../../utils/Constants";
+import { ITEM_PER_PAGE, PRODUCT_STATUS } from "../../utils/Constants";
+import Pagination from "../../components/Pagination";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleDeleteProduct = async (productId, isActive) => {
     try {
@@ -32,7 +36,17 @@ export default function Products() {
 
   async function fetchProducts() {
     try {
-      const fetchedProducts = await getAllProducts();
+      let isActive = undefined;
+      if (selectedStatus === PRODUCT_STATUS.ACTIVE) isActive = 1;
+      else if (selectedStatus === PRODUCT_STATUS.INACTIVE) isActive = 0;
+      const categoryId =
+        selectedCategoryId === "All" ? undefined : selectedCategoryId;
+      const search = searchTerm === "" ? undefined : searchTerm;
+      const fetchedProducts = await getAllProducts(
+        isActive,
+        categoryId,
+        search
+      );
       const updatedProducts = await Promise.all(
         fetchedProducts.map(async (product) => {
           const category = await getCategoryById(product.categoryId);
@@ -42,11 +56,21 @@ export default function Products() {
           };
         })
       );
+      setCurrentPage(1);
+
       setProducts(updatedProducts);
+
+      const fetchedCategories = await getAllCategories();
+      setCategories(fetchedCategories);
     } catch (error) {
       toast.error(error.response.data.message);
     }
   }
+
+  const currentProducts = products.slice(
+    (currentPage - 1) * ITEM_PER_PAGE,
+    currentPage * ITEM_PER_PAGE
+  );
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -61,7 +85,7 @@ export default function Products() {
 
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm, selectedStatus]);
+  }, [searchTerm, selectedStatus, selectedCategoryId]);
 
   return (
     <div className="p-10 w-full">
@@ -86,6 +110,19 @@ export default function Products() {
                 </option>
               ))}
             </select>
+            <select
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+              required
+            >
+              <option value="All">Tất cả</option>
+              {categories.map((category) => (
+                <option key={category._id} value={category._id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="overflow-x-auto">
             <Table hoverable>
@@ -99,7 +136,7 @@ export default function Products() {
                 <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
-                {products.map((product) => (
+                {currentProducts.map((product) => (
                   <Table.Row
                     key={product._id}
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
@@ -231,6 +268,28 @@ export default function Products() {
                 ))}
               </Table.Body>
             </Table>
+          </div>
+          <div className="flex justify-between items-center mt-5">
+            {products.length > 0 ? (
+              <div className="font-semibold text-sm">
+                Hiển thị {(currentPage - 1) * ITEM_PER_PAGE + 1} -{" "}
+                {Math.min(currentPage * ITEM_PER_PAGE, products.length)} của{" "}
+                {products.length} kết quả
+              </div>
+            ) : (
+              <div className="font-semibold text-sm">
+                Hiển thị 0 - 0 của 0 kết quả
+              </div>
+            )}
+            {currentProducts.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(products.length / ITEM_PER_PAGE)}
+                onPageChange={setCurrentPage}
+                svgClassName={"w-5 h-5"}
+                textClassName={"text-sm px-3 py-2"}
+              />
+            )}
           </div>
         </div>
       </div>

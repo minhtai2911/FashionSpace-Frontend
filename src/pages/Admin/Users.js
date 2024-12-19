@@ -12,7 +12,8 @@ import {
 import { getAllUserRoles, getUserRoleById } from "../../data/userRoles";
 import Search from "../../components/Search";
 import toast from "react-hot-toast";
-import { ROLE_NAME, USER_STATUS } from "../../utils/Constants";
+import { ITEM_PER_PAGE, ROLE_NAME, USER_STATUS } from "../../utils/Constants";
+import Pagination from "../../components/Pagination";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -29,6 +30,7 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
 
   function onCloseCreateModal() {
     setOpenCreateModal(false);
@@ -63,6 +65,23 @@ export default function Users() {
             )
           : filteredData;
 
+      let isActive = null;
+
+      if (selectedStatus === USER_STATUS.ACTIVE) {
+        isActive = true;
+      } else if (selectedStatus === USER_STATUS.INACTIVE) {
+        isActive = false;
+      }
+
+      filteredData =
+        isActive !== null
+          ? filteredData.filter((u) => {
+              return u.isActive === isActive;
+            })
+          : filteredData;
+
+      setCurrentPage(1);
+
       setUsers(filteredData);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -92,7 +111,12 @@ export default function Users() {
   useEffect(() => {
     fetchUsers();
     fetchUserRoles();
-  }, [searchTerm, selectedRole]);
+  }, [searchTerm, selectedRole, selectedStatus]);
+
+  const currentUsers = users.slice(
+    (currentPage - 1) * ITEM_PER_PAGE,
+    currentPage * ITEM_PER_PAGE
+  );
 
   const handleCreateUser = async () => {
     try {
@@ -203,7 +227,7 @@ export default function Users() {
                   <Table.HeadCell>Thao tác</Table.HeadCell>
                 </Table.Head>
                 <Table.Body className="divide-y">
-                  {users.map((user) => (
+                  {currentUsers.map((user) => (
                     <Table.Row
                       key={user._id}
                       className="bg-white dark:border-gray-700 dark:bg-gray-800"
@@ -325,6 +349,28 @@ export default function Users() {
                   ))}
                 </Table.Body>
               </Table>
+            </div>
+            <div className="flex justify-between items-center mt-5">
+              {users.length > 0 ? (
+                <div className="font-semibold text-sm">
+                  Hiển thị {(currentPage - 1) * ITEM_PER_PAGE + 1} -{" "}
+                  {Math.min(currentPage * ITEM_PER_PAGE, users.length)} của{" "}
+                  {users.length} kết quả
+                </div>
+              ) : (
+                <div className="font-semibold text-sm">
+                  Hiển thị 0 - 0 của 0 kết quả
+                </div>
+              )}
+              {currentUsers.length > 0 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(users.length / ITEM_PER_PAGE)}
+                  onPageChange={setCurrentPage}
+                  svgClassName={"w-5 h-5"}
+                  textClassName={"text-sm px-3 py-2"}
+                />
+              )}
             </div>
           </div>
         </div>

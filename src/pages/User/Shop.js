@@ -28,7 +28,10 @@ function Shop() {
   const [currentPage, setCurrentPage] = useState(1);
   const [productData, setProductData] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [isApplied, setIsApplied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [currentProducts, setCurrentProducts] = useState([]);
 
   const handleMinPriceChange = (e) => {
     const value = parseInt(e.target.value);
@@ -67,6 +70,7 @@ function Shop() {
     setMaxPrice(MAX_PRICE);
     setTempMinPrice(MIN_PRICE);
     setTempMaxPrice(MAX_PRICE);
+    setIsApplied(false);
   };
 
   const clearAllFilters = () => {
@@ -89,72 +93,83 @@ function Shop() {
   }, [tempMinPrice, tempMaxPrice]);
 
   const applyFilters = () => {
+    setIsApplied(true);
     setMinPrice(tempMinPrice);
     setMaxPrice(tempMaxPrice);
   };
 
-  const filteredProducts = productData.filter((product) => {
-    const isInPriceRange =
-      product.price >= minPrice && product.price <= maxPrice;
-    const isInSelectedCategories =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(product.category);
-    return isInPriceRange && isInSelectedCategories;
-  });
+  async function fetchData() {
+    setIsLoading(true);
+    try {
+      const fetchedProducts = await getAllProducts(
+        1,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        minPrice,
+        maxPrice,
+        undefined
+      );
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortCriteria) {
-      case "price_asc":
-        return a.price - b.price;
-      case "price_desc":
-        return b.price - a.price;
-      case "rating_asc":
-        return a.rating - b.rating;
-      case "rating_desc":
-        return b.rating - a.rating;
-      case "name":
-        return a.name.localeCompare(b.name);
-      default:
-        return 0;
+      const fetchedCategories = await getAllCategories();
+      setCategories(fetchedCategories);
+
+      const updatedProducts = await Promise.all(
+        fetchedProducts.map(async (product) => {
+          const images = await getAllImagesByProductId(product._id);
+          const category = await getCategoryById(product.categoryId);
+          return {
+            ...product,
+            images: images || [],
+            category: category.name,
+          };
+        })
+      );
+      setProductData(updatedProducts);
+
+      const filteredProductsData = updatedProducts.filter((product) => {
+        const isInSelectedCategories =
+          selectedCategories.length === 0 ||
+          selectedCategories.includes(product.category);
+        return isInSelectedCategories;
+      });
+
+      setFilteredProducts(filteredProductsData);
+
+      const sortedProducts = [...filteredProductsData].sort((a, b) => {
+        switch (sortCriteria) {
+          case "price_asc":
+            return a.price - b.price;
+          case "price_desc":
+            return b.price - a.price;
+          case "rating_asc":
+            return a.rating - b.rating;
+          case "rating_desc":
+            return b.rating - a.rating;
+          case "name":
+            return a.name.localeCompare(b.name);
+          default:
+            return 0;
+        }
+      });
+
+      const currentProductsData = sortedProducts.slice(
+        (currentPage - 1) * PRODUCTS_PER_PAGE,
+        currentPage * PRODUCTS_PER_PAGE
+      );
+
+      setCurrentProducts(currentProductsData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
     }
-  });
-
-  const currentProducts = sortedProducts.slice(
-    (currentPage - 1) * PRODUCTS_PER_PAGE,
-    currentPage * PRODUCTS_PER_PAGE
-  );
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-
-      try {
-        const fetchedProducts = await getAllProducts();
-
-        const fetchedCategories = await getAllCategories();
-        setCategories(fetchedCategories);
-
-        const updatedProducts = await Promise.all(
-          fetchedProducts.map(async (product) => {
-            const images = await getAllImagesByProductId(product._id);
-            const category = await getCategoryById(product.categoryId);
-            return {
-              ...product,
-              images: images || [],
-              category: category.name,
-            };
-          })
-        );
-        setProductData(updatedProducts);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchData();
-  }, []);
+  }, [isApplied, selectedCategories, sortCriteria]);
 
   return (
     <div>
@@ -325,13 +340,17 @@ function Shop() {
                 )}
               </div>
               {currentProducts.length > 0 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={Math.ceil(
-                    filteredProducts.length / PRODUCTS_PER_PAGE
-                  )}
-                  onPageChange={setCurrentPage}
-                />
+                <div className="mt-5">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={Math.ceil(
+                      filteredProducts.length / PRODUCTS_PER_PAGE
+                    )}
+                    onPageChange={setCurrentPage}
+                    svgClassName={"w-6 h-6"}
+                    textClassName={"text-xl px-4 py-2"}
+                  />
+                </div>
               )}
             </>
           )}

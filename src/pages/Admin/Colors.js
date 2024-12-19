@@ -10,6 +10,8 @@ import {
   updateColor,
 } from "../../data/colors";
 import toast from "react-hot-toast";
+import { ITEM_PER_PAGE } from "../../utils/Constants";
+import Pagination from "../../components/Pagination";
 
 export default function Colors() {
   const [colors, setColors] = useState([]);
@@ -18,6 +20,7 @@ export default function Colors() {
   const [colorDetails, setColorDetails] = useState({});
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
   function onCloseModal() {
@@ -56,11 +59,18 @@ export default function Colors() {
             })
           : fetchedColors;
 
+      setCurrentPage(1);
+
       setColors(filteredData);
     } catch (error) {
       toast.error(error.response.data.message);
     }
   }
+
+  const currentColors = colors.slice(
+    (currentPage - 1) * ITEM_PER_PAGE,
+    currentPage * ITEM_PER_PAGE
+  );
 
   const handleUpdateColor = async () => {
     try {
@@ -100,7 +110,7 @@ export default function Colors() {
                 <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
-                {colors.map((color) => (
+                {currentColors.map((color) => (
                   <Table.Row
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
                     key={color._id}
@@ -190,6 +200,28 @@ export default function Colors() {
                 ))}
               </Table.Body>
             </Table>
+          </div>
+          <div className="flex justify-between items-center mt-5">
+            {colors.length > 0 ? (
+              <div className="font-semibold text-sm">
+                Hiển thị {(currentPage - 1) * ITEM_PER_PAGE + 1} -{" "}
+                {Math.min(currentPage * ITEM_PER_PAGE, colors.length)} của{" "}
+                {colors.length} kết quả
+              </div>
+            ) : (
+              <div className="font-semibold text-sm">
+                Hiển thị 0 - 0 của 0 kết quả
+              </div>
+            )}
+            {currentColors.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(colors.length / ITEM_PER_PAGE)}
+                onPageChange={setCurrentPage}
+                svgClassName={"w-5 h-5"}
+                textClassName={"text-sm px-3 py-2"}
+              />
+            )}
           </div>
         </div>
         <button

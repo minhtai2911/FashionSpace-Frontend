@@ -1,9 +1,50 @@
 import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
-export const getAllProducts = async () => {
+export const getAllProducts = async (
+  isActive,
+  categoryId,
+  search,
+  page,
+  limit,
+  minPrice,
+  maxPrice,
+  sortName
+) => {
   try {
-    const response = await instance.get("/product");
+    const params = new URLSearchParams();
+    if (isActive === 1 || isActive === 0) {
+      params.append("isActive", isActive);
+    }
+
+    if (categoryId) {
+      params.append("categoryId", categoryId);
+    }
+
+    if (search) {
+      params.append("search", search);
+    }
+
+    if (page) {
+      params.append("page", page);
+    }
+
+    if (limit) {
+      params.append("limit", limit);
+    }
+
+    if (minPrice) {
+      params.append("minPrice", minPrice);
+    }
+
+    if (maxPrice) {
+      params.append("maxPrice", maxPrice);
+    }
+
+    if (sortName) {
+      params.append("sortName", sortName);
+    }
+    const response = await instance.get(`/product?${params.toString()}`);
     return response.data.data;
   } catch (error) {
     console.log(error);

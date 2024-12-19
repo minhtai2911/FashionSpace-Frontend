@@ -1,5 +1,5 @@
 export const REVIEWS_PER_PAGE = 4;
-export const PRODUCTS_PER_PAGE = 12;
+export const PRODUCTS_PER_PAGE = 2;
 export const SORT_BY = [
   {
     value: "price_asc",
@@ -22,6 +22,7 @@ export const SORT_BY = [
     title: "Tên",
   },
 ];
+export const ITEM_PER_PAGE = 5;
 export const PAYMENT_METHOD = [
   {
     value: "COD",

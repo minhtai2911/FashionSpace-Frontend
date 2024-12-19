@@ -11,6 +11,8 @@ import {
 } from "../../data/sizes";
 import { getCategoryById, getAllCategories } from "../../data/categories";
 import toast from "react-hot-toast";
+import { ITEM_PER_PAGE } from "../../utils/Constants";
+import Pagination from "../../components/Pagination";
 
 export default function Sizes() {
   const [sizes, setSizes] = useState([]);
@@ -23,45 +25,16 @@ export default function Sizes() {
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
 
   function onCloseModal() {
     setOpenCreateModal(false);
   }
 
-  async function fetchSizes() {
-    try {
-      const fetchedSizes = await getAllSizes();
-      const fetchedCategories = await getAllCategories();
-      const updatedSizes = await Promise.all(
-        fetchedSizes.map(async (size) => {
-          const category = await getCategoryById(size.categoryId);
-          return {
-            ...size,
-            category: category.name,
-          };
-        })
-      );
-
-      let filteredData =
-        searchTerm !== ""
-          ? updatedSizes.filter((s) =>
-              s.size.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-          : updatedSizes;
-
-      filteredData =
-        selectedCategory !== "All"
-          ? filteredData.filter((s) =>
-              s.category.toLowerCase().includes(selectedCategory.toLowerCase())
-            )
-          : filteredData;
-
-      setSizes(filteredData);
-      setCategories(fetchedCategories);
-    } catch (error) {
-      console.error("Error fetching sizes:", error);
-    }
-  }
+  const currentSizes = sizes.slice(
+    (currentPage - 1) * ITEM_PER_PAGE,
+    currentPage * ITEM_PER_PAGE
+  );
 
   const handleCreateSize = async () => {
     try {
@@ -96,6 +69,42 @@ export default function Sizes() {
       setOpenUpdateModal(false);
     } catch (error) {
       toast.error(error.response.data.message, { duration: 2000 });
+    }
+  };
+
+  const fetchSizes = async () => {
+    try {
+      const fetchedSizes = await getAllSizes();
+      const fetchedCategories = await getAllCategories();
+      const updatedSizes = await Promise.all(
+        fetchedSizes.map(async (size) => {
+          const category = await getCategoryById(size.categoryId);
+          return {
+            ...size,
+            category: category.name,
+          };
+        })
+      );
+
+      let filteredData =
+        searchTerm !== ""
+          ? updatedSizes.filter((s) =>
+              s.size.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          : updatedSizes;
+
+      filteredData =
+        selectedCategory !== "All"
+          ? filteredData.filter((s) =>
+              s.category.toLowerCase().includes(selectedCategory.toLowerCase())
+            )
+          : filteredData;
+
+      setSizes(filteredData);
+      setCategories(fetchedCategories);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error("Error fetching sizes:", error);
     }
   };
 
@@ -145,7 +154,7 @@ export default function Sizes() {
                 <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
-                {sizes.map((size) => (
+                {currentSizes.map((size) => (
                   <Table.Row
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
                     key={size._id}
@@ -236,6 +245,28 @@ export default function Sizes() {
                 ))}
               </Table.Body>
             </Table>
+          </div>
+          <div className="flex justify-between items-center mt-5">
+            {sizes.length > 0 ? (
+              <div className="font-semibold text-sm">
+                Hiển thị {(currentPage - 1) * ITEM_PER_PAGE + 1} -{" "}
+                {Math.min(currentPage * ITEM_PER_PAGE, sizes.length)} của{" "}
+                {sizes.length} kết quả
+              </div>
+            ) : (
+              <div className="font-semibold text-sm">
+                Hiển thị 0 - 0 của 0 kết quả
+              </div>
+            )}
+            {currentSizes.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(sizes.length / ITEM_PER_PAGE)}
+                onPageChange={setCurrentPage}
+                svgClassName={"w-5 h-5"}
+                textClassName={"text-sm px-3 py-2"}
+              />
+            )}
           </div>
         </div>
         <button

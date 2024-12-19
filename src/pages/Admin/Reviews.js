@@ -19,7 +19,12 @@ import {
 
 import Rating from "../../components/Rating";
 import toast from "react-hot-toast";
-import { REVIEW_RATING, REVIEW_STATUS } from "../../utils/Constants";
+import {
+  ITEM_PER_PAGE,
+  REVIEW_RATING,
+  REVIEW_STATUS,
+} from "../../utils/Constants";
+import Pagination from "../../components/Pagination";
 
 export default function Reviews() {
   const [reviews, setReviews] = useState([]);
@@ -30,6 +35,7 @@ export default function Reviews() {
   const [selectedStatus, setSelectedStatus] = useState(REVIEW_STATUS.ALL);
   const [selectedRating, setSelectedRating] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchData = async () => {
     try {
@@ -62,11 +68,17 @@ export default function Reviews() {
                 .includes(searchTerm.toLowerCase())
             )
           : data;
+      setCurrentPage(1);
       setReviews(filteredData);
     } catch (error) {
       console.error(error);
     }
   };
+
+  const currentReviews = reviews.slice(
+    (currentPage - 1) * ITEM_PER_PAGE,
+    currentPage * ITEM_PER_PAGE
+  );
 
   useEffect(() => {
     fetchData();
@@ -165,7 +177,7 @@ export default function Reviews() {
                 <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
-                {reviews.map((review) => (
+                {currentReviews.map((review) => (
                   <Table.Row
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
                     key={review._id}
@@ -263,6 +275,28 @@ export default function Reviews() {
                 ))}
               </Table.Body>
             </Table>
+          </div>
+          <div className="flex justify-between items-center mt-5">
+            {reviews.length > 0 ? (
+              <div className="font-semibold text-sm">
+                Hiển thị {(currentPage - 1) * ITEM_PER_PAGE + 1} -{" "}
+                {Math.min(currentPage * ITEM_PER_PAGE, reviews.length)} của{" "}
+                {reviews.length} kết quả
+              </div>
+            ) : (
+              <div className="font-semibold text-sm">
+                Hiển thị 0 - 0 của 0 kết quả
+              </div>
+            )}
+            {currentReviews.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(reviews.length / ITEM_PER_PAGE)}
+                onPageChange={setCurrentPage}
+                svgClassName={"w-5 h-5"}
+                textClassName={"text-sm px-3 py-2"}
+              />
+            )}
           </div>
         </div>
       </div>

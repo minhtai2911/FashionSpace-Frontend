@@ -1,6 +1,12 @@
 import React from "react";
 
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  svgClassName,
+  textClassName,
+}) => {
   const getPageNumbers = () => {
     const pages = [];
     const maxPages = 4;
@@ -40,7 +46,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   };
 
   return (
-    <div className="mt-5 flex justify-center">
+    <div className="flex justify-center">
       <nav
         className="relative z-0 inline-flex rounded-md -space-x-px"
         aria-label="Pagination"
@@ -57,7 +63,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
               viewBox="0 0 24 24"
               strokeWidth="1.5"
               stroke="#D9D9D9"
-              className="w-6 h-6"
+              className={`${svgClassName}`}
             >
               <path
                 strokeLinecap="round"
@@ -77,7 +83,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
               viewBox="0 0 24 24"
               strokeWidth="1.5"
               stroke="currentColor"
-              className="w-6 h-6"
+              className={`${svgClassName}`}
             >
               <path
                 strokeLinecap="round"
@@ -93,9 +99,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           <a
             key={index}
             onClick={() => handlePageChange(page)}
-            className={`relative inline-flex items-center px-4 py-2 border-none ${
+            className={`relative inline-flex items-center border-none ${
               currentPage === page ? "bg-gray-300" : "bg-white"
-            } text-xl font-bold text-gray-700 hover:bg-gray-300 cursor-pointer`}
+            } ${textClassName} font-bold text-gray-700 hover:bg-gray-300 cursor-pointer`}
           >
             {page}
           </a>
@@ -113,7 +119,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
               viewBox="0 0 24 24"
               strokeWidth="1.5"
               stroke="#D9D9D9"
-              className="w-6 h-6"
+              className={`${svgClassName}`}
             >
               <path
                 strokeLinecap="round"
@@ -133,7 +139,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
               viewBox="0 0 24 24"
               strokeWidth="1.5"
               stroke="currentColor"
-              className="w-6 h-6"
+              className={`${svgClassName}`}
             >
               <path
                 strokeLinecap="round"

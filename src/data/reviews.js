@@ -31,8 +31,6 @@ export const getAllReviews = async (
       params.append("orderId", orderId);
     }
 
-    console.log(params.toString());
-
     const response = await instance.get(`/review?${params.toString()}`);
     return response.data.data;
   } catch (error) {

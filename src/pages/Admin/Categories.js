@@ -10,7 +10,8 @@ import {
   updateCategory,
 } from "../../data/categories";
 import toast from "react-hot-toast";
-import { GENDER } from "../../utils/Constants";
+import { GENDER, ITEM_PER_PAGE } from "../../utils/Constants";
+import Pagination from "../../components/Pagination";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
@@ -22,6 +23,7 @@ export default function Categories() {
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGender, setSelectedGender] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
 
   function onCloseModal() {
     setOpenCreateModal(false);
@@ -69,6 +71,8 @@ export default function Categories() {
             })
           : filteredData;
 
+      setCurrentPage(1);
+
       setCategories(filteredData);
     } catch (error) {
       toast.error(error.response.data.message);
@@ -89,6 +93,11 @@ export default function Categories() {
       toast.error(error.response.data.message, { duration: 2000 });
     }
   };
+
+  const currentCategories = categories.slice(
+    (currentPage - 1) * ITEM_PER_PAGE,
+    currentPage * ITEM_PER_PAGE
+  );
 
   useEffect(() => {
     fetchCategories();
@@ -136,7 +145,7 @@ export default function Categories() {
                 <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
-                {categories.map((category) => (
+                {currentCategories.map((category) => (
                   <Table.Row
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
                     key={category._id}
@@ -227,6 +236,28 @@ export default function Categories() {
                 ))}
               </Table.Body>
             </Table>
+          </div>
+          <div className="flex justify-between items-center mt-5">
+            {categories.length > 0 ? (
+              <div className="font-semibold text-sm">
+                Hiển thị {(currentPage - 1) * ITEM_PER_PAGE + 1} -{" "}
+                {Math.min(currentPage * ITEM_PER_PAGE, categories.length)} của{" "}
+                {categories.length} kết quả
+              </div>
+            ) : (
+              <div className="font-semibold text-sm">
+                Hiển thị 0 - 0 của 0 kết quả
+              </div>
+            )}
+            {currentCategories.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(categories.length / ITEM_PER_PAGE)}
+                onPageChange={setCurrentPage}
+                svgClassName={"w-5 h-5"}
+                textClassName={"text-sm px-3 py-2"}
+              />
+            )}
           </div>
         </div>
         <button

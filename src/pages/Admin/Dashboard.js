@@ -105,7 +105,7 @@ export default function Dashboard() {
 
   const fetchStatistics = async () => {
     try {
-      const data = await getStatistics("", "", "");
+      const data = await getStatistics(undefined, undefined, undefined);
       const total = data.reduce((sum, stat) => {
         return sum + stat.totalRevenue;
       }, 0);
@@ -117,7 +117,7 @@ export default function Dashboard() {
 
   const fetchYearStatistics = async () => {
     try {
-      const data = await getStatistics("", "", dayjs().year());
+      const data = await getStatistics(undefined, undefined, dayjs().year());
       const total = data.reduce((sum, stat) => {
         return sum + stat.totalRevenue;
       }, 0);
