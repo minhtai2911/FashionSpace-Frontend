@@ -128,7 +128,7 @@ export const updateProduct = async (
   }
 };
 
-export const deleteProduct = async (productId) => {
+export const archiveProductById = async (id) => {
   const refreshToken = Cookies.get("refreshToken");
   try {
     const tokenResponse = await instance.post(
@@ -143,7 +143,7 @@ export const deleteProduct = async (productId) => {
       }
     );
     const accessToken = tokenResponse.data.accessToken;
-    const response = await instance.delete(`/product/${productId}`, {
+    const response = await instance.delete(`/product/${id}`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

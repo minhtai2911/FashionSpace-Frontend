@@ -112,7 +112,7 @@ export const updateUserById = async (id, fullName, phone, roleId) => {
   }
 };
 
-export const deleteUserById = async (id) => {
+export const archiveUserById = async (id) => {
   const refreshToken = Cookies.get("refreshToken");
   try {
     const tokenResponse = await instance.post(

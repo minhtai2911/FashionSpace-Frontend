@@ -4,15 +4,15 @@ import { Dropdown } from "flowbite-react";
 import { Clock8 } from "lucide-react";
 
 import {
+  archiveUserById,
   createUser,
-  deleteUserById,
   getAllUsers,
   updateUserById,
 } from "../../data/users";
 import { getAllUserRoles, getUserRoleById } from "../../data/userRoles";
 import Search from "../../components/Search";
 import toast from "react-hot-toast";
-import { ROLE_NAME } from "../../utils/Constants";
+import { ROLE_NAME, USER_STATUS } from "../../utils/Constants";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -28,6 +28,7 @@ export default function Users() {
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All");
 
   function onCloseCreateModal() {
     setOpenCreateModal(false);
@@ -48,8 +49,10 @@ export default function Users() {
 
       let filteredData =
         searchTerm !== ""
-          ? updatedUsers.filter((u) =>
-              u.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+          ? updatedUsers.filter(
+              (u) =>
+                u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                u.email.toLowerCase().includes(searchTerm.toLowerCase())
             )
           : updatedUsers;
 
@@ -75,6 +78,17 @@ export default function Users() {
     }
   };
 
+  const getStatusClass = (status) => {
+    switch (status) {
+      case USER_STATUS.ACTIVE:
+        return "bg-green-100 text-green-600";
+      case USER_STATUS.INACTIVE:
+        return "bg-red-100 text-red-600";
+      default:
+        return "bg-gray-100 text-gray-600";
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchUserRoles();
@@ -82,13 +96,7 @@ export default function Users() {
 
   const handleCreateUser = async () => {
     try {
-      const createdUser = await createUser(
-        email,
-        fullName,
-        phone,
-        password,
-        userRole
-      );
+      await createUser(email, fullName, phone, password, userRole);
       toast.success("Thêm người dùng thành công", { duration: 2000 });
       fetchUsers();
       setEmail("");
@@ -120,11 +128,15 @@ export default function Users() {
     }
   };
 
-  const handleDeleteUser = async (id) => {
+  const handleDeleteUser = async (id, isActive) => {
     try {
-      await deleteUserById(id);
+      await archiveUserById(id);
       fetchUsers();
-      toast.success("Xóa người dùng thành công", { duration: 2000 });
+      if (isActive) {
+        toast.success("Lưu trữ người dùng thành công", { duration: 2000 });
+      } else {
+        toast.success("Khôi phục người dùng thành công", { duration: 2000 });
+      }
     } catch (error) {
       toast.error(error.response.data.message, {
         duration: 2000,
@@ -165,6 +177,19 @@ export default function Users() {
                   </option>
                 ))}
               </select>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+                required
+              >
+                <option value={"All"}>Tất cả</option>
+                {Object.values(USER_STATUS).map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="overflow-x-auto">
               <Table hoverable>
@@ -174,6 +199,7 @@ export default function Users() {
                   <Table.HeadCell>Email</Table.HeadCell>
                   <Table.HeadCell>Số điện thoại</Table.HeadCell>
                   <Table.HeadCell>Vai trò</Table.HeadCell>
+                  <Table.HeadCell>Trạng thái</Table.HeadCell>
                   <Table.HeadCell>Thao tác</Table.HeadCell>
                 </Table.Head>
                 <Table.Body className="divide-y">
@@ -182,13 +208,24 @@ export default function Users() {
                       key={user._id}
                       className="bg-white dark:border-gray-700 dark:bg-gray-800"
                     >
-                      <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                      <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white max-w-40 truncate overflow-hidden text-ellipsis">
                         {user._id}
                       </Table.Cell>
                       <Table.Cell>{user.fullName}</Table.Cell>
                       <Table.Cell>{user.email}</Table.Cell>
                       <Table.Cell>{user.phone}</Table.Cell>
                       <Table.Cell>{user.role}</Table.Cell>
+                      <Table.Cell>
+                        <div
+                          className={`px-3 py-1 rounded-lg text-center font-semibold ${getStatusClass(
+                            user.isActive
+                              ? USER_STATUS.ACTIVE
+                              : USER_STATUS.INACTIVE
+                          )}`}
+                        >
+                          {user.isActive ? "Đang hoạt động" : "Ngưng hoạt động"}
+                        </div>
+                      </Table.Cell>
                       <Table.Cell>
                         <div className="flex flex-row gap-x-3">
                           <button
@@ -243,24 +280,43 @@ export default function Users() {
                             </div>
                           </button>
                           <button
-                            onClick={() => handleDeleteUser(user._id)}
+                            onClick={() =>
+                              handleDeleteUser(user._id, user.isActive)
+                            }
                             className="font-medium text-[#EF0606] hover:underline"
                           >
                             <div className="flex flex-row gap-x-1 items-center">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="#EF0606"
-                                class="size-5"
-                              >
-                                <path d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375Z" />
-                                <path
-                                  fill-rule="evenodd"
-                                  d="m3.087 9 .54 9.176A3 3 0 0 0 6.62 21h10.757a3 3 0 0 0 2.995-2.824L20.913 9H3.087Zm6.163 3.75A.75.75 0 0 1 10 12h4a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1-.75-.75Z"
-                                  clip-rule="evenodd"
-                                />
-                              </svg>
-                              <p className="text-[#EF0606]">Lưu trữ</p>
+                              {user.isActive ? (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24"
+                                  fill="#EF0606"
+                                  class="size-5"
+                                >
+                                  <path
+                                    fill-rule="evenodd"
+                                    d="M5.478 5.559A1.5 1.5 0 0 1 6.912 4.5H9A.75.75 0 0 0 9 3H6.912a3 3 0 0 0-2.868 2.118l-2.411 7.838a3 3 0 0 0-.133.882V18a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3v-4.162c0-.299-.045-.596-.133-.882l-2.412-7.838A3 3 0 0 0 17.088 3H15a.75.75 0 0 0 0 1.5h2.088a1.5 1.5 0 0 1 1.434 1.059l2.213 7.191H17.89a3 3 0 0 0-2.684 1.658l-.256.513a1.5 1.5 0 0 1-1.342.829h-3.218a1.5 1.5 0 0 1-1.342-.83l-.256-.512a3 3 0 0 0-2.684-1.658H3.265l2.213-7.191Z"
+                                    clip-rule="evenodd"
+                                  />
+                                  <path
+                                    fill-rule="evenodd"
+                                    d="M12 2.25a.75.75 0 0 1 .75.75v6.44l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3 3a.75.75 0 0 1-1.06 0l-3-3a.75.75 0 0 1 1.06-1.06l1.72 1.72V3a.75.75 0 0 1 .75-.75Z"
+                                    clip-rule="evenodd"
+                                  />
+                                </svg>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24"
+                                  fill="#EF0606"
+                                  class="size-5"
+                                >
+                                  <path d="M11.47 1.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1-1.06 1.06l-1.72-1.72V7.5h-1.5V4.06L9.53 5.78a.75.75 0 0 1-1.06-1.06l3-3ZM11.25 7.5V15a.75.75 0 0 0 1.5 0V7.5h3.75a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3h3.75Z" />
+                                </svg>
+                              )}
+                              <p className="text-[#EF0606]">
+                                {user.isActive ? "Lưu trữ" : "Khôi phục"}
+                              </p>
                             </div>
                           </button>
                         </div>

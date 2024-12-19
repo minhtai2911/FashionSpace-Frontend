@@ -49,6 +49,14 @@ export const PAYMENT_STATUS = {
   UNPAID: "Chưa thanh toán",
   REFUNDED: "Đã hoàn tiền",
 };
+export const PRODUCT_STATUS = {
+  ACTIVE: "Đang bán",
+  INACTIVE: "Ngừng bán",
+};
+export const USER_STATUS = {
+  ACTIVE: "Đang hoạt động",
+  INACTIVE: "Ngưng hoạt động",
+};
 export const FREE_SHIPPING = 1000000;
 export const SHIPPING_RATE = 0.05;
 export const GENDER = [

@@ -152,7 +152,6 @@ function ProductDetails() {
       undefined,
       undefined
     );
-    console.log(fetchedReviews);
     const data = await Promise.all(
       fetchedReviews.map(async (review) => {
         const user = await getUserById(review.userId);
@@ -392,7 +391,7 @@ function ProductDetails() {
                   Giỏ hàng
                 </button>
                 <button
-                  onClick={() => setOpenModal(true)}
+                  onClick={handleCheckout}
                   className="px-10 py-3 text-white font-medium bg-black rounded-lg"
                 >
                   Mua ngay

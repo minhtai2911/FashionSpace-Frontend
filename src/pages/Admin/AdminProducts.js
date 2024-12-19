@@ -2,25 +2,29 @@ import { useState, useEffect } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { Table } from "flowbite-react";
 
-import { deleteProduct, getAllProducts } from "../../data/products";
+import { archiveProductById, getAllProducts } from "../../data/products";
 import { getCategoryById } from "../../data/categories";
 import Search from "../../components/Search";
 import { deleteProductImagesByProductId } from "../../data/productImages";
 import { deleteProductVariantsByProductId } from "../../data/productVariant";
 import toast from "react-hot-toast";
 import { formatToVND } from "../../utils/format";
+import { PRODUCT_STATUS } from "../../utils/Constants";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const navigate = useNavigate();
+  const [selectedStatus, setSelectedStatus] = useState("All");
 
-  const handleDeleteProduct = async (productId) => {
+  const handleDeleteProduct = async (productId, isActive) => {
     try {
-      await deleteProductImagesByProductId(productId);
-      await deleteProductVariantsByProductId(productId);
-      await deleteProduct(productId);
-      toast.success("Lưu trữ sản phẩm thành công", { duration: 2000 });
+      await archiveProductById(productId);
+      fetchProducts();
+      if (isActive) {
+        toast.success("Lưu trữ sản phẩm thành công", { duration: 2000 });
+      } else {
+        toast.success("Khôi phục sản phẩm thành công", { duration: 2000 });
+      }
     } catch (error) {
       toast.error(error.response.data.message);
     }
@@ -44,20 +48,44 @@ export default function Products() {
     }
   }
 
+  const getStatusClass = (status) => {
+    switch (status) {
+      case PRODUCT_STATUS.ACTIVE:
+        return "bg-green-100 text-green-600";
+      case PRODUCT_STATUS.INACTIVE:
+        return "bg-red-100 text-red-600";
+      default:
+        return "bg-gray-100 text-gray-600";
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm]);
+  }, [searchTerm, selectedStatus]);
 
   return (
     <div className="p-10 w-full">
       <p className="font-extrabold text-xl">Sản phẩm</p>
       <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col">
         <div className="overflow-x-auto">
-          <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between pb-4">
+          <div class="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center gap-x-3 pb-4">
             <Search
               placeholder={"Tên sản phẩm"}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="w-fit h-fit font-semibold font-manrope px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+              required
+            >
+              <option value={"All"}>Tất cả</option>
+              {Object.values(PRODUCT_STATUS).map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="overflow-x-auto">
             <Table hoverable>
@@ -67,6 +95,7 @@ export default function Products() {
                 <Table.HeadCell>Danh mục</Table.HeadCell>
                 <Table.HeadCell>Đơn giá</Table.HeadCell>
                 <Table.HeadCell>Số sao</Table.HeadCell>
+                <Table.HeadCell>Trạng thái</Table.HeadCell>
                 <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
@@ -75,7 +104,7 @@ export default function Products() {
                     key={product._id}
                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
                   >
-                    <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                    <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white max-w-40 truncate overflow-hidden text-ellipsis">
                       {product._id}
                     </Table.Cell>
                     <Table.Cell>{product.name}</Table.Cell>
@@ -99,7 +128,18 @@ export default function Products() {
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      <div className="flex flex-row gap-x-3">
+                      <div
+                        className={`px-3 py-1 rounded-lg text-center font-semibold ${getStatusClass(
+                          product.isActive
+                            ? PRODUCT_STATUS.ACTIVE
+                            : PRODUCT_STATUS.INACTIVE
+                        )}`}
+                      >
+                        {product.isActive ? "Đang bán" : "Ngừng bán"}
+                      </div>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <div className="flex flex-row gap-x-3 items-center">
                         <Link
                           to={`/admin/products/details/${product._id}`}
                           className="font-medium hover:underline"
@@ -147,23 +187,42 @@ export default function Products() {
                         </Link>
                         <button
                           className="font-medium text-[#EF0606] hover:underline"
-                          onClick={() => handleDeleteProduct(product._id)}
+                          onClick={() =>
+                            handleDeleteProduct(product._id, product.isActive)
+                          }
                         >
                           <div className="flex flex-row gap-x-1 items-center">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="#EF0606"
-                              class="size-5"
-                            >
-                              <path d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375Z" />
-                              <path
-                                fill-rule="evenodd"
-                                d="m3.087 9 .54 9.176A3 3 0 0 0 6.62 21h10.757a3 3 0 0 0 2.995-2.824L20.913 9H3.087Zm6.163 3.75A.75.75 0 0 1 10 12h4a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1-.75-.75Z"
-                                clip-rule="evenodd"
-                              />
-                            </svg>
-                            <p className="text-[#EF0606]">Lưu trữ</p>
+                            {product.isActive ? (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="#EF0606"
+                                class="size-5"
+                              >
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M5.478 5.559A1.5 1.5 0 0 1 6.912 4.5H9A.75.75 0 0 0 9 3H6.912a3 3 0 0 0-2.868 2.118l-2.411 7.838a3 3 0 0 0-.133.882V18a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3v-4.162c0-.299-.045-.596-.133-.882l-2.412-7.838A3 3 0 0 0 17.088 3H15a.75.75 0 0 0 0 1.5h2.088a1.5 1.5 0 0 1 1.434 1.059l2.213 7.191H17.89a3 3 0 0 0-2.684 1.658l-.256.513a1.5 1.5 0 0 1-1.342.829h-3.218a1.5 1.5 0 0 1-1.342-.83l-.256-.512a3 3 0 0 0-2.684-1.658H3.265l2.213-7.191Z"
+                                  clip-rule="evenodd"
+                                />
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M12 2.25a.75.75 0 0 1 .75.75v6.44l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3 3a.75.75 0 0 1-1.06 0l-3-3a.75.75 0 0 1 1.06-1.06l1.72 1.72V3a.75.75 0 0 1 .75-.75Z"
+                                  clip-rule="evenodd"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="#EF0606"
+                                class="size-5"
+                              >
+                                <path d="M11.47 1.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1-1.06 1.06l-1.72-1.72V7.5h-1.5V4.06L9.53 5.78a.75.75 0 0 1-1.06-1.06l3-3ZM11.25 7.5V15a.75.75 0 0 0 1.5 0V7.5h3.75a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3h3.75Z" />
+                              </svg>
+                            )}
+                            <p className="text-[#EF0606]">
+                              {product.isActive ? "Lưu trữ" : "Khôi phục"}
+                            </p>
                           </div>
                         </button>
                       </div>
