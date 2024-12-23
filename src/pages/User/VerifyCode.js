@@ -133,11 +133,11 @@ function VerifyCode() {
         <p className="mt-6 text-center">
           Chưa nhận được mã xác thực?{" "}
           <button
-            className="cursor-pointer disabled:cursor-not-allowed"
+            className="cursor-pointer disabled:cursor-not-allowed disabled:text-[#818181] underline"
             onClick={handleResendCode}
             disabled={timer > 0}
           >
-            <u className="hover:text-[#818181]">Gửi lại mã</u>
+            Gửi lại mã
           </button>
         </p>
       </div>

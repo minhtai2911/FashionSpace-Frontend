@@ -303,7 +303,7 @@ export default function Sizes() {
                     value={category._id}
                     className="font-medium font-manrope text-sm"
                   >
-                    {category.name}
+                    {`${category.name} [${category.gender}]`}
                   </option>
                 ))}
               </select>
@@ -325,7 +325,7 @@ export default function Sizes() {
                 className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
                 onClick={handleCreateSize}
               >
-                Thêm danh mục
+                Thêm kích cỡ
               </button>
             </div>
           </div>
@@ -391,7 +391,7 @@ export default function Sizes() {
                     value={category._id}
                     className="font-medium font-manrope text-sm"
                   >
-                    {category.name}
+                    {`${category.name} [${category.gender}]`}
                   </option>
                 ))}
               </select>

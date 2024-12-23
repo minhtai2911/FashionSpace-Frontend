@@ -275,7 +275,7 @@ export default function CreateProduct() {
                   </option>
                   {categories.map((category) => (
                     <option key={category._id} value={category._id}>
-                      {category.name}
+                      {`${category.name} [${category.gender}]`}
                     </option>
                   ))}
                 </select>

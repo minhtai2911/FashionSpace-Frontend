@@ -25,6 +25,7 @@ function SignIn() {
     email: "",
     password: "",
   });
+  const [rememberMe, setRememberMe] = useState(false);
 
   if (isAuthenticated) {
     navigate("/");
@@ -179,7 +180,10 @@ function SignIn() {
             </div>
             <div className="mt-4 flex flex-row items-center justify-between">
               <div className="flex-row gap-x-3 flex items-center">
-                <CheckBox />
+                <CheckBox
+                  isChecked={rememberMe}
+                  onChange={() => setRememberMe(!rememberMe)}
+                />
                 <p className="text-base">Lưu đăng nhập</p>
               </div>
               <Link to="/forgotPassword" className="text-base">

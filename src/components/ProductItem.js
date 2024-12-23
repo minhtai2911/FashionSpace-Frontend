@@ -175,7 +175,7 @@ function ProductItem({ id, usage }) {
             />
           )}
           <img
-            className="object-cover h-60"
+            className="object-cover h-60 w-56"
             src={formatURL(image)}
             alt="product image"
           />

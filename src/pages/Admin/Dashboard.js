@@ -168,7 +168,7 @@ export default function Dashboard() {
         <DashboardCard
           title={"Tổng đơn hàng"}
           value={orders.length}
-          description={"We have sold 123 items"}
+          description={"Số lượng đơn hàng đã đặt"}
           icon={
             <svg
               width="60"
@@ -190,7 +190,7 @@ export default function Dashboard() {
         <DashboardCard
           title={"Tổng doanh thu"}
           value={`${formatToVND(totalRevenue)}`}
-          description={"Available to payout"}
+          description={"Doanh thu từ các đơn hàng thành công"}
           icon={
             <svg
               width="60"
@@ -212,7 +212,7 @@ export default function Dashboard() {
         <DashboardCard
           title={"Tổng sản phẩm"}
           value={products.length}
-          description={"We have variety of products"}
+          description={"Số lượng sản phẩm của cửa hàng"}
           icon={
             <svg
               width="60"
@@ -234,7 +234,7 @@ export default function Dashboard() {
         <DashboardCard
           title={"Tổng người dùng"}
           value={users.length}
-          description={"All users from database"}
+          description={"Số lượng người dùng của website"}
           icon={
             <svg
               width="60"
