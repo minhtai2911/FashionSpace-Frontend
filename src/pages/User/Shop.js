@@ -178,7 +178,7 @@ function Shop() {
                     isChecked={selectedCategories.includes(category.name)}
                     onChange={() => handleCategoryChange(category.name)}
                   />
-                  <label className="">{category.name}</label>
+                  <label className="">{`${category.name}`}</label>
                 </div>
               ))}
             </div>

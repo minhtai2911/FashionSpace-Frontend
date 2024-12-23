@@ -299,8 +299,6 @@ function ProductDetails() {
                 </div>
                 <p className="font-semibold text-xl">{formatToVND(price)}</p>
               </div>
-              <p>{description}</p>
-
               <div>
                 <p className="font-medium text-xl mb-1">Màu sắc:</p>
                 <div className="flex flex-row gap-x-2">

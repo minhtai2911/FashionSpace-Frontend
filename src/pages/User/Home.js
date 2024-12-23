@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import FeatureBanner from "../../components/FeatureBanner";
 import BannerClothes from "../../assets/images/banner_clothes.jpg";
-import ProductItem from "../../components/ProductItem";
 import Slider from "../../components/Slider";
 import {
   getBestSellerProducts,
   getNewArrivalProducts,
 } from "../../data/products";
+import { getRelatedProducts } from "../../data/recommendation";
+import { AuthContext } from "../../context/AuthContext";
 
 function Home() {
+  const { isAuthenticated } = useContext(AuthContext);
   const [newArrivalProducts, setNewArrivalProducts] = useState([]);
   const [bestSellerProducts, setBestSellerProducts] = useState([]);
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
   useEffect(() => {
     const fetchNewArrivalProducts = async () => {
@@ -21,8 +24,17 @@ function Home() {
       const products = await getBestSellerProducts();
       setBestSellerProducts(products);
     };
+    const fetchRelatedProducts = async () => {
+      const products = await getRelatedProducts();
+      setRelatedProducts(products);
+    };
+
     fetchNewArrivalProducts();
     fetchBestSellerProducts();
+
+    if (isAuthenticated) {
+      fetchRelatedProducts();
+    }
   }, []);
 
   return (
@@ -71,6 +83,16 @@ function Home() {
       </div>
       <div className="px-40">
         <FeatureBanner />
+        {isAuthenticated && (
+          <div className="mx-auto py-10">
+            <div className="flex text-center justify-center items-center pb-2">
+              <h1 className="font-medium px-24 text-3xl">
+                Có thể bạn sẽ thích
+              </h1>
+            </div>
+            <Slider products={relatedProducts} usage={""} />
+          </div>
+        )}
         <div className="mx-auto py-10">
           <div className="flex text-center justify-center items-center pb-2">
             <h1 className="font-medium px-24 text-3xl">Sản phẩm mới</h1>
