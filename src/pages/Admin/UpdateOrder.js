@@ -36,6 +36,8 @@ export default function UpdateOrder() {
   const [newStatus, setNewStatus] = useState("");
   const navigate = useNavigate();
 
+  const orderStatusValues = Object.values(ORDER_STATUS);
+
   const { auth, setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
 
@@ -109,7 +111,7 @@ export default function UpdateOrder() {
 
   const handleUpdateOrder = async () => {
     try {
-      await createOrderTracking(id, status, currentAddress, deliveryDate);
+      await createOrderTracking(id, newStatus, currentAddress, deliveryDate);
       if (status === ORDER_STATUS.SHIPPED) {
         await updatePaymentDetailById(
           orderWithDetails.paymentDetails._id,
@@ -129,6 +131,17 @@ export default function UpdateOrder() {
       status !== newStatus ||
       currentAddress !== newCurrentAddress
     );
+  };
+
+  const isCanCancel = () => {
+    return (
+      orderWithDetails?.paymentDetails?.paymentMethod === "MOMO" &&
+      orderWithDetails?.paymentDetails?.paymentStatus === PAYMENT_STATUS.PAID
+    );
+  };
+
+  const getCurrentStatus = (status) => {
+    return orderStatusValues.indexOf(status);
   };
 
   if (!permission || !permission.includes("ORDERS")) {
@@ -172,22 +185,29 @@ export default function UpdateOrder() {
               </div>
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">Trạng thái</p>
-                {newStatus !== ORDER_STATUS.SHIPPED &&
-                newStatus !== ORDER_STATUS.CANCELLED ? (
+                {status !== ORDER_STATUS.SHIPPED &&
+                status !== ORDER_STATUS.CANCELLED ? (
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
                   >
-                    {Object.entries(ORDER_STATUS).map(([key, value]) => (
-                      <option key={key} value={value}>
+                    {orderStatusValues.map((value, index) => (
+                      <option
+                        key={index}
+                        value={value}
+                        disabled={
+                          index < getCurrentStatus(status) ||
+                          (isCanCancel() && value === ORDER_STATUS.CANCELLED)
+                        }
+                      >
                         {value}
                       </option>
                     ))}
                   </select>
                 ) : (
                   <input
-                    value={newStatus}
+                    value={status}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
                     disabled
                   />
@@ -244,12 +264,12 @@ export default function UpdateOrder() {
                     setNewDeliveryDate(e.target.value);
                   }}
                   disabled={
-                    newStatus === ORDER_STATUS.SHIPPED ||
-                    newStatus === ORDER_STATUS.CANCELLED
+                    status === ORDER_STATUS.SHIPPED ||
+                    status === ORDER_STATUS.CANCELLED
                   }
                   className={`w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent ${
-                    newStatus === ORDER_STATUS.SHIPPED ||
-                    newStatus === ORDER_STATUS.CANCELLED
+                    status === ORDER_STATUS.SHIPPED ||
+                    status === ORDER_STATUS.CANCELLED
                       ? "text-[#808191]"
                       : "text-[#0A0A0A]"
                   } text-sm`}
@@ -263,12 +283,12 @@ export default function UpdateOrder() {
                   value={currentAddress}
                   onChange={(e) => setCurrentAddress(e.target.value)}
                   disabled={
-                    newStatus === ORDER_STATUS.SHIPPED ||
-                    newStatus === ORDER_STATUS.CANCELLED
+                    status === ORDER_STATUS.SHIPPED ||
+                    status === ORDER_STATUS.CANCELLED
                   }
                   className={`w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent ${
-                    newStatus === ORDER_STATUS.SHIPPED ||
-                    newStatus === ORDER_STATUS.CANCELLED
+                    status === ORDER_STATUS.SHIPPED ||
+                    status === ORDER_STATUS.CANCELLED
                       ? "text-[#808191]"
                       : "text-[#0A0A0A]"
                   } text-sm`}
@@ -314,8 +334,8 @@ export default function UpdateOrder() {
         className="px-6 py-2 rounded-lg bg-[#0A0A0A] disabled:bg-[#4A4A4A] disabled:cursor-not-allowed text-white font-extrabold mt-10"
         onClick={handleUpdateOrder}
         disabled={
-          newStatus === ORDER_STATUS.SHIPPED ||
-          newStatus === ORDER_STATUS.CANCELLED ||
+          status === ORDER_STATUS.SHIPPED ||
+          status === ORDER_STATUS.CANCELLED ||
           !isChanged()
         }
       >

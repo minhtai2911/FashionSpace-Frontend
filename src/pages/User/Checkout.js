@@ -27,9 +27,8 @@ const apiEndpointCommune = apiUrl + "/v1/partner/areas/commune?district=";
 
 function Checkout() {
   const location = useLocation();
+  const { orderSummary, type } = location.state;
   const { user, createCart } = useContext(AuthContext);
-  let orderSummary = 0;
-  let type = "";
   const carts = useSelector((state) => state.cart.items);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -348,20 +347,6 @@ function Checkout() {
       createCart(updatedCarts);
     }
   }, [isOrderCreated]);
-
-  if (location.state) {
-    orderSummary = location.state.orderSummary;
-    type = location.state.type;
-  } else {
-    setHasError(true);
-    return (
-      <Error
-        errorCode={403}
-        title={"Forbidden"}
-        content={"Bạn không có quyền truy cập trang này."}
-      />
-    );
-  }
 
   if (!auth.permission || !auth.permission.includes("CHECKOUT")) {
     setHasError(true);

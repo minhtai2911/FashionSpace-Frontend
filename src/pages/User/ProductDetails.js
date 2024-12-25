@@ -10,9 +10,7 @@ import { getCategoryById } from "../../data/categories";
 import { getProductVariantsByProductId } from "../../data/productVariant";
 import { getColorById } from "../../data/colors";
 import { getSizeById } from "../../data/sizes";
-import { createShoppingCart } from "../../data/shoppingCart";
-import { getAllReviews, getReviewsByProductId } from "../../data/reviews";
-import { getReviewResponseByReviewId } from "../../data/reviewResponse";
+import { getAllReviews } from "../../data/reviews";
 import { getUserById } from "../../data/users";
 
 import Banner from "../../components/Banner";
@@ -22,7 +20,6 @@ import SellerFeedback from "../../components/SellerFeedback";
 import Size from "../../components/Size";
 import Review from "../../components/Review";
 import Pagination from "../../components/Pagination";
-import Slider from "../../components/Slider";
 import FeatureBanner from "../../components/FeatureBanner";
 import {
   FREE_SHIPPING,
@@ -34,65 +31,7 @@ import { formatToVND, formatURL } from "../../utils/format";
 import toast from "react-hot-toast";
 import Error from "../Error";
 import Cookies from "js-cookie";
-
-const relatedProducts = [
-  {
-    id: 1,
-    name: "Classy Leather Jacket",
-    category: "Jacket",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 2,
-    name: "Basic Necktie",
-    category: "Accessories",
-    price: "70.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 3,
-    name: "Mini Skirt",
-    category: "Skirt",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 4,
-    name: "Mini Skirt",
-    category: "Skirt",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 5,
-    name: "Mini Skirt",
-    category: "Skirt",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 6,
-    name: "Mini Skirt",
-    category: "Skirt",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-  {
-    id: 7,
-    name: "Mini Skirt",
-    category: "Skirt",
-    price: "75.00",
-    rating: 4.8,
-    image: "https://picsum.photos/200",
-  },
-];
+import instance from "../../services/axiosConfig";
 
 function ProductDetails() {
   const { auth, setHasError } = useContext(AuthContext);
@@ -103,12 +42,13 @@ function ProductDetails() {
   const navigate = useNavigate();
   const carts = useSelector((store) => store.cart.items);
 
-  const [productName, setProductName] = useState("");
+  const [product, setProduct] = useState({});
+  // const [productName, setProductName] = useState("");
+  // const [category, setCategory] = useState([]);
+  // const [price, setPrice] = useState("");
+  // const [description, setDescription] = useState("");
+  // const [rating, setRating] = useState(0);
   const [photos, setPhotos] = useState([]);
-  const [category, setCategory] = useState([]);
-  const [price, setPrice] = useState("");
-  const [description, setDescription] = useState("");
-  const [rating, setRating] = useState(0);
   const [variants, setVariants] = useState([]);
   const [colors, setColors] = useState([]);
   const [selectedColor, setSelectedColor] = useState();
@@ -123,15 +63,26 @@ function ProductDetails() {
 
   const fetchProduct = async () => {
     const product = await getProductById(id);
-    setProductName(product.name);
-    setPrice(product.price);
-    setDescription(product.description);
-    setRating(product.rating);
+
+    // setProductName(product.name);
+    // setPrice(product.price);
+    // setDescription(product.description);
+    // setRating(product.rating);
     const fetchedCategory = await getCategoryById(product.categoryId);
-    setCategory(fetchedCategory.name);
+    // setCategory(fetchedCategory.name);
     const fetchedImages = await getAllImagesByProductId(id);
     setMainImage(fetchedImages[0].imagePath);
     setPhotos(fetchedImages);
+
+    setProduct({
+      productName: product.name,
+      price: product.price,
+      description: product.description,
+      rating: product.rating,
+      category: fetchedCategory.name,
+      soldQuantity: product.soldQuantity,
+      totalReview: product.totalReview,
+    });
   };
 
   const fetchVariants = async () => {
@@ -172,10 +123,40 @@ function ProductDetails() {
     setReviews(data);
   };
 
+  const addToProductView = async () => {
+    const refreshToken = Cookies.get("refreshToken");
+    try {
+      const tokenResponse = await instance.post(
+        "/auth/refreshToken",
+        {
+          refreshToken: refreshToken,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const accessToken = tokenResponse.data.accessToken;
+      const response = await instance.post(
+        "/productView",
+        { productId: id },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     fetchProduct();
     fetchVariants();
     fetchReviews();
+    addToProductView();
   }, [id]);
 
   const uniqueColors = useMemo(() => {
@@ -199,23 +180,23 @@ function ProductDetails() {
   }, [selectedColor, variants]);
 
   useEffect(() => {
-    if (productName) {
-      document.title = productName;
+    if (product.productName) {
+      document.title = product.productName;
     }
-  }, [productName]);
+  }, [product]);
 
   const handleAddToCart = async () => {
-    const product = {
+    const productData = {
       productId: id,
-      name: productName,
-      categoryId: category,
-      price: price,
+      name: product.name,
+      categoryId: product.category,
+      price: product.price,
       quantity: quantity,
       sizeId: selectedSize,
       colorId: selectedColor,
       image: mainImage,
     };
-    dispatch(addToCart(product));
+    dispatch(addToCart(productData));
     toast.success("Sản phẩm đã được thêm vào giỏ hàng", { duration: 2000 });
   };
 
@@ -226,10 +207,10 @@ function ProductDetails() {
     currentPage * REVIEWS_PER_PAGE
   );
 
-  const percentage = Math.round((rating / 5) * 100);
+  const percentage = Math.round((product.rating / 5) * 100);
 
   const handleCheckout = () => {
-    const subTotal = quantity * price;
+    const subTotal = quantity * product.price;
     const shipping =
       subTotal > FREE_SHIPPING || subTotal === 0 ? 0 : subTotal * SHIPPING_RATE;
     const totalPrice = subTotal + shipping;
@@ -245,7 +226,7 @@ function ProductDetails() {
     const orderSummary = {
       items: selectedCartItems,
       totalItems: quantity,
-      subTotal: quantity * price,
+      subTotal: quantity * product.price,
       shipping: shipping,
       totalPrice: totalPrice,
     };
@@ -275,12 +256,12 @@ function ProductDetails() {
       <div>
         <Banner
           title="Chi tiết sản phẩm"
-          route={`Trang chủ / Cửa hàng / Chi tiết sản phẩm / ${productName}`}
+          route={`Trang chủ / Cửa hàng / Chi tiết sản phẩm / ${product.productName}`}
         />
         <div className="px-40">
           <div className="flex flex-row mt-10 gap-x-20">
             <div className="flex flex-col gap-y-2 w-[40%]">
-              <img src={formatURL(mainImage)} alt={productName} />
+              <img src={formatURL(mainImage)} alt={product.productName} />
 
               <div className="flex flex-row gap-x-[6.66px] overflow-y-scroll">
                 {photos.map((image, index) => (
@@ -303,16 +284,30 @@ function ProductDetails() {
               </div>
             </div>
             <div className="flex-1 gap-y-4 flex flex-col">
-              <p>{category}</p>
+              <p>{product.category}</p>
               <div className="flex flex-col gap-y-1">
-                <p className="font-semibold text-2xl">{productName}</p>
+                <div className="flex gap-x-3 items-center">
+                  <p className="font-semibold text-2xl">
+                    {product.productName}
+                  </p>
+                  <p className="ml-3 text-xl">
+                    (Đã bán: {product.soldQuantity})
+                  </p>
+                </div>
                 <div className="flex flex-row items-center">
                   <Rating percentage={percentage} />
                   <p className="ml-2 text-lg">
-                    {rating ? rating.toFixed(1) : "Chưa có đánh giá"}
+                    {product.rating
+                      ? product.rating.toFixed(1)
+                      : "Chưa có đánh giá"}
+                  </p>
+                  <p className="ml-5 text-xl">
+                    ({product.totalReview} đánh giá)
                   </p>
                 </div>
-                <p className="font-semibold text-xl">{formatToVND(price)}</p>
+                <p className="font-semibold text-xl">
+                  {formatToVND(product.price)}
+                </p>
               </div>
               <div>
                 <p className="font-medium text-xl mb-1">Màu sắc:</p>
@@ -441,44 +436,88 @@ function ProductDetails() {
                   </button>
                 </nav>
               </div>
-              <div className="mt-4">
+              <div className="mt-4 justify-center">
                 {activeTab === "description" && (
-                  <p className="text-sm">{description}</p>
+                  <p className="text-sm">{product.description}</p>
                 )}
                 {activeTab === "review" && (
-                  <div className="flex flex-col gap-y-4">
-                    {reviews.length > 0 ? (
-                      <>
-                        {currentReviews.map((review) => (
-                          <div key={review.id} className="mt-5">
-                            <div className="flex flex-col gap-y-5">
-                              <Review {...review} />
-                              {review.userResponse && review.reviewResponse && (
-                                <SellerFeedback
-                                  user={review.userResponse}
-                                  content={review.reviewResponse.content}
-                                  createdDate={
-                                    review.reviewResponse.createdDate
-                                  }
-                                />
-                              )}
+                  <>
+                    <div className="flex justify-center">
+                      <div className="flex flex-col mb-10 mt-5 w-fit gap-y-5">
+                        <div className="flex justify-center gap-x-10">
+                          <div className="flex flex-col justify-center gap-y-2">
+                            <p className="text-xl text-center">
+                              <label className="font-medium text-3xl mr-1">
+                                {product.rating.toFixed(1)}
+                              </label>{" "}
+                              trên 5.0
+                            </p>
+                            <div className="flex flex-row gap-x-2">
+                              {[...Array(5)].map((_, index) => (
+                                <svg
+                                  key={index}
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 40 40"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M20.0001 28.7833L26.9168 32.9667C28.1835 33.7333 29.7335 32.6 29.4001 31.1666L27.5668 23.3L33.6835 18C34.8001 17.0333 34.2001 15.2 32.7335 15.0833L24.6835 14.4L21.5335 6.96665C20.9668 5.61665 19.0335 5.61665 18.4668 6.96665L15.3168 14.3833L7.26679 15.0666C5.80012 15.1833 5.20012 17.0166 6.31679 17.9833L12.4335 23.2833L10.6001 31.15C10.2668 32.5833 11.8168 33.7167 13.0835 32.95L20.0001 28.7833Z"
+                                    fill="#FFE066"
+                                  />
+                                </svg>
+                              ))}
                             </div>
                           </div>
-                        ))}
-                        <Pagination
-                          currentPage={currentPage}
-                          totalPages={Math.ceil(
-                            reviews.length / REVIEWS_PER_PAGE
-                          )}
-                          onPageChange={setCurrentPage}
-                        />
-                      </>
-                    ) : (
-                      <div className="text-center font-bold text-2xl">
-                        Chưa có đánh giá nào
+                          <div className="w-[1px] bg-[#818181]"></div>
+                          <div className="flex items-center justify-center">
+                            <label className="text-4xl font-medium mr-2">
+                              {product.totalReview}
+                            </label>{" "}
+                            đánh giá
+                          </div>
+                        </div>
+                        <div className="h-[1px] w-full bg-[#818181]"></div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                    <div className="flex flex-col gap-y-4">
+                      {reviews.length > 0 ? (
+                        <>
+                          {currentReviews.map((review) => (
+                            <div key={review.id} className="mt-5">
+                              <div className="flex flex-col gap-y-5">
+                                <Review {...review} />
+                                {review.userResponse &&
+                                  review.reviewResponse && (
+                                    <SellerFeedback
+                                      user={review.userResponse}
+                                      content={review.reviewResponse.content}
+                                      createdDate={
+                                        review.reviewResponse.createdDate
+                                      }
+                                    />
+                                  )}
+                              </div>
+                            </div>
+                          ))}
+                          <Pagination
+                            currentPage={currentPage}
+                            totalPages={Math.ceil(
+                              reviews.length / REVIEWS_PER_PAGE
+                            )}
+                            onPageChange={setCurrentPage}
+                            svgClassName={"w-6 h-6"}
+                            textClassName={"text-xl px-3 py-2"}
+                          />
+                        </>
+                      ) : (
+                        <div className="text-center font-bold text-2xl">
+                          Chưa có đánh giá nào
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -501,21 +540,21 @@ function ProductDetails() {
             <div className="flex flex-row gap-x-5">
               <img
                 src={formatURL(mainImage)}
-                alt={productName}
+                alt={product.productName}
                 className="w-40 rounded-lg"
               />
               <div className="flex flex-col justify-between flex-1">
-                <p className="text-sm">{category}</p>
+                <p className="text-sm">{product.category}</p>
                 <div className="flex flex-col gap-y-1">
-                  <p className="font-medium text-base">{productName}</p>
+                  <p className="font-medium text-base">{product.productName}</p>
                   <div className="flex flex-row items-center">
-                    <Rating percentage={(rating / 5) * 100} />
+                    <Rating percentage={(product.rating / 5) * 100} />
                     <p className="ml-2 text-lg">
-                      {rating ? rating : "Chưa có đánh giá"}
+                      {product.rating ? product.rating : "Chưa có đánh giá"}
                     </p>
                   </div>
                   <p className="font-semibold text-base">
-                    {formatToVND(price)}
+                    {formatToVND(product.price)}
                   </p>
                 </div>
                 <div className="flex flex-row gap-x-5 items-center">
@@ -627,7 +666,7 @@ function ProductDetails() {
             </div>
             <div className="rounded-lg py-3 px-5 flex flex-row justify-between bg-[#F8F9FA] font-medium text-xl mt-2">
               <p>Tổng:</p>
-              <p>{formatToVND(price * quantity)}</p>
+              <p>{formatToVND(product.price * quantity)}</p>
             </div>
           </div>
         </Modal.Body>

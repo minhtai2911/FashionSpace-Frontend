@@ -46,8 +46,10 @@ export default function MyOrders() {
   });
   const [hoveredRating, setHoveredRating] = useState(0);
   const [hasReview, setHasReview] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function fetchOrders() {
+    setIsLoading(true);
     try {
       const orders = await getOrderByUserId(user.id);
       const fetchedOrders = await Promise.all(
@@ -117,7 +119,9 @@ export default function MyOrders() {
         })
       );
       setOrders(fetchedOrders);
+      setIsLoading(false);
     } catch (error) {
+      setIsLoading(false);
       console.error("Error fetching order details:", error);
     }
   }
@@ -193,136 +197,138 @@ export default function MyOrders() {
 
   return (
     <>
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">
-          Số đơn hàng: {orders.length}
-        </h2>
-        {orders.length > 0 ? (
-          orders.map((order) => (
-            <table key={order._id} className="mb-5 w-full">
-              <tr className="bg-[#0A0A0A]">
-                <td className="py-2 px-4 text-white rounded-tl-lg w-[25%]">
-                  Mã đơn hàng
-                  <br />
-                  {order._id}
-                </td>
-                <td className="p-2 text-white w-[20%]">
-                  Phương thức
-                  <br />
-                  {order.paymentDetails.paymentMethod}
-                </td>
-                <td className="p-2 text-white w-[20%]">
-                  Tổng đơn hàng
-                  <br />
-                  {formatToVND(order.total)}
-                </td>
-                <td className="py-2 px-4 text-white rounded-tr-lg w-[35%]">
-                  {order.tracking.status === ORDER_STATUS.SHIPPED
-                    ? "Ngày giao hàng"
-                    : "Ngày giao hàng dự kiến"}
-                  <br />
-                  {order.tracking.status === ORDER_STATUS.SHIPPED
-                    ? formatDate(order.tracking.date)
-                    : formatDate(order.tracking.expectedDeliveryDate)}
-                </td>
-              </tr>
-              <tbody className="border-l border-r border-b">
-                <tr className="space-y-4 border-b mb-4">
-                  <td colSpan={4} className="p-2">
-                    {order.detailedItems.map((item, index) => (
-                      <div className="flex flex-row justify-between items-center">
-                        <div
-                          key={item.product._id}
-                          className="px-4 py-2 flex items-center"
-                        >
-                          <img
-                            src={formatURL(item.images[0].imagePath)}
-                            alt={item.name}
-                            className="w-16 h-16 mr-4"
-                          />
-                          <div>
-                            <p className="font-medium">{item.product.name}</p>
-                            <p className="font-light">
-                              Màu sắc: {item.color.color} | Kích cỡ:{" "}
-                              {item.size.size} | Số lượng:{" "}
-                              {order.details[index].quantity}
-                            </p>
+      {!isLoading && (
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">
+            Số đơn hàng: {orders.length}
+          </h2>
+          {orders.length > 0 ? (
+            orders.map((order) => (
+              <table key={order._id} className="mb-5 w-full">
+                <tr className="bg-[#0A0A0A]">
+                  <td className="py-2 px-4 text-white rounded-tl-lg w-[25%]">
+                    Mã đơn hàng
+                    <br />
+                    {order._id}
+                  </td>
+                  <td className="p-2 text-white w-[20%]">
+                    Phương thức
+                    <br />
+                    {order.paymentDetails.paymentMethod}
+                  </td>
+                  <td className="p-2 text-white w-[20%]">
+                    Tổng đơn hàng
+                    <br />
+                    {formatToVND(order.total)}
+                  </td>
+                  <td className="py-2 px-4 text-white rounded-tr-lg w-[35%]">
+                    {order.tracking.status === ORDER_STATUS.SHIPPED
+                      ? "Ngày giao hàng"
+                      : "Ngày giao hàng dự kiến"}
+                    <br />
+                    {order.tracking.status === ORDER_STATUS.SHIPPED
+                      ? formatDate(order.tracking.date)
+                      : formatDate(order.tracking.expectedDeliveryDate)}
+                  </td>
+                </tr>
+                <tbody className="border-l border-r border-b">
+                  <tr className="space-y-4 border-b mb-4">
+                    <td colSpan={4} className="p-2">
+                      {order.detailedItems.map((item, index) => (
+                        <div className="flex flex-row justify-between items-center">
+                          <div
+                            key={item.product._id}
+                            className="px-4 py-2 flex items-center"
+                          >
+                            <img
+                              src={formatURL(item.images[0].imagePath)}
+                              alt={item.name}
+                              className="w-16 h-16 mr-4"
+                            />
+                            <div>
+                              <p className="font-medium">{item.product.name}</p>
+                              <p className="font-light">
+                                Màu sắc: {item.color.color} | Kích cỡ:{" "}
+                                {item.size.size} | Số lượng:{" "}
+                                {order.details[index].quantity}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        {order.tracking.status === ORDER_STATUS.SHIPPED && (
-                          <button
-                            className="bg-black h-fit text-white px-4 py-2 rounded-md"
-                            onClick={() => {
-                              if (!hasReview) {
-                                setReview({
-                                  ...review,
-                                  productId: item.product._id,
-                                  orderId: order._id,
-                                });
-                                setOpenAddReviewModal(true);
-                              } else {
-                                setOpenEditReviewModal(true);
-                              }
-                            }}
-                          >
-                            {!hasReview
-                              ? "Thêm đánh giá"
-                              : "Chỉnh sửa đánh giá"}
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </td>
-                </tr>
-
-                <tr className="font-medium">
-                  <td colSpan={4} className="p-2">
-                    <div className="p-2 flex items-center gap-x-2">
-                      Trạng thái đơn hàng:{" "}
-                      <p
-                        className={`inline-block px-4 py-2 rounded ${getStatusClass(
-                          order.tracking.status
-                        )}`}
-                      >
-                        {order.tracking.status}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-
-                {order.tracking.status !== ORDER_STATUS.SHIPPED &&
-                  order.tracking.status !== ORDER_STATUS.CANCELLED && (
-                    <tr>
-                      <td className="px-4 pb-4 pt-2" colSpan={4}>
-                        <div className="flex gap-x-2">
-                          <Link
-                            to={`/trackOrder/${order._id}`}
-                            className="bg-black text-white px-4 py-2 rounded-md"
-                          >
-                            Theo dõi đơn hàng
-                          </Link>
-                          {order.tracking.status === ORDER_STATUS.PENDING && (
+                          {order.tracking.status === ORDER_STATUS.SHIPPED && (
                             <button
-                              className="bg-red-500 text-white px-4 py-2 rounded-md"
+                              className="bg-black h-fit text-white px-4 py-2 rounded-md"
                               onClick={() => {
-                                setSelectedOrder(order);
-                                setOpenCancelOrderModal(true);
+                                if (!hasReview) {
+                                  setReview({
+                                    ...review,
+                                    productId: item.product._id,
+                                    orderId: order._id,
+                                  });
+                                  setOpenAddReviewModal(true);
+                                } else {
+                                  setOpenEditReviewModal(true);
+                                }
                               }}
                             >
-                              Hủy đơn hàng
+                              {!hasReview
+                                ? "Thêm đánh giá"
+                                : "Chỉnh sửa đánh giá"}
                             </button>
                           )}
                         </div>
-                      </td>
-                    </tr>
-                  )}
-              </tbody>
-            </table>
-          ))
-        ) : (
-          <p>Không tìm thấy đơn hàng.</p>
-        )}
-      </div>
+                      ))}
+                    </td>
+                  </tr>
+
+                  <tr className="font-medium">
+                    <td colSpan={4} className="p-2">
+                      <div className="p-2 flex items-center gap-x-2">
+                        Trạng thái đơn hàng:{" "}
+                        <p
+                          className={`inline-block px-4 py-2 rounded ${getStatusClass(
+                            order.tracking.status
+                          )}`}
+                        >
+                          {order.tracking.status}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+
+                  {order.tracking.status !== ORDER_STATUS.SHIPPED &&
+                    order.tracking.status !== ORDER_STATUS.CANCELLED && (
+                      <tr>
+                        <td className="px-4 pb-4 pt-2" colSpan={4}>
+                          <div className="flex gap-x-2">
+                            <Link
+                              to={`/trackOrder/${order._id}`}
+                              className="bg-black text-white px-4 py-2 rounded-md"
+                            >
+                              Theo dõi đơn hàng
+                            </Link>
+                            {order.tracking.status === ORDER_STATUS.PENDING && (
+                              <button
+                                className="bg-red-500 text-white px-4 py-2 rounded-md"
+                                onClick={() => {
+                                  setSelectedOrder(order);
+                                  setOpenCancelOrderModal(true);
+                                }}
+                              >
+                                Hủy đơn hàng
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                </tbody>
+              </table>
+            ))
+          ) : (
+            <p>Không tìm thấy đơn hàng.</p>
+          )}
+        </div>
+      )}
       <Modal
         show={openAddReviewModal}
         size="lg"

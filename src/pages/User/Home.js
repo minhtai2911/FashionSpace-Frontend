@@ -13,6 +13,7 @@ import Error from "../Error";
 
 function Home() {
   const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
+  const refreshToken = Cookies.get("refreshToken");
   const [newArrivalProducts, setNewArrivalProducts] = useState([]);
   const [bestSellerProducts, setBestSellerProducts] = useState([]);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -37,7 +38,7 @@ function Home() {
     fetchNewArrivalProducts();
     fetchBestSellerProducts();
 
-    if (user) {
+    if (refreshToken) {
       fetchRelatedProducts();
     }
   }, []);
