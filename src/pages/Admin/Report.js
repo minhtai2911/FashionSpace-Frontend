@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 
 import { Dropdown, Table } from "flowbite-react";
 import {
@@ -17,6 +17,9 @@ import { saveAs } from "file-saver";
 import Calendar from "../../components/Calendar";
 import { getStatistics } from "../../data/statistic";
 import { formatToVND } from "../../utils/format";
+import Error from "../Error";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 export default function Report() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -26,6 +29,9 @@ export default function Report() {
   const [statistics, setStatistics] = useState([]);
   const [totalOrder, setTotalOrder] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
+
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   const getCurrentDateRange = (date) => {
     if (selectedView === "week") {
@@ -196,6 +202,17 @@ export default function Report() {
       saveAs(new Blob([buffer]), fileName);
     });
   };
+
+  if (!permission || !permission.includes("REPORT")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div className="p-10 w-full">

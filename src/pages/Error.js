@@ -1,5 +1,41 @@
-import { Link } from "react-router-dom";
-export default function Error({ errorCode, title, content }) {
+import { useContext } from "react";
+import { Link, useNavigate, useRouteError } from "react-router-dom";
+import AuthContext from "../context/AuthContext";
+import { getUserRoleById } from "../data/userRoles";
+import Cookies from "js-cookie";
+import {
+  ADMIN_PERMISSIONS,
+  CUSTOMER_PERMISSIONS,
+  EMPLOYEE_PERMISSIONS,
+} from "../utils/Constants";
+export default function Error({
+  errorCode = "404",
+  title = "Not Found",
+  content = "Không tìm thấy tài nguyên hay trang",
+}) {
+  const navigate = useNavigate();
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
+  const { setHasError, setAuth } = useContext(AuthContext);
+
+  const handleCheckRole = async () => {
+    if (!user) {
+      navigate("/");
+      return;
+    }
+
+    const role = await getUserRoleById(user.roleId);
+    if (role.roleName === "Admin") {
+      setHasError(false);
+      navigate("/admin/dashboard");
+    } else if (role.roleName === "Employee") {
+      setHasError(false);
+      navigate("/admin/orders");
+    } else {
+      setHasError(false);
+      navigate("/");
+    }
+  };
+
   return (
     <div className="w-screen h-screen flex flex-col justify-center items-center">
       <svg
@@ -24,11 +60,14 @@ export default function Error({ errorCode, title, content }) {
       <p className="mt-8 mb-14 ml-auto mr-auto max-w-96 text-center text-[#9E9E9E]">
         {content}
       </p>
-      <Link to={"/"}>
-        <button className="px-6 py-3 text-white font-medium text-xs bg-black rounded-lg">
-          Về Trang chủ
-        </button>
-      </Link>
+      <button
+        onClick={() => {
+          handleCheckRole();
+        }}
+        className="px-6 py-3 text-white font-medium text-xs bg-black rounded-lg"
+      >
+        Quay về
+      </button>
     </div>
   );
 }

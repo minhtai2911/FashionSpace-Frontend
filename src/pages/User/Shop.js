@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 
 import { getAllProducts } from "../../data/products";
 import Banner from "../../components/Banner";
@@ -17,6 +17,9 @@ import { getAllCategories, getCategoryById } from "../../data/categories";
 import { getAllImagesByProductId } from "../../data/productImages";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { formatToVND, formatURL } from "../../utils/format";
+import Cookies from "js-cookie";
+import AuthContext from "../../context/AuthContext";
+import Error from "../Error";
 
 function Shop() {
   const [minPrice, setMinPrice] = useState(MIN_PRICE);
@@ -30,6 +33,10 @@ function Shop() {
   const [categories, setCategories] = useState([]);
   const [isApplied, setIsApplied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
 
   const handleMinPriceChange = (e) => {
     const value = parseInt(e.target.value);
@@ -79,6 +86,10 @@ function Shop() {
   useEffect(() => {
     const progress = document.querySelector("#slider #progress");
 
+    if (!progress) {
+      return;
+    }
+
     const updateProgress = () => {
       const minPercentage = (tempMinPrice / MAX_PRICE) * 100;
       const maxPercentage = (tempMaxPrice / MAX_PRICE) * 100;
@@ -101,7 +112,7 @@ function Shop() {
       product.price >= minPrice && product.price <= maxPrice;
     const isInSelectedCategories =
       selectedCategories.length === 0 ||
-      selectedCategories.includes(product.category);
+      selectedCategories.includes(product.category + ` [${product.gender}]`);
     return isInPriceRange && isInSelectedCategories;
   });
 
@@ -144,6 +155,7 @@ function Shop() {
             ...product,
             images: images || [],
             category: category.name,
+            gender: category.gender,
           };
         })
       );
@@ -158,6 +170,17 @@ function Shop() {
   useEffect(() => {
     fetchData();
   }, [isApplied, selectedCategories, sortCriteria]);
+
+  if (user && (!permission || !permission.includes("SHOP"))) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div>
@@ -175,10 +198,16 @@ function Shop() {
                   key={index}
                 >
                   <CheckBox
-                    isChecked={selectedCategories.includes(category.name)}
-                    onChange={() => handleCategoryChange(category.name)}
+                    isChecked={selectedCategories.includes(
+                      `${category.name} [${category.gender}]`
+                    )}
+                    onChange={() =>
+                      handleCategoryChange(
+                        `${category.name} [${category.gender}]`
+                      )
+                    }
                   />
-                  <label className="">{`${category.name}`}</label>
+                  <label className="">{`${category.name} [${category.gender}]`}</label>
                 </div>
               ))}
             </div>

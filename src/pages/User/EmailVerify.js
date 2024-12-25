@@ -2,13 +2,12 @@ import { useEffect, useState, useContext } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
-import { AuthContext } from "../../context/AuthContext";
+import AuthContext from "../../context/AuthContext";
 import Error from "../Error";
 import instance from "../../services/axiosConfig";
 
 const EmailVerify = () => {
-  const { setIsAuthenticated, setUser, setAuthTokens } =
-    useContext(AuthContext);
+  const { setAuth, setUser, auth } = useContext(AuthContext);
   const [validUrl, setValidUrl] = useState(true);
   const [redirectTimer, setRedirectTimer] = useState(3);
   const [error, setError] = useState(null);
@@ -33,7 +32,10 @@ const EmailVerify = () => {
         );
         const accessToken = tokenResponse.data.accessToken;
         setUser(jwtDecode(accessToken));
-        setIsAuthenticated(true);
+        setAuth((prevAuth) => ({
+          ...prevAuth,
+          isAuth: true,
+        }));
         Cookies.set("accessToken", accessToken);
         Cookies.set("refreshToken", refreshToken);
         Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));

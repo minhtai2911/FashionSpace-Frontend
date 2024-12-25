@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import Cookies from "js-cookie";
 import { Toaster, toast } from "react-hot-toast";
 
-import { AuthContext } from "../../context/AuthContext";
+import AuthContext from "../../context/AuthContext";
 import CheckBox from "../../components/CheckBox";
 import { jwtDecode } from "jwt-decode";
 import instance from "../../services/axiosConfig";
@@ -12,10 +12,14 @@ import { mergeCart } from "../../stores/cart";
 import { getShoppingCartByUserId } from "../../data/shoppingCart";
 import { getProductVariantById } from "../../data/productVariant";
 import { getUserRoleById } from "../../data/userRoles";
+import {
+  ADMIN_PERMISSIONS,
+  CUSTOMER_PERMISSIONS,
+  EMPLOYEE_PERMISSIONS,
+} from "../../utils/Constants";
 
 function SignIn() {
-  const { setUser, isAuthenticated, setIsAuthenticated } =
-    useContext(AuthContext);
+  const { setUser, auth, setAuth, setHasError } = useContext(AuthContext);
   const navigate = useNavigate();
   const carts = useSelector((state) => state.cart.items);
   const [userCart, setUserCart] = useState([]);
@@ -27,7 +31,7 @@ function SignIn() {
   });
   const [rememberMe, setRememberMe] = useState(false);
 
-  if (isAuthenticated) {
+  if (auth.isAuth) {
     navigate("/");
   }
 
@@ -64,30 +68,42 @@ function SignIn() {
         }
       );
       toast.success("Đăng nhập thành công", { duration: 1000 });
-      console.log(response.data);
       const { accessToken, refreshToken, ...data } = response.data.data;
 
       setUser(jwtDecode(accessToken));
-      setIsAuthenticated(true);
+      setAuth((prevAuth) => ({
+        ...prevAuth,
+        isAuth: true,
+      }));
 
       Cookies.set("accessToken", accessToken);
       Cookies.set("refreshToken", refreshToken);
       Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
     } catch (error) {
-      setIsAuthenticated(false);
+      setAuth((prevAuth) => ({
+        ...prevAuth,
+        isAuth: false,
+      }));
       if (error.status === 400) {
         toast.error("Tài khoản của bạn chưa được xác thực");
         const id = error.response.data.data._id;
-        const sendMailResponse = await instance.post(
-          "/auth/sendMailVerifyAccount",
-          {
-            email: email,
-            id: id,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
+        const sendMailResponse = await toast.promise(
+          instance.post(
+            "/auth/sendMailVerifyAccount",
+            {
+              email: email,
+              id: id,
             },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          ),
+          {
+            loading: "Đang gửi email xác thực...",
+            success: "Email xác thực được gửi thành công",
+            error: "Gửi email xác thực thất bại",
           }
         );
       } else {
@@ -115,8 +131,13 @@ function SignIn() {
       await login(data.email, data.password);
       const user = JSON.parse(Cookies.get("user"));
       const role = await getUserRoleById(user.roleId);
-      console.log(role);
-      if (role.roleName === "User") {
+      setHasError(false);
+      if (role.roleName === "Customer") {
+        setAuth((prevAuth) => ({
+          ...prevAuth,
+          permission: CUSTOMER_PERMISSIONS,
+        }));
+        Cookies.set("permission", CUSTOMER_PERMISSIONS);
         await mergeUserCart(user.id);
         const state = location.state;
         if (state && state.orderSummary) {
@@ -127,8 +148,18 @@ function SignIn() {
           navigate("/");
         }
       } else if (role.roleName === "Admin") {
+        setAuth((prevAuth) => ({
+          ...prevAuth,
+          permission: ADMIN_PERMISSIONS,
+        }));
+        Cookies.set("permission", ADMIN_PERMISSIONS);
         navigate("/admin");
       } else if (role.roleName === "Employee") {
+        setAuth((prevAuth) => ({
+          ...prevAuth,
+          permission: EMPLOYEE_PERMISSIONS,
+        }));
+        Cookies.set("permission", EMPLOYEE_PERMISSIONS);
         navigate("/admin/orders");
       }
     } catch (err) {

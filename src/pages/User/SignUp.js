@@ -1,11 +1,11 @@
 import { useEffect, useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CheckBox from "../../components/CheckBox";
-import { AuthContext } from "../../context/AuthContext";
+import AuthContext from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
 function SignUp() {
-  const { signup, isAuthenticated } = useContext(AuthContext);
+  const { signup, auth } = useContext(AuthContext);
   const [data, setData] = useState({
     fullName: "",
     email: "",
@@ -16,7 +16,7 @@ function SignUp() {
   const [termsAndConditions, setTermsAndConditions] = useState(false);
 
   const navigate = useNavigate();
-  if (isAuthenticated) {
+  if (auth.isAuth) {
     navigate("/");
     return null;
   }

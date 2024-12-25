@@ -119,9 +119,19 @@ export const ADMIN_PERMISSIONS = [
   "CATEGORIES",
   "USERS",
   "REPORT",
-  "ACCOUNT",
+  "ADMIN_ACCOUNT",
 ];
-export const EMPLOYEE_PERMISSIONS = ["REVIEWS", "ORDERS", "ACCOUNT"];
+export const EMPLOYEE_PERMISSIONS = ["REVIEWS", "ORDERS", "ADMIN_ACCOUNT"];
+export const CUSTOMER_PERMISSIONS = [
+  "HOME",
+  "SHOPPING_CART",
+  "CHECKOUT",
+  "ORDER_COMPLETED",
+  "SHOP",
+  "ACCOUNT",
+  "TRACK_ORDER",
+  "PRODUCT_DETAILS",
+];
 export const MIN_PRICE = 0;
 export const MAX_PRICE = 10000000;
 export const PRICE_GAP = 100000;

@@ -18,12 +18,16 @@ import {
   updateShoppingCartQuantityById,
 } from "../data/shoppingCart";
 
-export const AuthContext = createContext();
+const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [auth, setAuth] = useState({
+    permission: null,
+    isAuth: false,
+  });
   const [user, setUser] = useState();
   const carts = useSelector((state) => state.cart.items);
+  const [hasError, setHasError] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -194,7 +198,7 @@ export const AuthProvider = ({ children }) => {
           },
         });
         if (response.status === 200) {
-          setIsAuthenticated(false);
+          setAuth({ permission: null, isAuth: false });
           setUser(null);
           await createCart(carts);
           dispatch(clearCart());
@@ -241,23 +245,30 @@ export const AuthProvider = ({ children }) => {
 
   const contextData = {
     user: user,
-    setIsAuthenticated: setIsAuthenticated,
-    isAuthenticated: isAuthenticated,
+    setAuth: setAuth,
+    auth: auth,
     setUser: setUser,
     signup: signup,
     logout: logout,
     createCart: createCart,
-    // getUserById: getUserById,
+    hasError: hasError,
+    setHasError: setHasError,
   };
 
   useEffect(() => {
     const accessToken = Cookies.get("accessToken");
     if (accessToken) {
       setUser(jwtDecode(accessToken));
-      setIsAuthenticated(true);
+      setAuth((prevAuth) => ({
+        ...prevAuth,
+        isAuth: true,
+      }));
     } else {
       setUser(null);
-      setIsAuthenticated(false);
+      setAuth((prevAuth) => ({
+        ...prevAuth,
+        isAuth: false,
+      }));
     }
   }, []);
 
@@ -265,3 +276,5 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={contextData}>{children}</AuthContext.Provider>
   );
 };
+
+export default AuthContext;

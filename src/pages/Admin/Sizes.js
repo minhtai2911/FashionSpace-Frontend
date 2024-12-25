@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Table, Modal } from "flowbite-react";
 
 import Search from "../../components/Search";
@@ -13,6 +13,9 @@ import { getCategoryById, getAllCategories } from "../../data/categories";
 import toast from "react-hot-toast";
 import { ITEM_PER_PAGE } from "../../utils/Constants";
 import Pagination from "../../components/Pagination";
+import Error from "../Error";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 export default function Sizes() {
   const [sizes, setSizes] = useState([]);
@@ -26,6 +29,9 @@ export default function Sizes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   function onCloseModal() {
     setOpenCreateModal(false);
@@ -42,6 +48,7 @@ export default function Sizes() {
       fetchSizes();
       setSize("");
       setOpenCreateModal(false);
+      toast.success("Thêm kích cỡ sản phẩm thành công", { duration: 2000 });
     } catch (error) {
       toast.error(error.response.data.message, { duration: 2000 });
     }
@@ -64,7 +71,7 @@ export default function Sizes() {
         sizeDetails.categoryId,
         sizeDetails.size
       );
-      toast.success("Cập nhật kích cỡ thành công", { duration: 2000 });
+      toast.success("Chỉnh sửa kích cỡ thành công", { duration: 2000 });
       fetchSizes();
       setOpenUpdateModal(false);
     } catch (error) {
@@ -111,6 +118,17 @@ export default function Sizes() {
   useEffect(() => {
     fetchSizes();
   }, [searchTerm, selectedCategory]);
+
+  if (!permission || !permission.includes("SIZES")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { Table } from "flowbite-react";
 import { getOrderById } from "../../data/orders";
@@ -13,11 +13,17 @@ import { getColorById } from "../../data/colors";
 import { getCategoryById } from "../../data/categories";
 import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import { ORDER_STATUS } from "../../utils/Constants";
+import Error from "../Error";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 export default function OrderDetails() {
   const { id } = useParams();
   const [orderWithDetails, setOrderWithDetails] = useState({});
   const [itemDetails, setItemDetails] = useState([]);
+
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   async function fetchOrders() {
     try {
@@ -69,7 +75,16 @@ export default function OrderDetails() {
     fetchOrders();
   }, [id]);
 
-  console.log(orderWithDetails);
+  if (!permission || !permission.includes("ORDERS")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div className="p-10 w-full">

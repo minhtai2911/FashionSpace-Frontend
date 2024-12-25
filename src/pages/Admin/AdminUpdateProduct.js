@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 import { FileInput, Label } from "flowbite-react";
 
@@ -24,9 +24,14 @@ import {
 } from "../../data/productImages";
 import toast from "react-hot-toast";
 import { formatURL } from "../../utils/format";
+import Error from "../Error";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 export default function UpdateProduct() {
   const navigate = useNavigate();
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   const { id } = useParams();
   const [category, setCategory] = useState([]);
@@ -91,9 +96,7 @@ export default function UpdateProduct() {
         setSizes(fetchedSizes);
         const fetchedImages = await getAllImagesByProductId(id);
         setPhotos(fetchedImages);
-      } catch (error) {
-        toast.error(error.response.data.message);
-      }
+      } catch (error) {}
     };
 
     const fetchVariants = async () => {
@@ -107,27 +110,21 @@ export default function UpdateProduct() {
           })
         );
         setVariants(variantsData);
-      } catch (error) {
-        toast.error(error.response.data.message);
-      }
+      } catch (error) {}
     };
 
     const fetchCategories = async () => {
       try {
         const fetchedCategories = await getAllCategories();
         setCategories(fetchedCategories);
-      } catch (error) {
-        toast.error(error.response.data.message);
-      }
+      } catch (error) {}
     };
 
     const fetchColors = async () => {
       try {
         const fetchedColors = await getAllColors();
         setColors(fetchedColors);
-      } catch (error) {
-        toast.error(error.response.data.message);
-      }
+      } catch (error) {}
     };
 
     fetchProduct();
@@ -246,6 +243,17 @@ export default function UpdateProduct() {
       toast.error(error.response.data.message, { duration: 2000 });
     }
   };
+
+  if (!permission || !permission.includes("PRODUCTS")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div className="p-10 w-full">

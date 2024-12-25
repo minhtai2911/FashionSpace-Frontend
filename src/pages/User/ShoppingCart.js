@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Modal, Button } from "flowbite-react";
 
-import { AuthContext } from "../../context/AuthContext.js";
+import AuthContext from "../../context/AuthContext.js";
 import { removeItem, clearCart, mergeCart } from "../../stores/cart.js";
 import { FREE_SHIPPING, SHIPPING_RATE } from "../../utils/Constants.js";
 
@@ -13,9 +13,13 @@ import CheckBox from "../../components/CheckBox.js";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { getProductById } from "../../data/products.js";
 import { formatToVND } from "../../utils/format.js";
+import Error from "../Error.js";
+import Cookies from "js-cookie";
 
 function ShoppingCart() {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const carts = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -101,13 +105,24 @@ function ShoppingCart() {
 
   const handleCheckout = () => {
     if (selectedCartItems.length > 0) {
-      if (!isAuthenticated) {
+      if (!auth.isAuth) {
         navigate("/login", { state: { orderSummary } });
       } else {
         navigate("/checkout", { state: { orderSummary } });
       }
     }
   };
+
+  if (user && (!permission || !permission.includes("PRODUCT_DETAILS"))) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <>

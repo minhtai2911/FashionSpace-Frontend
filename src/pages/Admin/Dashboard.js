@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Card, Table } from "flowbite-react";
 import {
   AreaChart,
@@ -23,6 +23,9 @@ import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import { getStatistics } from "../../data/statistic";
 import dayjs from "dayjs";
 import toast from "react-hot-toast";
+import AuthContext from "../../context/AuthContext";
+import Error from "../Error";
+import Cookies from "js-cookie";
 
 export default function Dashboard() {
   const [orders, setOrders] = useState([]);
@@ -33,6 +36,9 @@ export default function Dashboard() {
   const [latestOrders, setLatestOrders] = useState([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [yearRevenue, setYearRevenue] = useState(0);
+
+  const { setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   async function fetchOrders() {
     try {
@@ -65,27 +71,21 @@ export default function Dashboard() {
         (a, b) => new Date(b.createdDate) - new Date(a.createdDate)
       );
       setLatestOrders(sortedOrders.slice(0, 5));
-    } catch (error) {
-      toast.error(error.response.data.message, { duration: 2000 });
-    }
+    } catch (error) {}
   }
 
   const fetchProduct = async () => {
     try {
       const data = await getAllProducts();
       setProducts(data);
-    } catch (error) {
-      toast.error(error.response.data.message, { duration: 2000 });
-    }
+    } catch (error) {}
   };
 
   const fetchUser = async () => {
     try {
       const data = await getAllUsers();
       setUsers(data);
-    } catch (error) {
-      toast.error(error.response.data.message, { duration: 2000 });
-    }
+    } catch (error) {}
   };
 
   const fetchBestSellerProducts = async () => {
@@ -98,9 +98,7 @@ export default function Dashboard() {
         })
       );
       setBestSellerProducts(data);
-    } catch (error) {
-      toast.error(error.response.data.message, { duration: 2000 });
-    }
+    } catch (error) {}
   };
 
   const fetchStatistics = async () => {
@@ -110,9 +108,7 @@ export default function Dashboard() {
         return sum + stat.totalRevenue;
       }, 0);
       setTotalRevenue(total);
-    } catch (error) {
-      toast.error(error.response.data.message, { duration: 2000 });
-    }
+    } catch (error) {}
   };
 
   const fetchYearStatistics = async () => {
@@ -123,9 +119,7 @@ export default function Dashboard() {
       }, 0);
       setStatistics(data);
       setYearRevenue(total);
-    } catch (error) {
-      toast.error(error.response.data.message, { duration: 2000 });
-    }
+    } catch (error) {}
   };
 
   const getStatusClass = (status) => {
@@ -157,9 +151,20 @@ export default function Dashboard() {
   }, []);
 
   const chartData = statistics.map((stat) => ({
-    date: `${stat.day}/${stat.month}/${stat.year}`,
+    date: `${stat._id?.month}/${stat._id?.year}`,
     revenue: stat.totalRevenue,
   }));
+
+  if (!permission || !permission.includes("DASHBOARD")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div className="p-10 w-full">

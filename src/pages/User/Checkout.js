@@ -11,13 +11,14 @@ import {
 import instance from "../../services/axiosConfig";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
-import { AuthContext } from "../../context/AuthContext";
+import AuthContext from "../../context/AuthContext";
 import { getProductVariantByProductIdColorIdSizeId } from "../../data/productVariant";
 import { createPaymentDetail } from "../../data/paymentDetail";
 import { createOrder } from "../../data/orders";
 import { useDispatch, useSelector } from "react-redux";
 import { removeItem } from "../../stores/cart";
 import { formatToVND } from "../../utils/format";
+import Error from "../Error";
 
 const apiUrl = "https://api.mysupership.vn";
 const apiEndpointProvince = apiUrl + "/v1/partner/areas/province";
@@ -26,8 +27,9 @@ const apiEndpointCommune = apiUrl + "/v1/partner/areas/commune?district=";
 
 function Checkout() {
   const location = useLocation();
-  const { orderSummary, type } = location.state;
   const { user, createCart } = useContext(AuthContext);
+  let orderSummary = 0;
+  let type = "";
   const carts = useSelector((state) => state.cart.items);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -43,6 +45,9 @@ function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [updatedCarts, setUpdatedCarts] = useState(carts);
   const [isOrderCreated, setIsOrderCreated] = useState(false);
+
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   useEffect(() => {
     if (selectedProvince !== "0") {
@@ -150,7 +155,6 @@ function Checkout() {
               item.colorId,
               item.sizeId
             );
-          console.log(orderId, variantResponse._id, item.quantity);
           const itemResponse = await instance.post(
             "/orderDetail",
             {
@@ -255,23 +259,55 @@ function Checkout() {
     }
   };
 
+  const handleCheckoutWithMomo = async (amount, orderId) => {
+    try {
+      const refreshToken = Cookies.get("refreshToken");
+      const response = await instance.post(
+        "/auth/refreshToken",
+        {
+          refreshToken: refreshToken,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const accessToken = response.data.accessToken;
+      const momoResponse = await instance.post(
+        "/paymentDetail/checkoutWithMoMo",
+        {
+          amount: amount,
+          orderId: orderId,
+        }
+      );
+
+      window.open(momoResponse.data.shortLink, "_self");
+    } catch (error) {
+      toast.error(error.response.data.message, {
+        duration: 2000,
+      });
+      return error;
+    }
+  };
+
   const handleSubmit = async () => {
     try {
-      if (paymentMethod === "COD") {
-        const orderAddress = await handleCreateOrderAddress();
-        if (orderAddress.status === 201) {
-          const paymentDetail = await handleCreatePaymentDetail();
-          if (paymentDetail.status === 201) {
-            const order = await handleCreateOrder(
-              orderSummary.totalPrice,
-              paymentDetail.data.data._id,
-              orderAddress.data.data._id,
-              orderSummary.shipping
+      const orderAddress = await handleCreateOrderAddress();
+      if (orderAddress.status === 201) {
+        const paymentDetail = await handleCreatePaymentDetail();
+        if (paymentDetail.status === 201) {
+          const order = await handleCreateOrder(
+            orderSummary.totalPrice,
+            paymentDetail.data.data._id,
+            orderAddress.data.data._id,
+            orderSummary.shipping
+          );
+          if (order.status === 201) {
+            const orderDetail = await handleCreateOrderDetails(
+              order.data.data._id
             );
-            if (order.status === 201) {
-              const orderDetail = await handleCreateOrderDetails(
-                order.data.data._id
-              );
+            if (paymentMethod === "COD") {
               if (orderDetail.every((response) => response.status === 201)) {
                 if (type != "Buy Now") {
                   orderSummary.items.forEach((item) => {
@@ -285,22 +321,19 @@ function Checkout() {
                   });
                 }
 
-                const orderData = {
-                  order: order.data.data,
-                  paymentDetail: paymentDetail.data.data,
-                };
-
                 toast.success("Tạo đơn hàng thành công", {
                   duration: 2000,
                 });
-                navigate("/orderCompleted", {
-                  state: { orderSummary, orderData },
-                });
+                navigate(`/orderCompleted?orderId=${order.data.data._id}`);
               }
+            } else if (paymentMethod === "MOMO") {
+              const response = await handleCheckoutWithMomo(
+                orderSummary.totalPrice,
+                order.data.data._id
+              );
             }
           }
         }
-      } else if (paymentMethod === "MOMO") {
       }
     } catch (error) {
       toast.error(error.response.data.message, {
@@ -315,6 +348,31 @@ function Checkout() {
       createCart(updatedCarts);
     }
   }, [isOrderCreated]);
+
+  if (location.state) {
+    orderSummary = location.state.orderSummary;
+    type = location.state.type;
+  } else {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
+
+  if (!auth.permission || !auth.permission.includes("CHECKOUT")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div>

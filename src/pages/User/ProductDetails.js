@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { AuthContext } from "../../context/AuthContext";
+import AuthContext from "../../context/AuthContext";
 import { Modal } from "flowbite-react";
 
 import { getProductById } from "../../data/products";
@@ -32,6 +32,8 @@ import {
 import { addToCart } from "../../stores/cart";
 import { formatToVND, formatURL } from "../../utils/format";
 import toast from "react-hot-toast";
+import Error from "../Error";
+import Cookies from "js-cookie";
 
 const relatedProducts = [
   {
@@ -93,7 +95,9 @@ const relatedProducts = [
 ];
 
 function ProductDetails() {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -212,7 +216,7 @@ function ProductDetails() {
       image: mainImage,
     };
     dispatch(addToCart(product));
-    toast.success("Thêm vào giỏ hàng thành công", { duration: 2000 });
+    toast.success("Sản phẩm đã được thêm vào giỏ hàng", { duration: 2000 });
   };
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -247,13 +251,24 @@ function ProductDetails() {
     };
 
     if (selectedCartItems.length > 0) {
-      if (!isAuthenticated) {
+      if (!auth.isAuth) {
         navigate("/login", { state: { orderSummary, type: "Buy Now" } });
       } else {
         navigate("/checkout", { state: { orderSummary, type: "Buy Now" } });
       }
     }
   };
+
+  if (user && (!permission || !permission.includes("PRODUCT_DETAILS"))) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <>
@@ -398,7 +413,7 @@ function ProductDetails() {
             </div>
           </div>
           <div>
-            <div className="mt-8">
+            <div className="mt-8 mb-24">
               <div className="border-b border-gray-200">
                 <nav
                   className="-mb-px flex justify-center gap-x-10"
@@ -466,17 +481,8 @@ function ProductDetails() {
                   </div>
                 )}
               </div>
-              <hr className="mt-10 border-gray-300" />
-              <div className="mx-auto py-10">
-                <div className="flex text-center justify-center items-center pb-2">
-                  <h1 className="font-medium px-24 text-3xl">
-                    Khám phá sản phẩm liên quan
-                  </h1>
-                </div>
-                {/* <Slider products={relatedProducts} /> */}
-              </div>
-              <FeatureBanner />
             </div>
+            <FeatureBanner />
           </div>
         </div>
       </div>

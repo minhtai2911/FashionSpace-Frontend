@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import Banner from "../../components/Banner";
@@ -15,6 +15,9 @@ import { getColorById } from "../../data/colors";
 import { getCategoryById } from "../../data/categories";
 import { getAllImagesByProductId } from "../../data/productImages";
 import { getOrderTrackingByOrderId } from "../../data/orderTracking";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
+import Error from "../Error";
 
 const status = [
   {
@@ -213,6 +216,9 @@ const status = [
 export default function TrackOrder() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
+  const { setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const [tracking, setTracking] = useState([]);
 
   const getStatusObjectByStatus = (statusValue) => {
@@ -265,6 +271,17 @@ export default function TrackOrder() {
   useEffect(() => {
     fetchOrder();
   }, []);
+
+  if (user && (!permission || !permission.includes("TRACK_ORDER"))) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div>

@@ -4,7 +4,12 @@ import ProductItem from "./ProductItem";
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    {
+      sender: "bot",
+      text: "Xin chào, tôi là trợ lí ảo FashionBot. Tôi có thể giúp gì cho bạn?",
+    },
+  ]);
   const [content, setContent] = useState("");
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);

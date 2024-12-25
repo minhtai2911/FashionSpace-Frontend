@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect, useRef } from "react";
-import { AuthContext } from "../context/AuthContext";
+import AuthContext from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Cookies from "js-cookie";
@@ -8,8 +8,9 @@ import { getAllProducts } from "../data/products";
 import { formatToVND, formatURL } from "../utils/format";
 import { getAllImagesByProductId } from "../data/productImages";
 import { getUserById } from "../data/users";
+import { getCategoryById } from "../data/categories";
 function Header() {
-  const { isAuthenticated, logout, user, setUser } = useContext(AuthContext);
+  const { auth, logout, user, setUser } = useContext(AuthContext);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,9 +28,11 @@ function Header() {
       const updatedProducts = await Promise.all(
         fetchedProducts.map(async (product) => {
           const images = await getAllImagesByProductId(product._id);
+          const category = await getCategoryById(product.categoryId);
           return {
             ...product,
             imagePath: images[0].imagePath,
+            category: category.name,
           };
         })
       );
@@ -104,8 +107,10 @@ function Header() {
   };
 
   const filteredProducts = searchQuery
-    ? products.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ? products.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.category.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
   return (
@@ -221,7 +226,7 @@ function Header() {
               )}
             </Link>
 
-            {isAuthenticated ? (
+            {auth.isAuth ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   className="flex text-sm rounded-full md:me-0 focus:ring-gray-600"

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useEffect } from "react";
+import { useLayoutEffect, useEffect, useContext } from "react";
 import {
   Route,
   Routes,
@@ -43,10 +43,12 @@ import OrderDetails from "./pages/Admin/OrderDetails";
 import UpdateOrder from "./pages/Admin/UpdateOrder";
 import TrackOrder from "./pages/User/TrackOrder";
 import Chatbot from "./components/Chatbot";
+import AuthContext from "./context/AuthContext";
 
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { hasError } = useContext(AuthContext);
   const noHeaderRoutes = [
     "/login",
     "/signup",
@@ -141,7 +143,8 @@ function App() {
     <div>
       {!noHeaderRoutes.includes(location.pathname) &&
         !isAdminRoute &&
-        !isVerifyEmail && <Header />}
+        !isVerifyEmail &&
+        !hasError && <Header />}
       <AdminRedirect />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -190,9 +193,9 @@ function App() {
           <Route path="account" element={<AdminAccount />} />
         </Route>
       </Routes>
-      {!noHeaderRoutes.includes(location.pathname) && !isAdminRoute && (
-        <Chatbot />
-      )}
+      {!noHeaderRoutes.includes(location.pathname) &&
+        !isAdminRoute &&
+        !hasError && <Chatbot />}
     </div>
   );
 }

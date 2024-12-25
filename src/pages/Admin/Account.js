@@ -1,17 +1,31 @@
 import { useState, useContext } from "react";
 import Cookies from "js-cookie";
-import { AuthContext } from "../../context/AuthContext";
+import AuthContext from "../../context/AuthContext";
 import PersonalInformation from "../PersonalInformation";
 import PasswordManager from "../PasswordManager";
+import Error from "../Error";
 
 export default function AdminAccount() {
-  const user = JSON.parse(Cookies.get("user"));
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const [activeTab, setActiveTab] = useState("personal");
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   const tabs = [
     { id: "personal", label: "Thông tin cá nhân" },
     { id: "password", label: "Quản lý mật khẩu" },
   ];
+
+  if (!permission || !permission.includes("ADMIN_ACCOUNT")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div className="p-10 w-full">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Table, Modal, Label, TextInput, Button } from "flowbite-react";
 import { Dropdown } from "flowbite-react";
 import { Clock8 } from "lucide-react";
@@ -14,6 +14,9 @@ import Search from "../../components/Search";
 import toast from "react-hot-toast";
 import { ITEM_PER_PAGE, ROLE_NAME, USER_STATUS } from "../../utils/Constants";
 import Pagination from "../../components/Pagination";
+import Error from "../Error";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -31,6 +34,9 @@ export default function Users() {
   const [selectedRole, setSelectedRole] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   function onCloseCreateModal() {
     setOpenCreateModal(false);
@@ -167,6 +173,17 @@ export default function Users() {
       });
     }
   };
+
+  if (!permission || !permission.includes("USERS")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <>

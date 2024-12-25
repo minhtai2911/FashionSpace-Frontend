@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import AuthContext from "../context/AuthContext";
 import { Modal } from "flowbite-react";
 
 import { getProductById } from "../data/products";
@@ -20,7 +20,7 @@ import toast from "react-hot-toast";
 import { addToCart } from "../stores/cart";
 
 function ProductItem({ id, usage }) {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -93,7 +93,7 @@ function ProductItem({ id, usage }) {
       image: mainImage,
     };
     dispatch(addToCart(product));
-    toast.success("Thêm vào giỏ hàng thành công", { duration: 2000 });
+    toast.success("Sản phẩm đã được thêm vào giỏ hàng", { duration: 2000 });
     setOpenCartModal(false);
   };
 
@@ -129,7 +129,7 @@ function ProductItem({ id, usage }) {
     };
 
     if (selectedCartItems.length > 0) {
-      if (!isAuthenticated) {
+      if (!auth.isAuth) {
         navigate("/login", { state: { orderSummary, type: "Buy Now" } });
       } else {
         navigate("/checkout", { state: { orderSummary, type: "Buy Now" } });

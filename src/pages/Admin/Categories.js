@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Table, Modal } from "flowbite-react";
 
 import Search from "../../components/Search";
@@ -12,6 +12,9 @@ import {
 import toast from "react-hot-toast";
 import { GENDER, ITEM_PER_PAGE } from "../../utils/Constants";
 import Pagination from "../../components/Pagination";
+import AuthContext from "../../context/AuthContext";
+import Error from "../Error";
+import Cookies from "js-cookie";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
@@ -25,6 +28,9 @@ export default function Categories() {
   const [selectedGender, setSelectedGender] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
+
   function onCloseModal() {
     setOpenCreateModal(false);
   }
@@ -35,6 +41,7 @@ export default function Categories() {
       fetchCategories();
       setCategory("");
       setOpenCreateModal(false);
+      toast.success("Thêm danh mục sản phẩm thành công", { duration: 2000 });
     } catch (error) {
       console.error("Error creating category:", error);
       toast.error(error.response.data.message, { duration: 2000 });
@@ -74,9 +81,7 @@ export default function Categories() {
       setCurrentPage(1);
 
       setCategories(filteredData);
-    } catch (error) {
-      toast.error(error.response.data.message);
-    }
+    } catch (error) {}
   }
 
   const handleUpdateCategory = async () => {
@@ -102,6 +107,17 @@ export default function Categories() {
   useEffect(() => {
     fetchCategories();
   }, [searchTerm, selectedGender]);
+
+  if (!permission || !permission.includes("CATEGORIES")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <>

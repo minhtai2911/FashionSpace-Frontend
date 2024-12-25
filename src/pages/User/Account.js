@@ -1,21 +1,35 @@
 import { useContext, useState, useRef, useEffect } from "react";
-import { AuthContext } from "../../context/AuthContext";
+import AuthContext from "../../context/AuthContext";
 import Cookies from "js-cookie";
 
 import Banner from "../../components/Banner";
 import PersonalInformation from "../PersonalInformation";
 import PasswordManager from "../PasswordManager";
 import MyOrders from "./MyOrders";
+import Error from "../Error";
 
 function Account() {
-  const user = JSON.parse(Cookies.get("user"));
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const [activeTab, setActiveTab] = useState("personal");
+  const permission = Cookies.get("permission") ?? null;
+  const { auth, setHasError } = useContext(AuthContext);
 
   const tabs = [
     { id: "personal", label: "Thông tin cá nhân" },
     { id: "orders", label: "Đơn hàng của tôi" },
     { id: "password", label: "Quản lý mật khẩu" },
   ];
+
+  if (!permission || !permission.includes("ACCOUNT")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div>

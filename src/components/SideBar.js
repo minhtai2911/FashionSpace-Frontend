@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { Link, NavLink } from "react-router-dom";
 
-import { AuthContext } from "../context/AuthContext";
+import AuthContext from "../context/AuthContext";
 import { ADMIN_PERMISSIONS, EMPLOYEE_PERMISSIONS } from "../utils/Constants";
 
 const tabs = [
@@ -232,7 +232,7 @@ const tabs = [
     ),
     path: "/admin/account",
     title: "Tài khoản",
-    permission: "ACCOUNT",
+    permission: "ADMIN_ACCOUNT",
   },
 ];
 

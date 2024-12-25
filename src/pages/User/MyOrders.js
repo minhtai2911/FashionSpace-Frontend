@@ -1,10 +1,10 @@
 import { useContext, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
-import { Modal } from "flowbite-react";
+import { Modal, Button } from "flowbite-react";
 
-import { AuthContext } from "../../context/AuthContext";
-import { ORDER_STATUS } from "../../utils/Constants";
+import AuthContext from "../../context/AuthContext";
+import { ORDER_STATUS, PAYMENT_STATUS } from "../../utils/Constants";
 import { getOrderByUserId } from "../../data/orders";
 import { getOrderById } from "../../data/orders";
 import { getOrderDetailsByOrderId } from "../../data/orderDetail";
@@ -17,7 +17,10 @@ import { getColorById } from "../../data/colors";
 import { getCategoryById } from "../../data/categories";
 import { formatDate, formatToVND, formatURL } from "../../utils/format";
 import { getAllImagesByProductId } from "../../data/productImages";
-import { getOrderTrackingByOrderId } from "../../data/orderTracking";
+import {
+  createOrderTracking,
+  getOrderTrackingByOrderId,
+} from "../../data/orderTracking";
 import Rating from "../../components/Rating";
 import {
   createReview,
@@ -26,12 +29,15 @@ import {
   updateReview,
 } from "../../data/reviews";
 import toast from "react-hot-toast";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 export default function MyOrders() {
   const [orders, setOrders] = useState([]);
   const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const [openAddReviewModal, setOpenAddReviewModal] = useState(false);
   const [openEditReviewModal, setOpenEditReviewModal] = useState(false);
+  const [openCancelOrderModal, setOpenCancelOrderModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState({});
   const [review, setReview] = useState({
     productId: "",
     rating: 0,
@@ -55,6 +61,13 @@ export default function MyOrders() {
           const tracking = trackingData.length
             ? trackingData[trackingData.length - 1]
             : {};
+
+          if (
+            paymentDetails.status === PAYMENT_STATUS.UNPAID &&
+            paymentDetails.paymentMethod === "MOMO"
+          ) {
+            return;
+          }
 
           const orderDetails = {
             ...order,
@@ -163,9 +176,20 @@ export default function MyOrders() {
     }
   };
 
-  const handleTrackOrder = async () => {};
-
-  const handleCancelOrder = async () => {};
+  const handleCancelOrder = async (order) => {
+    try {
+      await createOrderTracking(
+        order._id,
+        ORDER_STATUS.CANCELLED,
+        order.tracking.currentAddress || "Không xác định",
+        order.tracking.expectedDeliveryDate
+      );
+      toast.success("Hủy đơn hàng thành công", { duration: 2000 });
+      fetchOrders();
+    } catch (error) {
+      toast.error(error.response.data.message, { duration: 2000 });
+    }
+  };
 
   return (
     <>
@@ -266,26 +290,32 @@ export default function MyOrders() {
                   </td>
                 </tr>
 
-                {order.tracking.status !== ORDER_STATUS.SHIPPED && (
-                  <tr>
-                    <td className="px-4 pb-4 pt-2" colSpan={4}>
-                      <div className="flex gap-x-2">
-                        <Link
-                          to={`/trackOrder/${order._id}`}
-                          className="bg-black text-white px-4 py-2 rounded-md"
-                        >
-                          Theo dõi đơn hàng
-                        </Link>
-                        <button
-                          className="bg-red-500 text-white px-4 py-2 rounded-md"
-                          onClick={handleCancelOrder}
-                        >
-                          Hủy đơn hàng
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )}
+                {order.tracking.status !== ORDER_STATUS.SHIPPED &&
+                  order.tracking.status !== ORDER_STATUS.CANCELLED && (
+                    <tr>
+                      <td className="px-4 pb-4 pt-2" colSpan={4}>
+                        <div className="flex gap-x-2">
+                          <Link
+                            to={`/trackOrder/${order._id}`}
+                            className="bg-black text-white px-4 py-2 rounded-md"
+                          >
+                            Theo dõi đơn hàng
+                          </Link>
+                          {order.tracking.status === ORDER_STATUS.PENDING && (
+                            <button
+                              className="bg-red-500 text-white px-4 py-2 rounded-md"
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setOpenCancelOrderModal(true);
+                              }}
+                            >
+                              Hủy đơn hàng
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
               </tbody>
             </table>
           ))
@@ -428,6 +458,39 @@ export default function MyOrders() {
             >
               {!hasReview ? "Đánh giá" : "Lưu thay đổi"}
             </button>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={openCancelOrderModal}
+        size="md"
+        onClose={() => setOpenCancelOrderModal(false)}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+              Bạn có chắc chắn muốn hủy đơn hàng không?
+            </h3>
+            <div className="flex justify-center gap-4 ">
+              <Button
+                color="gray"
+                onClick={() => setOpenCancelOrderModal(false)}
+              >
+                Không
+              </Button>
+              <Button
+                color="failure"
+                onClick={() => {
+                  handleCancelOrder(selectedOrder);
+                  setOpenCancelOrderModal(false);
+                }}
+              >
+                <p className="text-white">Hủy đơn</p>
+              </Button>
+            </div>
           </div>
         </Modal.Body>
       </Modal>

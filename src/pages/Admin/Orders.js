@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Table, Modal } from "flowbite-react";
 
 import Search from "../../components/Search";
@@ -17,8 +17,14 @@ import { getUserById } from "../../data/users";
 import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import { formatToVND } from "../../utils/format";
 import Pagination from "../../components/Pagination";
+import AuthContext from "../../context/AuthContext";
+import Error from "../Error";
+import Cookies from "js-cookie";
 
 export default function Orders() {
+  const { setHasError, auth } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
+
   const [orderWithDetails, setOrdersWithDetails] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedMethod, setSelectedMethod] = useState("All");
@@ -136,6 +142,17 @@ export default function Orders() {
     fetchOrders();
   }, [searchTerm, selectedMethod, selectedPaymentStatus, selectedStatus]);
 
+  if (!permission || !permission.includes("ORDERS")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
+
   return (
     <>
       <div className="p-10 w-full">
@@ -214,7 +231,7 @@ export default function Orders() {
                       </div>
                     </Table.Cell>
                     <Table.Cell>{formatToVND(order?.total)}</Table.Cell>
-                    <Table.Cell>
+                    <Table.Cell className="w-20">
                       {order?.paymentDetails?.paymentMethod}
                     </Table.Cell>
                     <Table.Cell>

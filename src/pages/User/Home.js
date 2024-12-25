@@ -7,13 +7,18 @@ import {
   getNewArrivalProducts,
 } from "../../data/products";
 import { getRelatedProducts } from "../../data/recommendation";
-import { AuthContext } from "../../context/AuthContext";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
+import Error from "../Error";
 
 function Home() {
-  const { isAuthenticated } = useContext(AuthContext);
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const [newArrivalProducts, setNewArrivalProducts] = useState([]);
   const [bestSellerProducts, setBestSellerProducts] = useState([]);
   const [relatedProducts, setRelatedProducts] = useState([]);
+
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   useEffect(() => {
     const fetchNewArrivalProducts = async () => {
@@ -32,10 +37,21 @@ function Home() {
     fetchNewArrivalProducts();
     fetchBestSellerProducts();
 
-    if (isAuthenticated) {
+    if (user) {
       fetchRelatedProducts();
     }
   }, []);
+
+  if (user && (!permission || !permission.includes("HOME"))) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div>
@@ -83,7 +99,7 @@ function Home() {
       </div>
       <div className="px-40">
         <FeatureBanner />
-        {isAuthenticated && (
+        {user && (
           <div className="mx-auto py-10">
             <div className="flex text-center justify-center items-center pb-2">
               <h1 className="font-medium px-24 text-3xl">

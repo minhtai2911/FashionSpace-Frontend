@@ -5,18 +5,21 @@ import instance from "../../services/axiosConfig";
 
 function VerifyCode() {
   const navigate = useNavigate();
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
-  const [timer, setTimer] = useState(60);
+  const [OTP, setOTP] = useState(["", "", "", "", "", ""]);
+  const [expirationTime, setExpirationTime] = useState(60);
   const location = useLocation();
   const { email } = location.state;
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (timer > 0) {
-      const countdown = setInterval(() => setTimer((prev) => prev - 1), 1000);
+    if (expirationTime > 0) {
+      const countdown = setInterval(
+        () => setExpirationTime((prev) => prev - 1),
+        1000
+      );
       return () => clearInterval(countdown);
     }
-  }, [timer]);
+  }, [expirationTime]);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -26,11 +29,11 @@ function VerifyCode() {
 
   const handleChange = (index, value) => {
     if (value === "" || /^[0-9]$/.test(value)) {
-      const newCode = [...code];
+      const newCode = [...OTP];
       newCode[index] = value;
-      setCode(newCode);
+      setOTP(newCode);
 
-      if (value !== "" && index < code.length - 1) {
+      if (value !== "" && index < OTP.length - 1) {
         const nextInput = document.getElementById(`input-${index + 1}`);
         if (nextInput) {
           nextInput.focus();
@@ -39,7 +42,7 @@ function VerifyCode() {
     }
   };
   const handleKeyDown = (index, event) => {
-    if (event.key === "Backspace" && code[index] === "" && index > 0) {
+    if (event.key === "Backspace" && OTP[index] === "" && index > 0) {
       const prevInput = document.getElementById(`input-${index - 1}`);
       if (prevInput) {
         prevInput.focus();
@@ -47,7 +50,7 @@ function VerifyCode() {
     }
   };
   const handleSubmit = async () => {
-    const verificationCode = code.join("");
+    const verificationCode = OTP.join("");
     try {
       const response = await instance.post("/auth/checkOTPByEmail", {
         email: email,
@@ -82,7 +85,7 @@ function VerifyCode() {
           error: "Gửi mã OTP thất bại",
         }
       );
-      setTimer(60);
+      setExpirationTime(60);
     } catch (error) {
       console.log(error);
       toast.error(error?.response?.data?.message || "Có lỗi xảy ra", {
@@ -99,9 +102,9 @@ function VerifyCode() {
           Hãy nhập mã chúng tôi đã gửi đến email <b>{email}</b>
         </p>
         <div className="mt-2 flex flex-row gap-x-2">
-          {timer > 0 ? (
+          {expirationTime > 0 ? (
             <p>
-              Mã xác thực sẽ hết hạn trong: <b>{timer}s</b>
+              Mã xác thực sẽ hết hạn trong: <b>{expirationTime}s</b>
             </p>
           ) : (
             <p>Mã xác thực đã hết hạn</p>
@@ -109,7 +112,7 @@ function VerifyCode() {
         </div>
         <div className="mt-4">
           <div className="flex flex-row justify-between gap-x-5">
-            {code.map((digit, index) => (
+            {OTP.map((digit, index) => (
               <input
                 key={index}
                 id={`input-${index}`}
@@ -135,7 +138,7 @@ function VerifyCode() {
           <button
             className="cursor-pointer disabled:cursor-not-allowed disabled:text-[#818181] underline"
             onClick={handleResendCode}
-            disabled={timer > 0}
+            disabled={expirationTime > 0}
           >
             Gửi lại mã
           </button>

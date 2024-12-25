@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { getProductById } from "../../data/products";
 import { getCategoryById } from "../../data/categories";
@@ -8,6 +8,9 @@ import { getSizeById } from "../../data/sizes";
 import { getAllImagesByProductId } from "../../data/productImages";
 import { formatURL } from "../../utils/format";
 import toast from "react-hot-toast";
+import Error from "../Error";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 export default function AdminProductDetails() {
   const { id } = useParams();
@@ -17,6 +20,9 @@ export default function AdminProductDetails() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [variants, setVariants] = useState([]);
+
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   const fetchProduct = async () => {
     try {
@@ -28,9 +34,7 @@ export default function AdminProductDetails() {
       setCategory(fetchedCategory.name);
       const fetchedImages = await getAllImagesByProductId(id);
       setPhotos(fetchedImages);
-    } catch (error) {
-      toast.error(error.response.data.message, { duration: 2000 });
-    }
+    } catch (error) {}
   };
 
   const fetchVariants = async () => {
@@ -44,15 +48,24 @@ export default function AdminProductDetails() {
         })
       );
       setVariants(variantsData);
-    } catch (error) {
-      toast.error(error.response.data.message, { duration: 2000 });
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
     fetchProduct();
     fetchVariants();
   }, [id]);
+
+  if (!permission || !permission.includes("PRODUCTS")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div className="p-10 w-full">

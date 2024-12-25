@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { FileInput, Label } from "flowbite-react";
 import { Dropdown } from "flowbite-react";
@@ -11,9 +11,14 @@ import { createProductVariant } from "../../data/productVariant";
 import { createProduct } from "../../data/products";
 import { createProductImage } from "../../data/productImages";
 import toast from "react-hot-toast";
+import Error from "../Error";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 export default function CreateProduct() {
   const navigate = useNavigate();
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   const [productName, setProductName] = useState("");
   const [categoryId, setCategoryId] = useState(null);
@@ -66,18 +71,14 @@ export default function CreateProduct() {
     try {
       const fetchedCategories = await getAllCategories();
       setCategories(fetchedCategories);
-    } catch (error) {
-      toast.error(error.response.data.message);
-    }
+    } catch (error) {}
   };
 
   const fetchColors = async () => {
     try {
       const fetchedColors = await getAllColors();
       setColors(fetchedColors);
-    } catch (error) {
-      toast.error(error.response.data.message);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -126,13 +127,24 @@ export default function CreateProduct() {
           })
         );
 
-        toast.success("Tạo sản phẩm thành công", { duration: 2000 });
+        toast.success("Thêm sản phẩm thành công", { duration: 2000 });
         navigate("/admin/products");
       }
     } catch (error) {
       toast.error(error.response.data.message, { duration: 2000 });
     }
   };
+
+  if (!permission || !permission.includes("PRODUCTS")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div className="p-10 w-full">

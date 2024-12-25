@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { Table, Modal } from "flowbite-react";
 import Search from "../../components/Search";
@@ -25,6 +25,9 @@ import {
   REVIEW_STATUS,
 } from "../../utils/Constants";
 import Pagination from "../../components/Pagination";
+import Error from "../Error";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 export default function Reviews() {
   const [reviews, setReviews] = useState([]);
@@ -36,6 +39,9 @@ export default function Reviews() {
   const [selectedRating, setSelectedRating] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   const fetchData = async () => {
     try {
@@ -90,7 +96,7 @@ export default function Reviews() {
       await fetchData();
       setFeedback("");
       setOpenReplyModal(false);
-      toast.success("Gửi đánh giá thành công", { duration: 2000 });
+      toast.success("Phản hồi đánh giá thành công", { duration: 2000 });
     } catch (error) {
       toast.error(error.response.data.message, { duration: 2000 });
     }
@@ -106,6 +112,17 @@ export default function Reviews() {
         return "bg-gray-100 text-gray-600";
     }
   };
+
+  if (!permission || !permission.includes("REVIEWS")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <>

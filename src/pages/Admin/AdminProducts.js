@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { Table } from "flowbite-react";
 
@@ -11,6 +11,9 @@ import toast from "react-hot-toast";
 import { formatToVND } from "../../utils/format";
 import { ITEM_PER_PAGE, PRODUCT_STATUS } from "../../utils/Constants";
 import Pagination from "../../components/Pagination";
+import Error from "../Error";
+import AuthContext from "../../context/AuthContext";
+import Cookies from "js-cookie";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -19,6 +22,9 @@ export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const { auth, setHasError } = useContext(AuthContext);
+  const permission = Cookies.get("permission") ?? null;
 
   const handleDeleteProduct = async (productId, isActive) => {
     try {
@@ -63,9 +69,7 @@ export default function Products() {
 
       const fetchedCategories = await getAllCategories();
       setCategories(fetchedCategories);
-    } catch (error) {
-      toast.error(error.response.data.message);
-    }
+    } catch (error) {}
   }
 
   const currentProducts = products.slice(
@@ -87,6 +91,17 @@ export default function Products() {
   useEffect(() => {
     fetchProducts();
   }, [searchTerm, selectedStatus, selectedCategory]);
+
+  if (!permission || !permission.includes("PRODUCTS")) {
+    setHasError(true);
+    return (
+      <Error
+        errorCode={403}
+        title={"Forbidden"}
+        content={"Bạn không có quyền truy cập trang này."}
+      />
+    );
+  }
 
   return (
     <div className="p-10 w-full">
