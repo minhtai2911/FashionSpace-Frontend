@@ -34,6 +34,7 @@ export default function UpdateOrder() {
   const [newDeliveryDate, setNewDeliveryDate] = useState("");
   const [newCurrentAddress, setNewCurrentAddress] = useState("");
   const [newStatus, setNewStatus] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState("");
   const navigate = useNavigate();
 
   const orderStatusValues = Object.values(ORDER_STATUS);
@@ -93,6 +94,7 @@ export default function UpdateOrder() {
       setDeliveryDate(
         formatToDateInput(orderDetails.tracking.expectedDeliveryDate) || ""
       );
+      setPaymentStatus(orderDetails.paymentDetails.status || "");
       setCurrentAddress(orderDetails.tracking.currentAddress || "");
       setStatus(orderDetails.tracking.status || "");
       setNewDeliveryDate(
@@ -229,12 +231,63 @@ export default function UpdateOrder() {
                 <p className="font-manrope font-semibold text-sm">
                   Trạng thái thanh toán
                 </p>
-                <input
-                  value={orderWithDetails?.paymentDetails?.status || ""}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
-                  disabled
-                />
+                {orderWithDetails?.paymentDetails?.paymentMethod === "MOMO" ? (
+                  <select
+                    value={paymentStatus}
+                    onChange={(e) => setPaymentStatus(e.target.value)}
+                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
+                    disabled={
+                      (status !== ORDER_STATUS.CANCELLED &&
+                        paymentStatus === PAYMENT_STATUS.PAID) ||
+                      status === ORDER_STATUS.CANCELLED
+                    }
+                  >
+                    {Object.values(PAYMENT_STATUS).map((value, index) => (
+                      <option
+                        key={index}
+                        value={value}
+                        disabled={
+                          status === ORDER_STATUS.CANCELLED
+                            ? value !== PAYMENT_STATUS.REFUNDED
+                            : false
+                        }
+                      >
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <select
+                    value={paymentStatus}
+                    onChange={(e) => setPaymentStatus(e.target.value)}
+                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
+                    disabled={
+                      (status === ORDER_STATUS.CANCELLED &&
+                        orderWithDetails?.paymentDetails?.paymentMethod ===
+                          "COD") ||
+                      (status === ORDER_STATUS.SHIPPED &&
+                        paymentStatus === PAYMENT_STATUS.PAID)
+                    }
+                  >
+                    {Object.values(PAYMENT_STATUS).map((value, index) => (
+                      <option
+                        key={index}
+                        value={value}
+                        disabled={
+                          status === ORDER_STATUS.SHIPPED
+                            ? value !== PAYMENT_STATUS.PAID
+                            : status === ORDER_STATUS.CANCELLED
+                            ? value !== PAYMENT_STATUS.UNPAID
+                            : false
+                        }
+                      >
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
+
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">Tổng tiền</p>
                 <input
