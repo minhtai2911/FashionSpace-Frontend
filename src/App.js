@@ -44,6 +44,9 @@ import UpdateOrder from "./pages/Admin/UpdateOrder";
 import TrackOrder from "./pages/User/TrackOrder";
 import Chatbot from "./components/Chatbot";
 import AuthContext from "./context/AuthContext";
+import AboutUs from "./pages/User/AboutUs";
+import ContactUs from "./pages/User/ContactUs";
+import Footer from "./components/Footer";
 
 function App() {
   const location = useLocation();
@@ -124,6 +127,12 @@ function App() {
       case "/admin/dashboard":
         document.title = "Dashboard";
         break;
+      case "/aboutUs":
+        document.title = "Giới thiệu";
+        break;
+      case "/contactUs":
+        document.title = "Liên hệ";
+        break;
       default:
         document.title = "Fashion Space";
     }
@@ -160,6 +169,8 @@ function App() {
         <Route path="/verifyCode" element={<VerifyCode />} />
         <Route path="/trackOrder/:id" element={<TrackOrder />} />
         <Route path="/account" element={<Account />} />
+        <Route path="/aboutUs" element={<AboutUs />} />
+        <Route path="/contactUs" element={<ContactUs />} />
         <Route path="/success/*" element={<AuthSuccess />} />
         <Route path="/setPassword" element={<SetNewPassword />} />
         <Route
@@ -196,6 +207,10 @@ function App() {
       {!noHeaderRoutes.includes(location.pathname) &&
         !isAdminRoute &&
         !hasError && <Chatbot />}
+      {!noHeaderRoutes.includes(location.pathname) &&
+        !isAdminRoute &&
+        !isVerifyEmail &&
+        !hasError && <Footer />}
     </div>
   );
 }

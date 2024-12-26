@@ -164,13 +164,13 @@ function Header() {
               Cửa hàng
             </Link>
             <Link
-              to="/about"
+              to="/aboutUs"
               className="text-[#413e3e] hover:text-red-600 font-semibold relative before:content-[''] before:absolute before:w-0 before:h-0.5 before:bg-red-600 before:transition-all before:duration-300 before:-bottom-1 before:left-1/2 before:transform before:translate-x-[-50%] hover:before:w-full"
             >
               Giới thiệu
             </Link>
             <Link
-              to="/contact"
+              to="/contactUs"
               className="text-[#413e3e] hover:text-red-600 font-semibold relative before:content-[''] before:absolute before:w-0 before:h-0.5 before:bg-red-600 before:transition-all before:duration-300 before:-bottom-1 before:left-1/2 before:transform before:translate-x-[-50%] hover:before:w-full"
             >
               Liên hệ
