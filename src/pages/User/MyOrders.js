@@ -21,13 +21,7 @@ import {
   createOrderTracking,
   getOrderTrackingByOrderId,
 } from "../../data/orderTracking";
-import Rating from "../../components/Rating";
-import {
-  createReview,
-  getAllReviews,
-  getReviewByProductIdAndUserId,
-  updateReview,
-} from "../../data/reviews";
+import { createReview, getAllReviews, updateReview } from "../../data/reviews";
 import toast from "react-hot-toast";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 
@@ -38,6 +32,7 @@ export default function MyOrders() {
   const [openEditReviewModal, setOpenEditReviewModal] = useState(false);
   const [openCancelOrderModal, setOpenCancelOrderModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState({});
+  const [reviewHistory, setReviewHistory] = useState([]);
   const [review, setReview] = useState({
     productId: "",
     rating: 0,
@@ -89,18 +84,6 @@ export default function MyOrders() {
               const size = await getSizeById(productVariant.sizeId);
               const color = await getColorById(productVariant.colorId);
               const category = await getCategoryById(product.categoryId);
-              const reviewHistory = await getAllReviews(
-                null,
-                null,
-                productVariant.productId,
-                user.id,
-                order._id
-              );
-
-              if (reviewHistory.length > 0) {
-                setHasReview(true);
-                setReview(reviewHistory[0]);
-              }
 
               return {
                 product: product,
@@ -118,6 +101,10 @@ export default function MyOrders() {
           };
         })
       );
+
+      const fetchedReviews = await getAllReviews();
+      setReviewHistory(fetchedReviews);
+
       setOrders(fetchedOrders);
       setIsLoading(false);
     } catch (error) {
@@ -136,15 +123,16 @@ export default function MyOrders() {
     if (response) {
       setOpenAddReviewModal(false);
       toast.success("Gửi đánh giá thành công", { duration: 2000 });
+      fetchOrders();
     } else {
       toast.error("Gửi đánh giá thất bại", { duration: 2000 });
     }
   };
 
   const handleUpdateReview = async () => {
-    console.log(review._id, review.rating, review.content);
+    console.log(review.id, review.rating, review.content);
     const response = await updateReview(
-      review._id,
+      review.id,
       review.rating,
       review.content
     );
@@ -152,6 +140,7 @@ export default function MyOrders() {
     if (response) {
       setOpenEditReviewModal(false);
       toast.success("Chỉnh sửa đánh giá thành công", { duration: 2000 });
+      fetchOrders();
     } else {
       toast.error("Chỉnh sửa đánh giá thất bại", { duration: 2000 });
     }
@@ -234,49 +223,67 @@ export default function MyOrders() {
                 <tbody className="border-l border-r border-b">
                   <tr className="space-y-4 border-b mb-4">
                     <td colSpan={4} className="p-2">
-                      {order.detailedItems.map((item, index) => (
-                        <div className="flex flex-row justify-between items-center">
-                          <div
-                            key={item.product._id}
-                            className="px-4 py-2 flex items-center"
-                          >
-                            <img
-                              src={formatURL(item.images[0].imagePath)}
-                              alt={item.name}
-                              className="w-16 h-16 mr-4"
-                            />
-                            <div>
-                              <p className="font-medium">{item.product.name}</p>
-                              <p className="font-light">
-                                Màu sắc: {item.color.color} | Kích cỡ:{" "}
-                                {item.size.size} | Số lượng:{" "}
-                                {order.details[index].quantity}
-                              </p>
-                            </div>
-                          </div>
-                          {order.tracking.status === ORDER_STATUS.SHIPPED && (
-                            <button
-                              className="bg-black h-fit text-white px-4 py-2 rounded-md"
-                              onClick={() => {
-                                if (!hasReview) {
-                                  setReview({
-                                    ...review,
-                                    productId: item.product._id,
-                                    orderId: order._id,
-                                  });
-                                  setOpenAddReviewModal(true);
-                                } else {
-                                  setOpenEditReviewModal(true);
-                                }
-                              }}
+                      {order.detailedItems.map((item, index) => {
+                        const existingReview = reviewHistory.find(
+                          (review) =>
+                            review.productId === item.product._id &&
+                            review.orderId === order._id
+                        );
+
+                        return (
+                          <div className="flex flex-row justify-between items-center">
+                            <div
+                              key={item.product._id}
+                              className="px-4 py-2 flex items-center"
                             >
-                              {!hasReview
-                                ? "Thêm đánh giá"
-                                : "Chỉnh sửa đánh giá"}
-                            </button>
-                          )}
-                        </div>
-                      ))}
+                              <img
+                                src={formatURL(item.images[0].imagePath)}
+                                alt={item.name}
+                                className="w-16 h-16 mr-4"
+                              />
+                              <div>
+                                <p className="font-medium">
+                                  {item.product.name}
+                                </p>
+                                <p className="font-light">
+                                  Màu sắc: {item.color.color} | Kích cỡ:{" "}
+                                  {item.size.size} | Số lượng:{" "}
+                                  {order.details[index].quantity}
+                                </p>
+                              </div>
+                            </div>
+                            {order.tracking.status === ORDER_STATUS.SHIPPED && (
+                              <button
+                                className="bg-black h-fit text-white px-4 py-2 rounded-md"
+                                onClick={() => {
+                                  if (!existingReview) {
+                                    setReview({
+                                      productId: item.product._id,
+                                      orderId: order._id,
+                                      rating: 0,
+                                      content: "",
+                                    });
+                                    setOpenAddReviewModal(true);
+                                  } else {
+                                    setReview({
+                                      id: existingReview._id,
+                                      productId: existingReview.productId,
+                                      orderId: existingReview.orderId,
+                                      rating: existingReview.rating,
+                                      content: existingReview.content,
+                                    });
+                                    setOpenEditReviewModal(true);
+                                  }
+                                }}
+                              >
+                                {!existingReview
+                                  ? "Thêm đánh giá"
+                                  : "Chỉnh sửa đánh giá"}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </td>
                   </tr>
 
@@ -460,9 +467,9 @@ export default function MyOrders() {
           <div className="w-full flex justify-center">
             <button
               className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-6 font-manrope"
-              onClick={!hasReview ? handleAddReview : handleUpdateReview}
+              onClick={handleUpdateReview}
             >
-              {!hasReview ? "Đánh giá" : "Lưu thay đổi"}
+              {"Lưu thay đổi"}
             </button>
           </div>
         </Modal.Body>

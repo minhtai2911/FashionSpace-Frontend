@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import ProductItem from "./ProductItem";
 import Swiper from "swiper/bundle";
-import "swiper/css";
+import "swiper/swiper-bundle.css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { formatURL } from "../utils/format";
-import instance from "../services/axiosConfig";
 import { getAllImagesByProductId } from "../data/productImages";
 import { getCategoryById } from "../data/categories";
 
@@ -14,7 +13,25 @@ function Slider({ products, usage }) {
   const [categories, setCategories] = useState({});
 
   useEffect(() => {
-    new Swiper(".swiper", {
+    const fetchData = async () => {
+      const images = {};
+      const categories = {};
+      for (const product of products) {
+        const imagesForProduct = await getAllImagesByProductId(product._id);
+        images[product._id] = imagesForProduct;
+
+        const categoryForProduct = await getCategoryById(product.categoryId);
+        categories[product._id] = categoryForProduct.name;
+      }
+      setProductImages(images);
+      setCategories(categories);
+    };
+
+    fetchData();
+  }, [products]);
+
+  useEffect(() => {
+    const swiper = new Swiper(".swiper", {
       direction: "horizontal",
       loop: true,
       slidesPerView: 4,
@@ -30,7 +47,7 @@ function Slider({ products, usage }) {
         prevEl: ".swiper-button-prev",
       },
     });
-  }, []);
+  }, [products]);
 
   useEffect(() => {
     const fetchData = async () => {

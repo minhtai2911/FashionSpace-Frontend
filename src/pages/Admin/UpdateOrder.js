@@ -35,6 +35,7 @@ export default function UpdateOrder() {
   const [newCurrentAddress, setNewCurrentAddress] = useState("");
   const [newStatus, setNewStatus] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("");
+  const [newPaymentStatus, setNewPaymentStatus] = useState("");
   const navigate = useNavigate();
 
   const orderStatusValues = Object.values(ORDER_STATUS);
@@ -95,6 +96,7 @@ export default function UpdateOrder() {
         formatToDateInput(orderDetails.tracking.expectedDeliveryDate) || ""
       );
       setPaymentStatus(orderDetails.paymentDetails.status || "");
+      setNewPaymentStatus(orderDetails.paymentDetails.status || "");
       setCurrentAddress(orderDetails.tracking.currentAddress || "");
       setStatus(orderDetails.tracking.status || "");
       setNewDeliveryDate(
@@ -114,7 +116,7 @@ export default function UpdateOrder() {
   const handleUpdateOrder = async () => {
     try {
       await createOrderTracking(id, newStatus, currentAddress, deliveryDate);
-      if (status === ORDER_STATUS.SHIPPED) {
+      if (newStatus === ORDER_STATUS.SHIPPED) {
         await updatePaymentDetailById(
           orderWithDetails.paymentDetails._id,
           PAYMENT_STATUS.PAID
@@ -131,7 +133,8 @@ export default function UpdateOrder() {
     return (
       deliveryDate !== newDeliveryDate ||
       status !== newStatus ||
-      currentAddress !== newCurrentAddress
+      currentAddress !== newCurrentAddress ||
+      paymentStatus !== newPaymentStatus
     );
   };
 
@@ -233,8 +236,8 @@ export default function UpdateOrder() {
                 </p>
                 {orderWithDetails?.paymentDetails?.paymentMethod === "MOMO" ? (
                   <select
-                    value={paymentStatus}
-                    onChange={(e) => setPaymentStatus(e.target.value)}
+                    value={newPaymentStatus}
+                    onChange={(e) => setNewPaymentStatus(e.target.value)}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
                     disabled={
                       (status !== ORDER_STATUS.CANCELLED &&
@@ -258,14 +261,14 @@ export default function UpdateOrder() {
                   </select>
                 ) : (
                   <select
-                    value={paymentStatus}
-                    onChange={(e) => setPaymentStatus(e.target.value)}
+                    value={newPaymentStatus}
+                    onChange={(e) => setNewPaymentStatus(e.target.value)}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
                     disabled={
-                      (status === ORDER_STATUS.CANCELLED &&
+                      (status !== ORDER_STATUS.CANCELLED &&
                         orderWithDetails?.paymentDetails?.paymentMethod ===
                           "COD") ||
-                      (status === ORDER_STATUS.SHIPPED &&
+                      (status !== ORDER_STATUS.SHIPPED &&
                         paymentStatus === PAYMENT_STATUS.PAID)
                     }
                   >

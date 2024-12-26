@@ -178,6 +178,7 @@ function ProductItem({ id, usage }) {
             className="object-cover h-60 w-56"
             src={formatURL(image)}
             alt="product image"
+            defaultValue={"https://via.placeholder.com/800x600?text=Team+Image"}
           />
         </Link>
 
