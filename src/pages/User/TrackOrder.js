@@ -291,7 +291,7 @@ export default function TrackOrder() {
           <div className="flex flex-col mt-10 w-full">
             <p className="text-2xl font-medium">Trạng thái đơn hàng</p>
             <p className="mt-1">Mã đơn hàng: {id}</p>
-            <div className="border rounded-lg px-10 py-5 mt-6 flex overflow-scroll">
+            <div className="border rounded-lg px-10 py-5 mt-6 flex flex-nowrap overflow-x-scroll w-full thin-scrollbar">
               {tracking.map((item, index) => (
                 <OrderStatus
                   key={item._id}
@@ -301,6 +301,8 @@ export default function TrackOrder() {
                   orderStatus={tracking[tracking.length - 1].status}
                   date={formatDate(item.date)}
                   time={getTime(item.date)}
+                  address={item.currentAddress}
+                  isEnd={item === tracking[tracking.length - 1]}
                 />
               ))}
             </div>

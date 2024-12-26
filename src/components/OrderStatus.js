@@ -203,6 +203,8 @@ export default function OrderStatus({
   time,
   index,
   orderStatus,
+  address,
+  isEnd,
 }) {
   const [isDisabled, setIsDisabled] = useState(true);
   const [orderIndex, setOrderIndex] = useState(0);
@@ -217,7 +219,7 @@ export default function OrderStatus({
   }, [orderStatus, status]);
 
   return (
-    <div className="flex flex-col justify-center items-center flex-1">
+    <div className="flex flex-col justify-start items-center min-w-60">
       {icon}
       <p className="text-sm mt-1">{status}</p>
       <div className="flex items-center w-full justify-center mt-3">
@@ -248,10 +250,8 @@ export default function OrderStatus({
           />
         </svg>
         <div
-          class={`hidden sm:flex flex-1 ${
-            currentIndex == orderIndex && "bg-transparent"
-          } ${
-            currentIndex <= orderIndex - 1 ? "bg-[#0A0A0A]" : "bg-[#DEDEDE]"
+          class={`hidden sm:flex flex-1 ${isEnd && "bg-transparent"} ${
+            currentIndex <= orderIndex ? "bg-[#0A0A0A]" : "bg-[#DEDEDE]"
           } h-1.5 dark:bg-gray-700`}
         ></div>
       </div>
@@ -260,6 +260,9 @@ export default function OrderStatus({
       </p>
       <p className={`text-sm mt-1 ${isDisabled && "text-[#DEDEDE]"}`}>
         {isDisabled ? `Dự kiến` : time}
+      </p>
+      <p className={`text-sm mt-1 ${isDisabled && "text-[#DEDEDE]"}`}>
+        {address ?? address}
       </p>
     </div>
   );
