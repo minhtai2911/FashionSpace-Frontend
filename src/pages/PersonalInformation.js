@@ -121,7 +121,7 @@ export default function PersonalInformation({ user }) {
   }, [user, isLoaded]);
 
   return (
-    <div className="w-[600px]">
+    <div className="w-[600px] mb-20">
       <div className="mb-6 relative w-24 h-24">
         <img
           src={formatURL(data?.avatarPath)}

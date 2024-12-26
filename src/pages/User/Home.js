@@ -12,13 +12,14 @@ import Cookies from "js-cookie";
 import Error from "../Error";
 
 function Home() {
-  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
-  const refreshToken = Cookies.get("refreshToken");
+  const [user, setUser] = useState(() =>
+    Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null
+  );
   const [newArrivalProducts, setNewArrivalProducts] = useState([]);
   const [bestSellerProducts, setBestSellerProducts] = useState([]);
   const [relatedProducts, setRelatedProducts] = useState([]);
 
-  const { auth, setHasError } = useContext(AuthContext);
+  const { setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
 
   useEffect(() => {
@@ -38,7 +39,7 @@ function Home() {
     fetchNewArrivalProducts();
     fetchBestSellerProducts();
 
-    if (refreshToken) {
+    if (user) {
       fetchRelatedProducts();
     }
   }, []);
@@ -55,7 +56,7 @@ function Home() {
   }
 
   return (
-    <div>
+    <div className="mb-20">
       <div className="relative">
         <img
           src={BannerClothes}

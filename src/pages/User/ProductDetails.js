@@ -253,7 +253,7 @@ function ProductDetails() {
 
   return (
     <>
-      <div>
+      <div className="mb-20">
         <Banner
           title="Chi tiết sản phẩm"
           route={`Trang chủ / Cửa hàng / Chi tiết sản phẩm / ${product.productName}`}

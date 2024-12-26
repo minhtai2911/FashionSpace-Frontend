@@ -90,7 +90,7 @@ function OrderCompleted() {
   }
 
   return (
-    <div>
+    <div className="mb-20">
       <Banner
         title={"Hoàn tất đơn hàng"}
         route={"Trang chủ / Thanh toán / Hoàn tất đơn hàng"}

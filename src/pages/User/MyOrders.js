@@ -198,7 +198,7 @@ export default function MyOrders() {
   return (
     <>
       {!isLoading && (
-        <div>
+        <div className="mb-20">
           <h2 className="text-2xl font-semibold mb-4">
             Số đơn hàng: {orders.length}
           </h2>

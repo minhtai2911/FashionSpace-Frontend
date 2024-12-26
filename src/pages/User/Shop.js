@@ -183,7 +183,7 @@ function Shop() {
   }
 
   return (
-    <div>
+    <div className="mb-20">
       <Banner title={"Cửa hàng"} route={"Trang chủ / Cửa hàng"} />
       <div className="flex gap-x-10 py-10 px-28">
         <div className="flex flex-col w-[260px] gap-y-4 text-[20px] font-bold">

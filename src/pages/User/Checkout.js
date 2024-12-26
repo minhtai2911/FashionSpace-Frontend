@@ -360,7 +360,7 @@ function Checkout() {
   }
 
   return (
-    <div>
+    <div className="mb-20">
       <Banner title="Thanh toán" route="Trang chủ / Giỏ hàng / Thanh toán" />
       <div className="flex flex-row gap-x-20 px-40 py-20">
         <div className="flex flex-col gap-y-6 w-[800px]">

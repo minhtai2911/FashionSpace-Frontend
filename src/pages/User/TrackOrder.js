@@ -284,7 +284,7 @@ export default function TrackOrder() {
   }
 
   return (
-    <div>
+    <div className="mb-20">
       <Banner title="Theo dõi đơn hàng" route="Trang chủ / Theo dõi đơn hàng" />
       {order && (
         <div className="px-80 flex w-full">

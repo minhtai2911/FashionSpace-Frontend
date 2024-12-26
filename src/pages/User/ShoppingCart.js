@@ -126,7 +126,7 @@ function ShoppingCart() {
 
   return (
     <>
-      <div>
+      <div className="mb-20">
         <Banner title={"Giỏ hàng"} route={"Trang chủ / Giỏ hàng"} />
         <div className="flex flex-row gap-x-20 px-40 py-20">
           {/* Product List */}

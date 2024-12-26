@@ -205,10 +205,10 @@ export const AuthProvider = ({ children }) => {
           Cookies.remove("carts");
           Cookies.remove("accessToken");
           Cookies.remove("refreshToken");
-          Cookies.remove("user");
           Cookies.remove("permission");
           toast.success("Đăng xuất thành công", { duration: 2000 });
           navigate("/login");
+          Cookies.remove("user");
         }
       }
     } catch (error) {

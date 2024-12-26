@@ -26,6 +26,7 @@ import toast from "react-hot-toast";
 import AuthContext from "../../context/AuthContext";
 import Error from "../Error";
 import Cookies from "js-cookie";
+import Pagination from "../../components/Pagination";
 
 export default function Dashboard() {
   const [orders, setOrders] = useState([]);
@@ -36,6 +37,8 @@ export default function Dashboard() {
   const [latestOrders, setLatestOrders] = useState([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [yearRevenue, setYearRevenue] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const BEST_SELLER_PRODUCTS_PER_PAGE = 2;
 
   const { setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
@@ -140,6 +143,11 @@ export default function Dashboard() {
         return "bg-gray-100 text-gray-600";
     }
   };
+
+  const currentBestSellerProducts = bestSellerProducts.slice(
+    (currentPage - 1) * BEST_SELLER_PRODUCTS_PER_PAGE,
+    currentPage * BEST_SELLER_PRODUCTS_PER_PAGE
+  );
 
   useEffect(() => {
     fetchOrders();
@@ -261,7 +269,7 @@ export default function Dashboard() {
       </div>
       <div className="flex flex-row mt-5 gap-x-5">
         <div className="flex-[2] p-6 bg-white rounded-lg shadow-md flex flex-col gap-y-2">
-          <p className="font-bold">Doanh thu (năm nay)</p>
+          <p className="font-bold mb-10">Doanh thu (năm nay)</p>
           <p className="text-2xl font-bold">{formatToVND(yearRevenue)}</p>
           <ResponsiveContainer width="100%" height={250}>
             <AreaChart
@@ -299,7 +307,7 @@ export default function Dashboard() {
               <Table.HeadCell>Số đã bán</Table.HeadCell>
             </Table.Head>
             <Table.Body className="divide-y">
-              {bestSellerProducts.map((product) => (
+              {currentBestSellerProducts.map((product) => (
                 <Table.Row
                   key={product._id}
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"
@@ -319,6 +327,15 @@ export default function Dashboard() {
               ))}
             </Table.Body>
           </Table>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(
+              bestSellerProducts.length / BEST_SELLER_PRODUCTS_PER_PAGE
+            )}
+            onPageChange={setCurrentPage}
+            svgClassName={"w-4 h-4"}
+            textClassName={"text-sm px-3 py-2"}
+          />
         </div>
       </div>
       <div className="flex-1 p-6 mt-5 bg-white rounded-lg shadow-md flex flex-col gap-y-2">

@@ -71,7 +71,7 @@ export default function PasswordManager() {
   };
 
   return (
-    <div className="w-[600px]">
+    <div className="w-[600px] mb-20">
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block text-base font-semibold mb-1">

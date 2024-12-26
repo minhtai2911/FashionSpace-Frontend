@@ -79,6 +79,8 @@ function SignIn() {
       Cookies.set("accessToken", accessToken);
       Cookies.set("refreshToken", refreshToken);
       Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
+
+      return Promise.resolve();
     } catch (error) {
       setAuth((prevAuth) => ({
         ...prevAuth,

@@ -32,7 +32,7 @@ function Account() {
   }
 
   return (
-    <div>
+    <div className="mb-20">
       <Banner title="Tài khoản" route="Trang chủ / Tài khoản" />
       <div className="px-40 justify-center flex">
         <div className="flex flex-row gap-x-20 mt-10">
