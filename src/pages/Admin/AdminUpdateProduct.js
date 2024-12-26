@@ -530,12 +530,19 @@ export default function UpdateProduct() {
           </button>
         </div>
       </div>
-      <button
-        className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold mt-10"
-        onClick={handleUpdateProduct}
-      >
-        Lưu thay đổi
-      </button>
+      <div className="flex gap-x-5 items-center mt-10">
+        <Link to={"/admin/products"}>
+          <button className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold">
+            Quay về
+          </button>
+        </Link>
+        <button
+          className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold"
+          onClick={handleUpdateProduct}
+        >
+          Lưu thay đổi
+        </button>
+      </div>
     </div>
   );
 }

@@ -88,7 +88,7 @@ export default function Sizes() {
           const category = await getCategoryById(size.categoryId);
           return {
             ...size,
-            category: category.name,
+            category: `${category.name} [${category.gender}]`,
           };
         })
       );
@@ -156,10 +156,10 @@ export default function Sizes() {
                 {categories.map((item) => (
                   <option
                     key={item._id}
-                    value={item.name}
+                    value={`${item.name} [${item.gender}]`}
                     className="font-medium font-manrope text-sm"
                   >
-                    {item.name}
+                    {`${item.name} [${item.gender}]`}
                   </option>
                 ))}
               </select>

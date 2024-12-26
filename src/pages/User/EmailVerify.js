@@ -1,18 +1,51 @@
 import { useEffect, useState, useContext } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 import AuthContext from "../../context/AuthContext";
 import Error from "../Error";
+import { mergeCart } from "../../stores/cart";
 import instance from "../../services/axiosConfig";
+import {
+  ADMIN_PERMISSIONS,
+  CUSTOMER_PERMISSIONS,
+  EMPLOYEE_PERMISSIONS,
+} from "../../utils/Constants";
+import { getUserRoleById } from "../../data/userRoles";
+import { getShoppingCartByUserId } from "../../data/shoppingCart";
+import { getProductVariantById } from "../../data/productVariant";
+import { useDispatch } from "react-redux";
 
 const EmailVerify = () => {
-  const { setAuth, setUser, auth } = useContext(AuthContext);
+  const { setAuth, setUser, setHasError } = useContext(AuthContext);
   const [validUrl, setValidUrl] = useState(true);
   const [redirectTimer, setRedirectTimer] = useState(3);
   const [error, setError] = useState(null);
   const param = useParams();
+  const location = useLocation();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const mergeUserCart = async (userId) => {
+    try {
+      const userCartData = await getShoppingCartByUserId(userId);
+      if (userCartData) {
+        const data = await Promise.all(
+          userCartData.map(async (cart) => {
+            const variant = await getProductVariantById(cart.productVariantId);
+            const productId = variant.productId;
+            const sizeId = variant.sizeId;
+            const colorId = variant.colorId;
+            const quantity = cart.quantity;
+            return { productId, sizeId, colorId, quantity };
+          })
+        );
+        dispatch(mergeCart(data));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     const verifyEmailUrl = async () => {
@@ -40,6 +73,39 @@ const EmailVerify = () => {
         Cookies.set("refreshToken", refreshToken);
         Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
         setValidUrl(true);
+        const user = jwtDecode(accessToken);
+        const role = await getUserRoleById(user.roleId);
+        setHasError(false);
+        if (role.roleName === "Customer") {
+          setAuth((prevAuth) => ({
+            ...prevAuth,
+            permission: CUSTOMER_PERMISSIONS,
+          }));
+          Cookies.set("permission", CUSTOMER_PERMISSIONS);
+          await mergeUserCart(user.id);
+          const state = location.state;
+          if (state && state.orderSummary) {
+            navigate("/checkout", {
+              state: { orderSummary: state.orderSummary },
+            });
+          } else {
+            navigate("/");
+          }
+        } else if (role.roleName === "Admin") {
+          setAuth((prevAuth) => ({
+            ...prevAuth,
+            permission: ADMIN_PERMISSIONS,
+          }));
+          Cookies.set("permission", ADMIN_PERMISSIONS);
+          navigate("/admin");
+        } else if (role.roleName === "Employee") {
+          setAuth((prevAuth) => ({
+            ...prevAuth,
+            permission: EMPLOYEE_PERMISSIONS,
+          }));
+          Cookies.set("permission", EMPLOYEE_PERMISSIONS);
+          navigate("/admin/orders");
+        }
       } catch (error) {
         setError(error);
         setValidUrl(false);

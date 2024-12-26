@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Table, Datepicker } from "flowbite-react";
 import { getOrderById, updateOrderById } from "../../data/orders";
 import { getOrderDetailsByOrderId } from "../../data/orderDetail";
@@ -383,17 +383,24 @@ export default function UpdateOrder() {
           </div>
         </div>
       </div>
-      <button
-        className="px-6 py-2 rounded-lg bg-[#0A0A0A] disabled:bg-[#4A4A4A] disabled:cursor-not-allowed text-white font-extrabold mt-10"
-        onClick={handleUpdateOrder}
-        disabled={
-          status === ORDER_STATUS.SHIPPED ||
-          status === ORDER_STATUS.CANCELLED ||
-          !isChanged()
-        }
-      >
-        Lưu thay đổi
-      </button>
+      <div className="flex gap-x-5 mt-10 items-center">
+        <Link to={"/admin/orders"}>
+          <button className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold">
+            Quay về
+          </button>
+        </Link>
+        <button
+          className="px-6 py-2 rounded-lg bg-[#0A0A0A] disabled:bg-[#4A4A4A] disabled:cursor-not-allowed text-white font-extrabold"
+          onClick={handleUpdateOrder}
+          disabled={
+            status === ORDER_STATUS.SHIPPED ||
+            status === ORDER_STATUS.CANCELLED ||
+            !isChanged()
+          }
+        >
+          Lưu thay đổi
+        </button>
+      </div>
     </div>
   );
 }

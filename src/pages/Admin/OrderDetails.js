@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Table } from "flowbite-react";
 import { getOrderById } from "../../data/orders";
 import { getOrderDetailsByOrderId } from "../../data/orderDetail";
@@ -226,6 +226,11 @@ export default function OrderDetails() {
           </div>
         </div>
       </div>
+      <Link to={"/admin/orders"}>
+        <button className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold mt-10">
+          Quay về
+        </button>
+      </Link>
     </div>
   );
 }

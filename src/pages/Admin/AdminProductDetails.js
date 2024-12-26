@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { getProductById } from "../../data/products";
 import { getCategoryById } from "../../data/categories";
 import { getColorById } from "../../data/colors";
@@ -163,6 +163,11 @@ export default function AdminProductDetails() {
           </main>
         ))}
       </div>
+      <Link to={"/admin/products"}>
+        <button className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10">
+          Quay về
+        </button>
+      </Link>
     </div>
   );
 }
