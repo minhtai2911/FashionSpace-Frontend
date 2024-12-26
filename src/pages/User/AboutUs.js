@@ -9,8 +9,6 @@ const AboutUs = () => {
       name: "Dương Minh Tài",
       position: "Backend Developer",
       bio: "Là một Backend Developer giàu kinh nghiệm, chuyên thiết kế và phát triển các hệ thống phía máy chủ hiệu quả, bảo mật và có khả năng mở rộng. Với nền tảng vững chắc về lập trình và công nghệ backend, anh đã góp phần xây dựng thành công nhiều ứng dụng và hệ thống phức tạp, đáp ứng nhu cầu đa dạng của khách hàng.",
-      image:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
       social: {
         linkedin: "#",
         twitter: "#",
@@ -21,8 +19,6 @@ const AboutUs = () => {
       name: "Hồ Văn Phương",
       position: "Frontent Developer",
       bio: "Là một Frontend Developer đam mê sáng tạo giao diện web và ứng dụng thân thiện với người dùng. Với sự tinh tế trong thiết kế và kỹ năng lập trình vững chắc, anh đã góp phần mang đến những trải nghiệm trực quan, mượt mà và tương tác cho khách hàng trên các nền tảng số.",
-      image:
-        "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
       social: {
         linkedin: "#",
         twitter: "#",
@@ -107,7 +103,7 @@ const AboutUs = () => {
                   className="bg-white rounded-lg shadow-lg max-w-96 overflow-hidden transform transition-transform duration-300 hover:scale-105"
                 >
                   <img
-                    src={member.image}
+                    src={require(`../../assets/images/member_${index + 1}.jpg`)}
                     alt={member.name}
                     className="w-full h-80 object-cover"
                     onError={(e) => {
