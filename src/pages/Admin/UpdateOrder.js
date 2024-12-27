@@ -115,13 +115,11 @@ export default function UpdateOrder() {
 
   const handleUpdateOrder = async () => {
     try {
+      await updatePaymentDetailById(
+        orderWithDetails.paymentDetails._id,
+        newPaymentStatus
+      );
       await createOrderTracking(id, newStatus, currentAddress, deliveryDate);
-      if (newStatus === ORDER_STATUS.SHIPPED) {
-        await updatePaymentDetailById(
-          orderWithDetails.paymentDetails._id,
-          PAYMENT_STATUS.PAID
-        );
-      }
       toast.success("Cập nhật đơn hàng thành công", { duration: 2000 });
       navigate("/admin/orders");
     } catch (error) {
@@ -141,7 +139,7 @@ export default function UpdateOrder() {
   const isCanCancel = () => {
     return (
       orderWithDetails?.paymentDetails?.paymentMethod === "MOMO" &&
-      orderWithDetails?.paymentDetails?.paymentStatus === PAYMENT_STATUS.PAID
+      paymentStatus === PAYMENT_STATUS.PAID
     );
   };
 
@@ -265,11 +263,10 @@ export default function UpdateOrder() {
                     onChange={(e) => setNewPaymentStatus(e.target.value)}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
                     disabled={
-                      (status !== ORDER_STATUS.CANCELLED &&
-                        orderWithDetails?.paymentDetails?.paymentMethod ===
-                          "COD") ||
-                      (status !== ORDER_STATUS.SHIPPED &&
-                        paymentStatus === PAYMENT_STATUS.PAID)
+                      // (status !== ORDER_STATUS.CANCELLED &&
+                      //   orderWithDetails?.paymentDetails?.paymentMethod ===
+                      //     "COD") ||
+                      status !== ORDER_STATUS.SHIPPED
                     }
                   >
                     {Object.values(PAYMENT_STATUS).map((value, index) => (
@@ -396,8 +393,8 @@ export default function UpdateOrder() {
           className="px-6 py-2 rounded-lg bg-[#0A0A0A] disabled:bg-[#4A4A4A] disabled:cursor-not-allowed text-white font-extrabold"
           onClick={handleUpdateOrder}
           disabled={
-            status === ORDER_STATUS.SHIPPED ||
-            status === ORDER_STATUS.CANCELLED ||
+            // status === ORDER_STATUS.SHIPPED ||
+            // status === ORDER_STATUS.CANCELLED ||
             !isChanged()
           }
         >
