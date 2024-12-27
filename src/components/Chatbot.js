@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import instance from "../services/axiosConfig";
 import ProductItem from "./ProductItem";
 import { ORDER_STATUS } from "../utils/Constants";
+import OrderStatus from "./OrderStatus";
+import { formatDate, getTime } from "../utils/format";
+import { useNavigate } from "react-router-dom";
 
 const status = [
   {
@@ -208,9 +211,14 @@ export default function Chatbot() {
   const [content, setContent] = useState("");
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
+  };
+
+  const getStatusObjectByStatus = (statusValue) => {
+    return status.find((item) => item.status === statusValue);
   };
 
   const handleSend = async () => {
@@ -226,10 +234,17 @@ export default function Chatbot() {
 
     try {
       const response = await instance.post("/chatbot", { message: content });
+      const type = response.data.type;
       const botMessage = {
         sender: "bot",
         text: response.data.message,
-        results: response.data.data,
+        results:
+          type === "Product"
+            ? response.data.data
+            : {
+                orderTracking: response.data.data.OrderTracking,
+                orderDetail: response.data.data.OrderDetail,
+              },
         type: response.data.type,
       };
       setMessages((prevMessages) => [...prevMessages, botMessage]);
@@ -264,6 +279,12 @@ export default function Chatbot() {
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  const handleTrackOrder = (orderId, trackingData, orderDetail) => {
+    navigate(`/trackOrder/${orderId}`, {
+      state: { trackingData: trackingData, orderDetail: orderDetail },
+    });
+  };
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -394,15 +415,17 @@ export default function Chatbot() {
                     <p className="text-sm">FashionBot</p>
                   </div>
                 )}
-                <p
-                  className={`inline-block p-2 rounded-lg text-sm ${
-                    msg.sender === "user"
-                      ? "bg-[#0A0A0A] text-white"
-                      : "bg-gray-200 text-black ml-8 w-5/6"
-                  } `}
-                >
-                  {msg.text}
-                </p>
+                {msg.text && (
+                  <p
+                    className={`inline-block p-2 rounded-lg text-sm ${
+                      msg.sender === "user"
+                        ? "bg-[#0A0A0A] text-white"
+                        : "bg-gray-200 text-black ml-8 w-5/6"
+                    } `}
+                  >
+                    {msg.text}
+                  </p>
+                )}
                 {msg.sender === "bot" &&
                   msg.results &&
                   msg.type === "Product" && (
@@ -412,15 +435,51 @@ export default function Chatbot() {
                       ))}
                     </div>
                   )}
-                {msg.sender === "bot" &&
-                  msg.results &&
-                  msg.type === "OrderTracking" && (
-                    <div className="ml-8 mt-3 flex flex-col gap-y-3 w-11/12">
-                      {msg.results.map((result) => (
-                        <ProductItem key={result._id} id={result._id} />
-                      ))}
-                    </div>
-                  )}
+                {msg.sender === "bot" && msg.results && (
+                  <>
+                    {msg.type === "OrderTracking" ? (
+                      (() => {
+                        const tracking = msg.results.orderTracking;
+                        const details = msg.results.orderDetail;
+                        const item = tracking[tracking.length - 1];
+
+                        return (
+                          <div className="flex flex-col justify-center gap-y-3">
+                            <div className="ml-8 mt-3 flex flex-col gap-y-3 w-11/12">
+                              <OrderStatus
+                                key={item._id}
+                                icon={getStatusObjectByStatus(item.status).icon}
+                                status={item.status}
+                                index={0}
+                                orderStatus={
+                                  tracking[tracking.length - 1].status
+                                }
+                                date={formatDate(item.date)}
+                                time={getTime(item.date)}
+                                address={item.currentAddress}
+                                isEnd={item === tracking[tracking.length - 1]}
+                              />
+                            </div>
+                            <button
+                              className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white"
+                              onClick={() =>
+                                handleTrackOrder(
+                                  item.orderId,
+                                  tracking,
+                                  details
+                                )
+                              }
+                            >
+                              Xem chi tiết
+                            </button>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <div>No order tracking available.</div>
+                    )}
+                  </>
+                )}
               </div>
             ))}
             <div ref={messagesEndRef} />

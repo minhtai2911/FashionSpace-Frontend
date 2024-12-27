@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 import Banner from "../../components/Banner";
 import { ORDER_STATUS } from "../../utils/Constants";
@@ -220,6 +220,8 @@ export default function TrackOrder() {
   const permission = Cookies.get("permission") ?? null;
   const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const [tracking, setTracking] = useState([]);
+  const location = useLocation();
+  const data = location.state ?? null;
 
   const getStatusObjectByStatus = (statusValue) => {
     return status.find((item) => item.status === statusValue);
@@ -227,16 +229,27 @@ export default function TrackOrder() {
 
   const fetchOrder = async () => {
     try {
-      const fetchedOrder = await getOrderById(id);
-      const details = await getOrderDetailsByOrderId(fetchedOrder._id);
-      const trackingData = await getOrderTrackingByOrderId(fetchedOrder._id);
-
-      const orderDetails = {
-        ...fetchedOrder,
-        details,
-      };
-
-      setTracking(trackingData);
+      let orderDetails;
+      if (data) {
+        const { trackingData, orderDetail } = data;
+        const _id = trackingData[0].orderId;
+        const details = orderDetail;
+        const tracking = trackingData;
+        orderDetails = {
+          _id,
+          details,
+        };
+        setTracking(trackingData);
+      } else {
+        const fetchedOrder = await getOrderById(id);
+        const details = await getOrderDetailsByOrderId(fetchedOrder._id);
+        const trackingData = await getOrderTrackingByOrderId(fetchedOrder._id);
+        orderDetails = {
+          ...fetchedOrder,
+          details,
+        };
+        setTracking(trackingData);
+      }
 
       const detailedItems = await Promise.all(
         orderDetails.details.map(async (item) => {
@@ -282,6 +295,7 @@ export default function TrackOrder() {
       />
     );
   }
+  console.log(order);
 
   return (
     <div className="mb-20">
@@ -290,7 +304,7 @@ export default function TrackOrder() {
         <div className="px-80 flex w-full">
           <div className="flex flex-col mt-10 w-full">
             <p className="text-2xl font-medium">Trạng thái đơn hàng</p>
-            <p className="mt-1">Mã đơn hàng: {id}</p>
+            <p className="mt-1">Mã đơn hàng: {order._id}</p>
             <div className="border rounded-lg px-10 py-5 mt-6 flex flex-nowrap overflow-x-scroll w-full thin-scrollbar">
               {tracking.map((item, index) => (
                 <OrderStatus
