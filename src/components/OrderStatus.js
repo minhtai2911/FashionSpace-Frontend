@@ -194,6 +194,23 @@ const statusVal = [
     ),
     status: ORDER_STATUS.SHIPPED,
   },
+  {
+    icon: (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 60 60"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M56.35 52.8L51.025 47.5L56.35 42.2L52.8 38.65L47.5 43.975L42.2 38.65L38.65 42.2L43.975 47.5L38.65 52.8L42.2 56.35L47.5 51.025L52.8 56.35M15 5C13.6739 5 12.4021 5.52678 11.4645 6.46447C10.5268 7.40215 10 8.67392 10 10V50C10 52.775 12.225 55 15 55H34.525C33.625 53.45 33 51.75 32.7 50H15V10H32.5V22.5H45V32.7C45.825 32.575 46.675 32.5 47.5 32.5C48.35 32.5 49.175 32.575 50 32.7V20L35 5M20 30V35H40V30M20 40V45H32.5V40H20Z"
+          fill="black"
+        />
+      </svg>
+    ),
+    status: ORDER_STATUS.CANCELLED,
+  },
 ];
 
 export default function OrderStatus({
@@ -206,7 +223,6 @@ export default function OrderStatus({
   address,
   isEnd,
 }) {
-  const [isDisabled, setIsDisabled] = useState(true);
   const [orderIndex, setOrderIndex] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -215,7 +231,6 @@ export default function OrderStatus({
     const currentIndex = statusVal.findIndex((s) => s.status === status);
     setOrderIndex(orderIndex);
     setCurrentIndex(currentIndex);
-    setIsDisabled(currentIndex > orderIndex);
   }, [orderStatus, status]);
 
   return (
@@ -235,12 +250,7 @@ export default function OrderStatus({
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <rect
-            width="32"
-            height="32"
-            rx="4"
-            fill={isDisabled ? "#DEDEDE" : "#0A0A0A"}
-          />
+          <rect width="32" height="32" rx="4" fill={"#0A0A0A"} />
           <path
             d="M24 10L13 21L8 16"
             stroke="white"
@@ -255,15 +265,9 @@ export default function OrderStatus({
           } h-1.5 dark:bg-gray-700`}
         ></div>
       </div>
-      <p className={`text-sm mt-3 ${isDisabled && "text-[#DEDEDE]"}`}>
-        {isDisabled ? `Dự kiến` : date}
-      </p>
-      <p className={`text-sm mt-1 ${isDisabled && "text-[#DEDEDE]"}`}>
-        {isDisabled ? `Dự kiến` : time}
-      </p>
-      <p className={`text-sm mt-1 ${isDisabled && "text-[#DEDEDE]"}`}>
-        {address ?? address}
-      </p>
+      <p className={`text-sm mt-3 `}>{date}</p>
+      <p className={`text-sm mt-1 `}>{time}</p>
+      <p className={`text-sm mt-1 `}>{address ?? address}</p>
     </div>
   );
 }
