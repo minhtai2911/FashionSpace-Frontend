@@ -126,8 +126,10 @@ function Shop() {
         return a.rating - b.rating;
       case "rating_desc":
         return b.rating - a.rating;
-      case "name":
+      case "name_asc":
         return a.name.localeCompare(b.name);
+      case "name_desc":
+        return b.name.localeCompare(a.name);
       default:
         return 0;
     }

@@ -18,8 +18,12 @@ export const SORT_BY = [
     title: "Số sao (Cao đến Thấp)",
   },
   {
-    value: "name",
-    title: "Tên",
+    value: "name_asc",
+    title: "Tên (A-Z)",
+  },
+  {
+    value: "name_desc",
+    title: "Tên (Z-A)",
   },
 ];
 export const ITEM_PER_PAGE = 5;

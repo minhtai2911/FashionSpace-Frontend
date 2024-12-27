@@ -20,7 +20,9 @@ function Header() {
   const modalRef = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(() =>
+    Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null
+  );
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -43,9 +45,16 @@ function Header() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const data = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
-      if (data) {
-        const userData = await getUserById(data.id);
+      if (!user) {
+        const data = Cookies.get("user")
+          ? JSON.parse(Cookies.get("user"))
+          : null;
+        if (data) {
+          const userData = await getUserById(data.id);
+          setUser(userData);
+        }
+      } else {
+        const userData = await getUserById(user.id);
         setUser(userData);
       }
     };

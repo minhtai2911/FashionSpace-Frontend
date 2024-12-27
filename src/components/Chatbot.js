@@ -400,7 +400,7 @@ export default function Chatbot() {
               </svg>
             </button>
           </div>
-          <div className="h-80 overflow-y-auto px-2 pt-2 shadow-inner flex flex-col flex-nowrap">
+          <div className="h-[440px] overflow-y-auto px-2 pt-2 shadow-inner flex flex-col">
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -452,15 +452,17 @@ export default function Chatbot() {
                 {msg.sender === "bot" &&
                   msg.results &&
                   msg.type === "Product" && (
-                    <div className="ml-8 mt-3 flex flex-nowrap overflow-x-scroll w-fit gap-x-5 thin-scrollbar">
-                      {msg.results.map((result) => (
-                        <ProductItem key={result._id} id={result._id} />
-                      ))}
+                    <div className="mt-3 ml-8 overflow-x-scroll thin-scrollbar">
+                      <div className="flex space-x-4 min-w-max pb-2">
+                        {msg.results.map((result) => (
+                          <ProductItem key={result._id} id={result._id} />
+                        ))}
+                      </div>
                     </div>
                   )}
                 {msg.sender === "bot" && msg.results && (
                   <>
-                    {msg.type === "OrderTracking" ? (
+                    {msg.type === "OrderTracking" &&
                       (() => {
                         const tracking = msg.results.orderTracking;
                         const details = msg.results.orderDetail;
@@ -497,10 +499,7 @@ export default function Chatbot() {
                             </button>
                           </div>
                         );
-                      })()
-                    ) : (
-                      <div>No order tracking available.</div>
-                    )}
+                      })()}
                   </>
                 )}
               </div>
