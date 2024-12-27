@@ -226,7 +226,6 @@ export default function Chatbot() {
 
     try {
       const response = await instance.post("/chatbot", { message: content });
-      console.log(response);
       const botMessage = {
         sender: "bot",
         text: response.data.message,
@@ -357,7 +356,7 @@ export default function Chatbot() {
               </svg>
             </button>
           </div>
-          <div className="h-80 overflow-y-auto p-2 shadow-inner rounded-lg">
+          <div className="h-80 overflow-y-auto px-2 pt-2 shadow-inner flex flex-col flex-nowrap">
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -407,7 +406,7 @@ export default function Chatbot() {
                 {msg.sender === "bot" &&
                   msg.results &&
                   msg.type === "Product" && (
-                    <div className="ml-8 mt-3 flex flex-col gap-y-3 w-11/12">
+                    <div className="ml-8 mt-3 flex flex-nowrap overflow-x-scroll w-fit gap-x-5 thin-scrollbar">
                       {msg.results.map((result) => (
                         <ProductItem key={result._id} id={result._id} />
                       ))}

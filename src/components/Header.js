@@ -10,7 +10,7 @@ import { getAllImagesByProductId } from "../data/productImages";
 import { getUserById } from "../data/users";
 import { getCategoryById } from "../data/categories";
 function Header() {
-  const { auth, logout, user, setUser } = useContext(AuthContext);
+  const { auth, logout } = useContext(AuthContext);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,7 +20,7 @@ function Header() {
   const modalRef = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const userId = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
+  const [user, setUser] = useState({});
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -43,15 +43,14 @@ function Header() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (userId) {
-        const userData = await getUserById(userId.id);
-        if (userData) {
-          setUser(userData);
-        }
+      const data = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
+      if (data) {
+        const userData = await getUserById(data.id);
+        setUser(userData);
       }
     };
     fetchUserData();
-  }, [userId, setUser]);
+  }, []);
 
   useEffect(() => {
     let total = 0;
