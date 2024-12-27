@@ -10,7 +10,8 @@ import { getAllImagesByProductId } from "../data/productImages";
 import { getUserById } from "../data/users";
 import { getCategoryById } from "../data/categories";
 function Header() {
-  const { auth, logout } = useContext(AuthContext);
+  const { auth, logout, user } = useContext(AuthContext);
+  const [userData, setUserData] = useState({});
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,9 +21,6 @@ function Header() {
   const modalRef = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const [user, setUser] = useState(() =>
-    Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null
-  );
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -45,21 +43,14 @@ function Header() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!user) {
-        const data = Cookies.get("user")
-          ? JSON.parse(Cookies.get("user"))
-          : null;
-        if (data) {
-          const userData = await getUserById(data.id);
-          setUser(userData);
-        }
-      } else {
+      if (user) {
+        console.log(user);
         const userData = await getUserById(user.id);
-        setUser(userData);
+        setUserData(userData);
       }
     };
     fetchUserData();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     let total = 0;
@@ -243,8 +234,8 @@ function Header() {
                 >
                   <img
                     className="w-8 h-8 rounded-full"
-                    src={formatURL(user?.avatarPath)}
-                    alt="user photo"
+                    src={formatURL(userData?.avatarPath)}
+                    alt="userData photo"
                   />
                 </button>
                 <div
@@ -253,7 +244,7 @@ function Header() {
                   } bg-white rounded-lg shadow-[0_1px_3px_0_rgba(0,0,0,0.3)] w-32`}
                 >
                   <div className="px-4 py-2 text-sm text-gray-700">
-                    Xin chào, {user?.fullName?.split(" ").pop()}
+                    Xin chào, {userData?.fullName?.split(" ").pop()}
                   </div>
                   <hr className="mx-4" />
                   <ul className="pt-2 text-sm text-gray-700 text-gray-200">

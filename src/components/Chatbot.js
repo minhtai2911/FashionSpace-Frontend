@@ -268,6 +268,7 @@ export default function Chatbot() {
               }
           : null,
         type: response.data.type,
+        textEnd: response.data.messageEnd,
       };
       setMessages((prevMessages) => [...prevMessages, botMessage]);
 
@@ -501,6 +502,17 @@ export default function Chatbot() {
                         );
                       })()}
                   </>
+                )}
+                {msg.textEnd && (
+                  <p
+                    className={`inline-block p-2 rounded-lg mt-3 text-sm ${
+                      msg.sender === "user"
+                        ? "bg-[#0A0A0A] text-white"
+                        : "bg-gray-200 text-black ml-8 w-5/6"
+                    } `}
+                  >
+                    {msg.textEnd}
+                  </p>
                 )}
               </div>
             ))}

@@ -74,12 +74,12 @@ function AuthSuccess() {
           }
         );
         const accessToken = tokenResponse.data.accessToken;
-        setUser(jwtDecode(accessToken));
         setAuth((prevAuth) => ({ ...prevAuth, isAuth: true }));
         Cookies.set("accessToken", accessToken);
         Cookies.set("refreshToken", refreshToken);
         Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
         const user = jwtDecode(accessToken);
+        setUser(user);
         const role = await getUserRoleById(user.roleId);
         setHasError(false);
         if (role.roleName === "Customer") {

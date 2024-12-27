@@ -119,7 +119,13 @@ export default function UpdateOrder() {
         orderWithDetails.paymentDetails._id,
         newPaymentStatus
       );
-      await createOrderTracking(id, newStatus, currentAddress, deliveryDate);
+      if (
+        deliveryDate !== newDeliveryDate ||
+        status !== newStatus ||
+        currentAddress !== newCurrentAddress
+      ) {
+        await createOrderTracking(id, newStatus, currentAddress, deliveryDate);
+      }
       toast.success("Cập nhật đơn hàng thành công", { duration: 2000 });
       navigate("/admin/orders");
     } catch (error) {
