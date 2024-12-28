@@ -5,7 +5,7 @@ function Footer() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-[#0A0A0A] px-24 py-10">
+    <footer className="bg-[#0A0A0A] px-24 py-10 bottom-0 relative mt-auto">
       <div className="flex flex-col gap-y-5">
         <div className="flex justify-between gap-x-24">
           <div className="flex flex-1 flex-col">
@@ -177,7 +177,7 @@ function Footer() {
         <hr />
         <p className="text-white text-sm">&copy; 2024 bởi FashionSpace</p>
       </div>
-    </div>
+    </footer>
   );
 }
 

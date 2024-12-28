@@ -281,7 +281,7 @@ function Checkout() {
         }
       );
 
-      window.open(momoResponse.data.shortLink, "_self");
+      window.open(momoResponse.data.payUrl, "_self");
     } catch (error) {
       toast.error(error.response.data.message, {
         duration: 2000,
@@ -306,26 +306,24 @@ function Checkout() {
             const orderDetail = await handleCreateOrderDetails(
               order.data.data._id
             );
+            console.log(orderDetail);
             if (paymentMethod === "COD") {
               if (orderDetail.every((response) => response.status === 201)) {
-                if (type != "Buy Now") {
-                  orderSummary.items.forEach((item) => {
-                    dispatch(
-                      removeItem({
-                        productId: item.productId,
-                        colorId: item.colorId,
-                        sizeId: item.sizeId,
-                      })
-                    );
-                  });
-                }
-
                 toast.success("Tạo đơn hàng thành công", {
                   duration: 2000,
                 });
-                navigate(`/orderCompleted?orderId=${order.data.data._id}`);
+
+                let items = null;
+                if (type != "Buy Now") {
+                  items = orderSummary.items;
+                  navigate(`/orderCompleted?orderId=${order.data.data._id}`, {
+                    state: { items },
+                  });
+                } else {
+                  navigate(`/orderCompleted?orderId=${order.data.data._id}`);
+                }
               }
-            } else if (paymentMethod === "MOMO") {
+            } else {
               const response = await handleCheckoutWithMomo(
                 orderSummary.totalPrice,
                 order.data.data._id
@@ -348,7 +346,7 @@ function Checkout() {
     }
   }, [isOrderCreated]);
 
-  if (!auth.permission || !auth.permission.includes("CHECKOUT")) {
+  if (!permission || !permission.includes("CHECKOUT")) {
     setHasError(true);
     return (
       <Error

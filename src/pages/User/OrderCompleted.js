@@ -17,23 +17,71 @@ import { getPaymentDetailById } from "../../data/paymentDetail";
 import Error from "../Error";
 import AuthContext from "../../context/AuthContext";
 import Cookies from "js-cookie";
+import instance from "../../services/axiosConfig";
+import toast from "react-hot-toast";
+import { removeItem } from "../../stores/cart";
+import { useDispatch } from "react-redux";
 
 function OrderCompleted() {
   const url = window.location.href;
   const queryParams = new URLSearchParams(url.split("?")[1]);
   const orderId = queryParams.get("orderId");
+  const location = useLocation();
+  const dispatch = useDispatch();
 
   const [orderData, setOrderData] = useState({});
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
 
-  const { setHasError, auth } = useContext(AuthContext);
+  const { setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
   const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
+
+  const checkStatusTransaction = async (orderId) => {
+    try {
+      const refreshToken = Cookies.get("refreshToken");
+      const response = await instance.post(
+        "/auth/refreshToken",
+        {
+          refreshToken: refreshToken,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const accessToken = response.data.accessToken;
+      const checkStatusResponse = await instance.post(
+        "/paymentDetail/checkStatusTransaction",
+        {
+          orderId: orderId,
+        }
+      );
+    } catch (error) {
+      toast.error(error.response.data.message, {
+        duration: 2000,
+      });
+      return error;
+    }
+  };
 
   useEffect(() => {
     const fetchItemDetails = async () => {
       if (orderId) {
+        if (location.state) {
+          const { items } = location.state;
+          items.forEach((item) => {
+            dispatch(
+              removeItem({
+                productId: item.productId,
+                colorId: item.colorId,
+                sizeId: item.sizeId,
+              })
+            );
+          });
+        }
+
         const orderData = await getOrderById(orderId);
         const items = await getOrderDetailsByOrderId(orderId);
         const fetchedItems = await Promise.all(
@@ -44,6 +92,17 @@ function OrderCompleted() {
             const product = await getProductById(productVariant.productId);
             const size = await getSizeById(productVariant.sizeId);
             const color = await getColorById(productVariant.colorId);
+
+            if (!location.state) {
+              dispatch(
+                removeItem({
+                  productId: productVariant.productId,
+                  colorId: productVariant.colorId,
+                  sizeId: productVariant.sizeId,
+                })
+              );
+            }
+
             const images = await getAllImagesByProductId(
               productVariant.productId
             );
@@ -63,6 +122,11 @@ function OrderCompleted() {
         const paymentDetails = await getPaymentDetailById(
           orderData.paymentDetailId
         );
+
+        if (paymentDetails.paymentMethod === "MOMO") {
+          await checkStatusTransaction(orderId);
+        }
+
         setPaymentMethod(paymentDetails.paymentMethod);
 
         setOrderData({ ...orderData, fetchedItems });
