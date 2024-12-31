@@ -117,7 +117,9 @@ export default function MyOrders() {
     );
     if (response) {
       setOpenAddReviewModal(false);
-      toast.success("Gửi đánh giá thành công", { duration: 2000 });
+      toast.success("Đánh giá của bạn đã được gửi thành công!", {
+        duration: 2000,
+      });
       fetchOrders();
     } else {
       toast.error("Gửi đánh giá thất bại", { duration: 2000 });

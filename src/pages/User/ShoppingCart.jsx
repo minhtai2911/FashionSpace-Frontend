@@ -15,6 +15,7 @@ import { getProductById } from "../../data/products.js";
 import { formatToVND } from "../../utils/format.js";
 import Error from "../Error.jsx";
 import Cookies from "js-cookie";
+import toast from "react-hot-toast";
 
 function ShoppingCart() {
   const { auth, setHasError } = useContext(AuthContext);
@@ -79,6 +80,7 @@ function ShoppingCart() {
         dispatch(removeItem({ productId, colorId, sizeId }));
       }
     });
+    toast.success("Sản phẩm đã được xóa khỏi giỏ hàng!", { duration: 2000 });
     setSelectedItems({});
   };
 
@@ -285,10 +287,14 @@ function ShoppingCart() {
           <div className="text-center">
             <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
             <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-              Bạn có muốn{" "}
-              {type === "remove" ? "xóa sản phẩm đã chọn" : "xóa giỏ hàng"}?
+              Bạn có chắc chắn muốn{" "}
+              {type === "remove" ? "xóa các sản phẩm đã chọn" : "xóa giỏ hàng"}{" "}
+              không?
             </h3>
             <div className="flex justify-center gap-4 ">
+              <Button color="gray" onClick={() => setOpenModal(false)}>
+                Hủy
+              </Button>
               <Button
                 color="failure"
                 onClick={() => {
@@ -296,10 +302,7 @@ function ShoppingCart() {
                   setOpenModal(false);
                 }}
               >
-                <p className="text-white">Có, tôi muốn xóa</p>
-              </Button>
-              <Button color="gray" onClick={() => setOpenModal(false)}>
-                Không, hủy
+                <p className="text-white">Xóa</p>
               </Button>
             </div>
           </div>
