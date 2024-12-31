@@ -8,12 +8,12 @@ import { removeItem, clearCart, mergeCart } from "../../stores/cart.js";
 import { FREE_SHIPPING, SHIPPING_RATE } from "../../utils/Constants.js";
 
 import CartItem from "../../components/CartItem.js";
-import Banner from "../../components/Banner";
+import Banner from "../../components/Banner.js";
 import CheckBox from "../../components/CheckBox.js";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { getProductById } from "../../data/products.js";
 import { formatToVND } from "../../utils/format.js";
-import Error from "../Error.js";
+import Error from "../Error.jsx";
 import Cookies from "js-cookie";
 
 function ShoppingCart() {

@@ -3,19 +3,10 @@ import { Link } from "react-router-dom";
 import { Table, Modal } from "flowbite-react";
 import Search from "../../components/Search";
 
-import {
-  getAllReviews,
-  getReviewById,
-  getReviewsByProductId,
-  getReviewsNotReplied,
-  getReviewsReplied,
-} from "../../data/reviews";
+import { getAllReviews } from "../../data/reviews";
 import { getProductById } from "../../data/products";
 import { getUserById } from "../../data/users";
-import {
-  createReviewResponse,
-  getReviewResponseByReviewId,
-} from "../../data/reviewResponse";
+import { createReviewResponse } from "../../data/reviewResponse";
 
 import Rating from "../../components/Rating";
 import toast from "react-hot-toast";

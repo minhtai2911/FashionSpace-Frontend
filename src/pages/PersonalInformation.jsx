@@ -105,7 +105,6 @@ export default function PersonalInformation({ user }) {
   useEffect(() => {
     const getUserData = async () => {
       if (user && !isLoaded) {
-        console.log(user);
         const userData = await getUserById(user.id);
         if (userData) {
           setData({

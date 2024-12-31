@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { Modal, Button } from "flowbite-react";
 
@@ -26,8 +26,10 @@ import toast from "react-hot-toast";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 export default function MyOrders() {
-  const [orders, setOrders] = useState([]);
   const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
+  const navigate = useNavigate();
+
+  const [orders, setOrders] = useState([]);
   const [openAddReviewModal, setOpenAddReviewModal] = useState(false);
   const [openEditReviewModal, setOpenEditReviewModal] = useState(false);
   const [openCancelOrderModal, setOpenCancelOrderModal] = useState(false);
@@ -177,6 +179,11 @@ export default function MyOrders() {
     }
   };
 
+  const handleEditAddress = async (order) => {
+    console.dir(order);
+    navigate(`/account/myOrders/editAddress/${order.orderAddressId}`);
+  };
+
   return (
     <>
       {!isLoading && (
@@ -320,10 +327,19 @@ export default function MyOrders() {
                             <div className="flex gap-x-2">
                               <Link
                                 to={`/trackOrder/${order._id}`}
-                                className="bg-black text-white px-4 py-2 rounded-md"
+                                className="bg-[#0A0A0A] text-white px-4 py-2 rounded-md"
                               >
                                 Theo dõi đơn hàng
                               </Link>
+                              {order.tracking.status ===
+                                ORDER_STATUS.PENDING && (
+                                <button
+                                  className="bg-[#0A0A0A] text-white px-4 py-2 rounded-md"
+                                  onClick={() => handleEditAddress(order)}
+                                >
+                                  Chỉnh sửa thông tin giao hàng
+                                </button>
+                              )}
                               {order.tracking.status ===
                                 ORDER_STATUS.PENDING && (
                                 <button

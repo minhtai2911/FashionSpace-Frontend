@@ -47,6 +47,7 @@ import AuthContext from "./context/AuthContext";
 import AboutUs from "./pages/User/AboutUs";
 import ContactUs from "./pages/User/ContactUs";
 import Footer from "./components/Footer";
+import EditAddress from "./pages/User/EditAddress";
 
 function App() {
   const location = useLocation();
@@ -169,6 +170,10 @@ function App() {
         <Route path="/verifyCode" element={<VerifyCode />} />
         <Route path="/trackOrder/:id" element={<TrackOrder />} />
         <Route path="/account" element={<Account />} />
+        <Route
+          path="/account/myOrders/editAddress/:id"
+          element={<EditAddress />}
+        />
         <Route path="/aboutUs" element={<AboutUs />} />
         <Route path="/contactUs" element={<ContactUs />} />
         <Route path="/success/*" element={<AuthSuccess />} />
