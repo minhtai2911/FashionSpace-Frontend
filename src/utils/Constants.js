@@ -43,7 +43,8 @@ export const ORDER_STATUS = {
   PROCESSING: "Đang xử lý",
   IN_DELIVERY: "Đang giao",
   SHIPPED: "Đã giao",
-  CANCELLED: "Đã hủy",
+  CANCELLED_BY_YOU: "Đã hủy bởi bạn",
+  CANCELLED_BY_EMPLOYEE: "Đã hủy bởi người bán",
 };
 export const REVIEW_STATUS = {
   REPLIED: "Đã trả lời",

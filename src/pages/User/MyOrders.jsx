@@ -159,7 +159,9 @@ export default function MyOrders() {
         return "bg-orange-100 text-orange-600 border border-orange-500";
       case ORDER_STATUS.PROCESSING:
         return "bg-purple-100 text-purple-600 border border-purple-500";
-      case ORDER_STATUS.CANCELLED:
+      case ORDER_STATUS.CANCELLED_BY_EMPLOYEE:
+        return "bg-red-100 text-red-600 border border-red-500";
+      case ORDER_STATUS.CANCELLED_BY_YOU:
         return "bg-red-100 text-red-600 border border-red-500";
       default:
         return "bg-gray-100 text-gray-600 border border-gray-500";
@@ -170,13 +172,14 @@ export default function MyOrders() {
     try {
       await createOrderTracking(
         order._id,
-        ORDER_STATUS.CANCELLED,
+        ORDER_STATUS.CANCELLED_BY_YOU,
         order.tracking.currentAddress || "Không xác định",
         order.tracking.expectedDeliveryDate
       );
       toast.success("Hủy đơn hàng thành công", { duration: 2000 });
       fetchOrders();
     } catch (error) {
+      console.log(error);
       toast.error(error.response.data.message, { duration: 2000 });
     }
   };
@@ -323,7 +326,10 @@ export default function MyOrders() {
                     </tr>
 
                     {order.tracking.status !== ORDER_STATUS.SHIPPED &&
-                      order.tracking.status !== ORDER_STATUS.CANCELLED && (
+                      order.tracking.status !==
+                        ORDER_STATUS.CANCELLED_BY_EMPLOYEE &&
+                      order.tracking.status !==
+                        ORDER_STATUS.CANCELLED_BY_YOU && (
                         <tr>
                           <td className="px-4 pb-4 pt-2" colSpan={4}>
                             <div className="flex gap-x-2">

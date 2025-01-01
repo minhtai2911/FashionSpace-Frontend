@@ -129,6 +129,7 @@ export default function UpdateOrder() {
       toast.success("Cập nhật đơn hàng thành công", { duration: 2000 });
       navigate("/admin/orders");
     } catch (error) {
+      console.log(error);
       toast.error(error.response.data.message);
     }
   };
@@ -194,25 +195,33 @@ export default function UpdateOrder() {
               </div>
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">Trạng thái</p>
+                {console.log(status)}
                 {status !== ORDER_STATUS.SHIPPED &&
-                status !== ORDER_STATUS.CANCELLED ? (
+                status !== ORDER_STATUS.CANCELLED_BY_YOU &&
+                status !== ORDER_STATUS.CANCELLED_BY_EMPLOYEE ? (
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
                   >
-                    {orderStatusValues.map((value, index) => (
-                      <option
-                        key={index}
-                        value={value}
-                        disabled={
-                          index < getCurrentStatus(status) ||
-                          (isCanCancel() && value === ORDER_STATUS.CANCELLED)
-                        }
-                      >
-                        {value}
-                      </option>
-                    ))}
+                    {orderStatusValues.map((value, index) => {
+                      return (
+                        value !== ORDER_STATUS.CANCELLED_BY_YOU && (
+                          <option
+                            key={index}
+                            value={value}
+                            disabled={
+                              index < getCurrentStatus(status) ||
+                              (isCanCancel() &&
+                                (value === ORDER_STATUS.CANCELLED_BY_YOU ||
+                                  value === ORDER_STATUS.CANCELLED_BY_EMPLOYEE))
+                            }
+                          >
+                            {value}
+                          </option>
+                        )
+                      );
+                    })}
                   </select>
                 ) : (
                   <input
@@ -244,9 +253,11 @@ export default function UpdateOrder() {
                     onChange={(e) => setNewPaymentStatus(e.target.value)}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
                     disabled={
-                      (status !== ORDER_STATUS.CANCELLED &&
+                      ((status !== ORDER_STATUS.CANCELLED_BY_YOU ||
+                        status !== ORDER_STATUS.CANCELLED_BY_EMPLOYEE) &&
                         paymentStatus === PAYMENT_STATUS.PAID) ||
-                      status === ORDER_STATUS.CANCELLED
+                      status === ORDER_STATUS.CANCELLED_BY_YOU ||
+                      status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
                     }
                   >
                     {Object.values(PAYMENT_STATUS).map((value, index) => (
@@ -254,7 +265,8 @@ export default function UpdateOrder() {
                         key={index}
                         value={value}
                         disabled={
-                          status === ORDER_STATUS.CANCELLED
+                          status === ORDER_STATUS.CANCELLED_BY_YOU ||
+                          status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
                             ? value !== PAYMENT_STATUS.REFUNDED
                             : false
                         }
@@ -282,7 +294,8 @@ export default function UpdateOrder() {
                         disabled={
                           status === ORDER_STATUS.SHIPPED
                             ? value !== PAYMENT_STATUS.PAID
-                            : status === ORDER_STATUS.CANCELLED
+                            : status === ORDER_STATUS.CANCELLED_BY_YOU ||
+                              status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
                             ? value !== PAYMENT_STATUS.UNPAID
                             : false
                         }
@@ -324,11 +337,13 @@ export default function UpdateOrder() {
                   }}
                   disabled={
                     status === ORDER_STATUS.SHIPPED ||
-                    status === ORDER_STATUS.CANCELLED
+                    status === ORDER_STATUS.CANCELLED_BY_YOU ||
+                    status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
                   }
                   className={`w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent ${
                     status === ORDER_STATUS.SHIPPED ||
-                    status === ORDER_STATUS.CANCELLED
+                    status === ORDER_STATUS.CANCELLED_BY_YOU ||
+                    status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
                       ? "text-[#808191]"
                       : "text-[#0A0A0A]"
                   } text-sm`}
@@ -343,11 +358,13 @@ export default function UpdateOrder() {
                   onChange={(e) => setCurrentAddress(e.target.value)}
                   disabled={
                     status === ORDER_STATUS.SHIPPED ||
-                    status === ORDER_STATUS.CANCELLED
+                    status === ORDER_STATUS.CANCELLED_BY_YOU ||
+                    status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
                   }
                   className={`w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent ${
                     status === ORDER_STATUS.SHIPPED ||
-                    status === ORDER_STATUS.CANCELLED
+                    status === ORDER_STATUS.CANCELLED_BY_YOU ||
+                    status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
                       ? "text-[#808191]"
                       : "text-[#0A0A0A]"
                   } text-sm`}

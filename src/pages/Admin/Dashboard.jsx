@@ -137,7 +137,9 @@ export default function Dashboard() {
         return "bg-orange-100 text-orange-600";
       case ORDER_STATUS.PROCESSING:
         return "bg-purple-100 text-purple-600";
-      case ORDER_STATUS.CANCELLED:
+      case ORDER_STATUS.CANCELLED_BY_EMPLOYEE:
+        return "bg-red-100 text-red-600";
+      case ORDER_STATUS.CANCELLED_BY_YOU:
         return "bg-red-100 text-red-600";
       default:
         return "bg-gray-100 text-gray-600";
