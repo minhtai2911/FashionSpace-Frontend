@@ -4,7 +4,11 @@ import Cookies from "js-cookie";
 import { Modal, Button } from "flowbite-react";
 
 import AuthContext from "../../context/AuthContext";
-import { ORDER_STATUS, PAYMENT_STATUS } from "../../utils/Constants";
+import {
+  ITEM_PER_PAGE,
+  ORDER_STATUS,
+  PAYMENT_STATUS,
+} from "../../utils/Constants";
 import { getOrderByUserId } from "../../data/orders";
 import { getOrderById } from "../../data/orders";
 import { getOrderDetailsByOrderId } from "../../data/orderDetail";
@@ -24,6 +28,7 @@ import {
 import { createReview, getAllReviews, updateReview } from "../../data/reviews";
 import toast from "react-hot-toast";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import Pagination from "../../components/Pagination";
 
 export default function MyOrders() {
   const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
@@ -34,6 +39,8 @@ export default function MyOrders() {
   const [openEditReviewModal, setOpenEditReviewModal] = useState(false);
   const [openCancelOrderModal, setOpenCancelOrderModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedStatus, setSelectedStatus] = useState("All");
   const [reviewHistory, setReviewHistory] = useState([]);
   const [review, setReview] = useState({
     productId: "",
@@ -100,13 +107,36 @@ export default function MyOrders() {
       const fetchedReviews = await getAllReviews();
       setReviewHistory(fetchedReviews);
 
-      setOrders(fetchedOrders);
+      let filteredOrders =
+        selectedStatus !== "All"
+          ? fetchedOrders.filter((o) =>
+              o.tracking.status
+                .toLowerCase()
+                .includes(selectedStatus.toLowerCase())
+            )
+          : fetchedOrders;
+
+      setCurrentPage(1);
+
+      setOrders(
+        filteredOrders.filter(
+          (order) =>
+            !(
+              order.paymentDetails.paymentMethod === "MOMO" &&
+              order.paymentDetails.status === PAYMENT_STATUS.UNPAID
+            )
+        )
+      );
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
       console.error("Error fetching order details:", error);
     }
   }
+
+  useEffect(() => {
+    fetchOrders();
+  }, [selectedStatus]);
 
   const handleAddReview = async () => {
     const response = await createReview(
@@ -189,187 +219,225 @@ export default function MyOrders() {
     navigate(`/account/myOrders/editAddress/${order.orderAddressId}`);
   };
 
+  const currentOrders = orders.slice(
+    (currentPage - 1) * ITEM_PER_PAGE,
+    currentPage * ITEM_PER_PAGE
+  );
+
   return (
     <>
       {!isLoading && (
         <div className="mb-20">
-          <h2 className="text-2xl font-semibold mb-4">
-            Số đơn hàng:{" "}
-            {
-              orders.filter(
-                (order) =>
-                  !(
-                    order.paymentDetails.paymentMethod === "MOMO" &&
-                    order.paymentDetails.status === PAYMENT_STATUS.UNPAID
-                  )
-              ).length
-            }
-          </h2>
+          <div className="flex justify-between">
+            <h2 className="text-lg font-semibold mb-4">
+              Số đơn hàng:{" "}
+              {
+                orders.filter(
+                  (order) =>
+                    !(
+                      order.paymentDetails.paymentMethod === "MOMO" &&
+                      order.paymentDetails.status === PAYMENT_STATUS.UNPAID
+                    )
+                ).length
+              }
+            </h2>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="w-fit h-fit font-medium text-lg px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+              required
+            >
+              <option value={"All"}>Tất cả</option>
+              {Object.values(ORDER_STATUS).map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
           {orders.length > 0 ? (
-            orders
-              .filter(
-                (order) =>
-                  !(
-                    order.paymentDetails.paymentMethod === "MOMO" &&
-                    order.paymentDetails.status === PAYMENT_STATUS.UNPAID
-                  )
-              )
-              .map((order) => (
-                <table key={order._id} className="mb-5 w-full">
-                  <tr className="bg-[#0A0A0A]">
-                    <td className="py-2 px-4 text-white rounded-tl-lg w-[25%]">
-                      Mã đơn hàng
-                      <br />
-                      {order._id}
-                    </td>
-                    <td className="p-2 text-white w-[20%]">
-                      Phương thức
-                      <br />
-                      {order.paymentDetails.paymentMethod}
-                    </td>
-                    <td className="p-2 text-white w-[20%]">
-                      Tổng đơn hàng
-                      <br />
-                      {formatToVND(order.total)}
-                    </td>
-                    <td className="py-2 px-4 text-white rounded-tr-lg w-[35%]">
-                      {order.tracking.status === ORDER_STATUS.SHIPPED
-                        ? "Ngày giao hàng"
-                        : "Ngày giao hàng dự kiến"}
-                      <br />
-                      {order.tracking.status === ORDER_STATUS.SHIPPED
-                        ? formatDate(order.tracking.date)
-                        : formatDate(order.tracking.expectedDeliveryDate)}
-                    </td>
-                  </tr>
-                  <tbody className="border-l border-r border-b">
-                    <tr className="space-y-4 border-b mb-4">
-                      <td colSpan={4} className="p-2">
-                        {order.detailedItems.map((item, index) => {
-                          const existingReview = reviewHistory.find(
-                            (review) =>
-                              review.productId === item.product._id &&
-                              review.orderId === order._id
-                          );
-
-                          return (
-                            <div className="flex flex-row justify-between items-center">
-                              <div
-                                key={item.product._id}
-                                className="px-4 py-2 flex items-center"
-                              >
-                                <img
-                                  src={formatURL(item.images[0].imagePath)}
-                                  alt={item.name}
-                                  className="w-16 h-16 mr-4"
-                                />
-                                <div>
-                                  <p className="font-medium">
-                                    {item.product.name}
-                                  </p>
-                                  <p className="font-light">
-                                    Màu sắc: {item.color.color} | Kích cỡ:{" "}
-                                    {item.size.size} | Số lượng:{" "}
-                                    {order.details[index].quantity}
-                                  </p>
-                                </div>
-                              </div>
-                              {order.tracking.status ===
-                                ORDER_STATUS.SHIPPED && (
-                                <button
-                                  className="bg-black h-fit text-white px-4 py-2 rounded-md"
-                                  onClick={() => {
-                                    if (!existingReview) {
-                                      setReview({
-                                        productId: item.product._id,
-                                        orderId: order._id,
-                                        rating: 0,
-                                        content: "",
-                                      });
-                                      setOpenAddReviewModal(true);
-                                    } else {
-                                      setReview({
-                                        id: existingReview._id,
-                                        productId: existingReview.productId,
-                                        orderId: existingReview.orderId,
-                                        rating: existingReview.rating,
-                                        content: existingReview.content,
-                                      });
-                                      setOpenEditReviewModal(true);
-                                    }
-                                  }}
-                                >
-                                  {!existingReview
-                                    ? "Thêm đánh giá"
-                                    : "Chỉnh sửa đánh giá"}
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </td>
-                    </tr>
-
-                    <tr className="font-medium">
-                      <td colSpan={4} className="p-2">
-                        <div className="p-2 flex items-center gap-x-2">
-                          Trạng thái đơn hàng:{" "}
-                          <p
-                            className={`inline-block px-4 py-2 rounded ${getStatusClass(
-                              order.tracking.status
-                            )}`}
-                          >
-                            {order.tracking.status}
-                          </p>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {order.tracking.status !== ORDER_STATUS.SHIPPED &&
-                      order.tracking.status !==
-                        ORDER_STATUS.CANCELLED_BY_EMPLOYEE &&
-                      order.tracking.status !==
-                        ORDER_STATUS.CANCELLED_BY_YOU && (
-                        <tr>
-                          <td className="px-4 pb-4 pt-2" colSpan={4}>
-                            <div className="flex gap-x-2">
-                              <Link
-                                to={`/trackOrder/${order._id}`}
-                                className="bg-[#0A0A0A] text-white px-4 py-2 rounded-md"
-                              >
-                                Theo dõi đơn hàng
-                              </Link>
-                              {order.tracking.status ===
-                                ORDER_STATUS.PENDING && (
-                                <button
-                                  className="bg-[#0A0A0A] text-white px-4 py-2 rounded-md"
-                                  onClick={() => handleEditAddress(order)}
-                                >
-                                  Chỉnh sửa thông tin giao hàng
-                                </button>
-                              )}
-                              {order.tracking.status ===
-                                ORDER_STATUS.PENDING && (
-                                <button
-                                  className="bg-red-500 text-white px-4 py-2 rounded-md"
-                                  onClick={() => {
-                                    setSelectedOrder(order);
-                                    setOpenCancelOrderModal(true);
-                                  }}
-                                >
-                                  Hủy đơn hàng
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                  </tbody>
-                </table>
-              ))
+            <div className="font-semibold text-lg mb-3">
+              Hiển thị {(currentPage - 1) * ITEM_PER_PAGE + 1} -{" "}
+              {Math.min(currentPage * ITEM_PER_PAGE, orders.length)} của{" "}
+              {orders.length} kết quả
+            </div>
           ) : (
-            <p>Không tìm thấy đơn hàng.</p>
+            <div className="font-semibold text-lg mb-3">
+              Hiển thị 0 - 0 của 0 kết quả
+            </div>
           )}
+          <>
+            {orders.length > 0 ? (
+              currentOrders.map((order) => (
+                <>
+                  <table key={order._id} className="mb-5 w-full">
+                    <tr className="bg-[#0A0A0A]">
+                      <td className="py-2 px-4 text-white rounded-tl-lg w-[25%]">
+                        Mã đơn hàng
+                        <br />
+                        {order._id}
+                      </td>
+                      <td className="p-2 text-white w-[20%]">
+                        Phương thức
+                        <br />
+                        {order.paymentDetails.paymentMethod}
+                      </td>
+                      <td className="p-2 text-white w-[20%]">
+                        Tổng đơn hàng
+                        <br />
+                        {formatToVND(order.total)}
+                      </td>
+                      <td className="py-2 px-4 text-white rounded-tr-lg w-[35%]">
+                        {order.tracking.status === ORDER_STATUS.SHIPPED
+                          ? "Ngày giao hàng"
+                          : "Ngày giao hàng dự kiến"}
+                        <br />
+                        {order.tracking.status === ORDER_STATUS.SHIPPED
+                          ? formatDate(order.tracking.date)
+                          : formatDate(order.tracking.expectedDeliveryDate)}
+                      </td>
+                    </tr>
+                    <tbody className="border-l border-r border-b">
+                      <tr className="space-y-4 border-b mb-4">
+                        <td colSpan={4} className="p-2">
+                          {order.detailedItems.map((item, index) => {
+                            const existingReview = reviewHistory.find(
+                              (review) =>
+                                review.productId === item.product._id &&
+                                review.orderId === order._id
+                            );
+
+                            return (
+                              <div className="flex flex-row justify-between items-center">
+                                <div
+                                  key={item.product._id}
+                                  className="px-4 py-2 flex items-center"
+                                >
+                                  <img
+                                    src={formatURL(item.images[0].imagePath)}
+                                    alt={item.name}
+                                    className="w-16 h-16 mr-4"
+                                  />
+                                  <div>
+                                    <p className="font-medium">
+                                      {item.product.name}
+                                    </p>
+                                    <p className="font-light">
+                                      Màu sắc: {item.color.color} | Kích cỡ:{" "}
+                                      {item.size.size} | Số lượng:{" "}
+                                      {order.details[index].quantity}
+                                    </p>
+                                  </div>
+                                </div>
+                                {order.tracking.status ===
+                                  ORDER_STATUS.SHIPPED && (
+                                  <button
+                                    className="bg-black h-fit text-white px-4 py-2 rounded-md"
+                                    onClick={() => {
+                                      if (!existingReview) {
+                                        setReview({
+                                          productId: item.product._id,
+                                          orderId: order._id,
+                                          rating: 0,
+                                          content: "",
+                                        });
+                                        setOpenAddReviewModal(true);
+                                      } else {
+                                        setReview({
+                                          id: existingReview._id,
+                                          productId: existingReview.productId,
+                                          orderId: existingReview.orderId,
+                                          rating: existingReview.rating,
+                                          content: existingReview.content,
+                                        });
+                                        setOpenEditReviewModal(true);
+                                      }
+                                    }}
+                                  >
+                                    {!existingReview
+                                      ? "Thêm đánh giá"
+                                      : "Chỉnh sửa đánh giá"}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </td>
+                      </tr>
+
+                      <tr className="font-medium">
+                        <td colSpan={4} className="p-2">
+                          <div className="p-2 flex items-center gap-x-2">
+                            Trạng thái đơn hàng:{" "}
+                            <p
+                              className={`inline-block px-4 py-2 rounded ${getStatusClass(
+                                order.tracking.status
+                              )}`}
+                            >
+                              {order.tracking.status}
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {order.tracking.status !== ORDER_STATUS.SHIPPED &&
+                        order.tracking.status !==
+                          ORDER_STATUS.CANCELLED_BY_EMPLOYEE &&
+                        order.tracking.status !==
+                          ORDER_STATUS.CANCELLED_BY_YOU && (
+                          <tr>
+                            <td className="px-4 pb-4 pt-2" colSpan={4}>
+                              <div className="flex gap-x-2">
+                                <Link
+                                  to={`/trackOrder/${order._id}`}
+                                  className="bg-[#0A0A0A] text-white px-4 py-2 rounded-md"
+                                >
+                                  Theo dõi đơn hàng
+                                </Link>
+                                {order.tracking.status ===
+                                  ORDER_STATUS.PENDING && (
+                                  <button
+                                    className="bg-[#0A0A0A] text-white px-4 py-2 rounded-md"
+                                    onClick={() => handleEditAddress(order)}
+                                  >
+                                    Chỉnh sửa thông tin giao hàng
+                                  </button>
+                                )}
+                                {order.tracking.status ===
+                                  ORDER_STATUS.PENDING && (
+                                  <button
+                                    className="bg-red-500 text-white px-4 py-2 rounded-md"
+                                    onClick={() => {
+                                      setSelectedOrder(order);
+                                      setOpenCancelOrderModal(true);
+                                    }}
+                                  >
+                                    Hủy đơn hàng
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                    </tbody>
+                  </table>
+                </>
+              ))
+            ) : (
+              <p>Không tìm thấy đơn hàng.</p>
+            )}
+            <div className="flex justify-center items-center mt-5">
+              {currentOrders.length > 0 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(orders.length / ITEM_PER_PAGE)}
+                  onPageChange={setCurrentPage}
+                  svgClassName={"w-6 h-6"}
+                  textClassName={"text-lg px-4 py-2"}
+                />
+              )}
+            </div>
+          </>
         </div>
       )}
       <Modal
