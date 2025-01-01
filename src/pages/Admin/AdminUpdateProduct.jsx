@@ -390,7 +390,7 @@ export default function UpdateProduct() {
                       value={category._id}
                       defaultValue={categoryId}
                     >
-                      {category.name}
+                      {`${category.name} [${category.gender}]`}
                     </option>
                   ))}
                 </select>

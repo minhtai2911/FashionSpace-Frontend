@@ -224,7 +224,7 @@ export default function CreateProduct() {
               {photos.length > 0 && (
                 <Label
                   htmlFor="dropzone-file-more"
-                  className="flex w-fit h-fit flex-[1] flex-none p-5 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:bg-gray-50 "
+                  className="flex w-fit h-fit flex-[1] p-5 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:bg-gray-50 "
                 >
                   <div className="flex flex-col items-center justify-center">
                     <svg

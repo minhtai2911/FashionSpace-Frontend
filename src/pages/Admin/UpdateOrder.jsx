@@ -252,13 +252,13 @@ export default function UpdateOrder() {
                     value={newPaymentStatus}
                     onChange={(e) => setNewPaymentStatus(e.target.value)}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
-                    disabled={
-                      ((status !== ORDER_STATUS.CANCELLED_BY_YOU ||
-                        status !== ORDER_STATUS.CANCELLED_BY_EMPLOYEE) &&
-                        paymentStatus === PAYMENT_STATUS.PAID) ||
-                      status === ORDER_STATUS.CANCELLED_BY_YOU ||
-                      status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
-                    }
+                    // disabled={
+                    //   ((status !== ORDER_STATUS.CANCELLED_BY_YOU ||
+                    //     status !== ORDER_STATUS.CANCELLED_BY_EMPLOYEE) &&
+                    //     paymentStatus === PAYMENT_STATUS.PAID) ||
+                    //   status === ORDER_STATUS.CANCELLED_BY_YOU ||
+                    //   status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
+                    // }
                   >
                     {Object.values(PAYMENT_STATUS).map((value, index) => (
                       <option

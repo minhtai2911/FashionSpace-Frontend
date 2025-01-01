@@ -175,7 +175,9 @@ export default function Orders() {
                 <option value={"All"}>Tất cả</option>
                 {Object.values(ORDER_STATUS).map((status) => (
                   <option key={status} value={status}>
-                    {status}
+                    {status === ORDER_STATUS.CANCELLED_BY_YOU
+                      ? "Đã hủy bởi khách hàng"
+                      : status}
                   </option>
                 ))}
               </select>
@@ -229,7 +231,10 @@ export default function Orders() {
                           order?.tracking?.status
                         )}`}
                       >
-                        {order?.tracking?.status}
+                        {order?.tracking?.status ===
+                        ORDER_STATUS.CANCELLED_BY_YOU
+                          ? "Đã hủy bởi khách hàng"
+                          : order?.tracking?.status}
                       </div>
                     </Table.Cell>
                     <Table.Cell>{formatToVND(order?.total)}</Table.Cell>
