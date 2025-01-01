@@ -228,8 +228,8 @@ export default function MyOrders() {
     <>
       {!isLoading && (
         <div className="mb-20">
-          <div className="flex justify-between">
-            <h2 className="text-lg font-semibold mb-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">
               Số đơn hàng:{" "}
               {
                 orders.filter(

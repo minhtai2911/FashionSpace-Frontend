@@ -190,11 +190,8 @@ export default function UpdateProduct() {
 
       await Promise.all(
         variants.map(async (variant) => {
-          console.log(variant);
           const key = `${variant.size._id}-${variant.color._id}`;
           const existingVariant = existingVariantsMap[key];
-
-          console.log(existingVariant);
 
           if (existingVariant) {
             const hasChanged =
@@ -214,8 +211,8 @@ export default function UpdateProduct() {
           } else {
             await createProductVariant(
               id,
-              variant.size.size,
-              variant.color.color,
+              variant.size,
+              variant.color,
               variant.quantity
             );
           }

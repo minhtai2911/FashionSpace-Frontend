@@ -52,7 +52,7 @@ export default function Products() {
           const category = await getCategoryById(product.categoryId);
           return {
             ...product,
-            category: category.name,
+            category: `${category.name} [${category.gender}]`,
           };
         })
       );
@@ -134,8 +134,11 @@ export default function Products() {
             >
               <option value="All">Tất cả</option>
               {categories.map((category) => (
-                <option key={category._id} value={category.name}>
-                  {category.name}
+                <option
+                  key={category._id}
+                  value={`${category.name} [${category.gender}]`}
+                >
+                  {`${category.name} [${category.gender}]`}
                 </option>
               ))}
             </select>
@@ -161,7 +164,7 @@ export default function Products() {
                       {product._id}
                     </Table.Cell>
                     <Table.Cell>{product.name}</Table.Cell>
-                    <Table.Cell>{product.category}</Table.Cell>
+                    <Table.Cell>{`${product.category}`}</Table.Cell>
                     <Table.Cell>{formatToVND(product.price)}</Table.Cell>
                     <Table.Cell>
                       <div className="flex flex-row gap-x-1 items-center">
