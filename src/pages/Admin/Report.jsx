@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 
 import { Dropdown, Table } from "flowbite-react";
 import {
@@ -20,6 +20,8 @@ import { formatToVND } from "../../utils/format";
 import Error from "../Error";
 import AuthContext from "../../context/AuthContext";
 import Cookies from "js-cookie";
+import { ITEM_PER_PAGE } from "../../utils/Constants";
+import Pagination from "../../components/Pagination";
 
 export default function Report() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -29,6 +31,7 @@ export default function Report() {
   const [statistics, setStatistics] = useState([]);
   const [totalOrder, setTotalOrder] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { auth, setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
@@ -67,7 +70,12 @@ export default function Report() {
       try {
         if (selectedView === "week") {
           const startOfWeek = selectedDate.startOf("week").add(1, "day");
+          const weeklyRevenue = Array(7).fill(0);
+          const dailyOrder = Array(7).fill(0);
           const weekStatistics = [];
+          const dayArray = Array(7).fill(0);
+          const monthArray = Array(7).fill(0);
+          const yearArray = Array(7).fill(0);
 
           for (let i = 0; i < 7; i++) {
             const currentDay = startOfWeek.add(i, "day");
@@ -76,10 +84,28 @@ export default function Report() {
               currentDay.month() + 1,
               currentDay.year()
             );
+
+            const day = currentDay.add(-1, "day");
+
+            dayArray[i] = day.date();
+            monthArray[i] = day.month() + 1;
+            yearArray[i] = day.year();
+            dailyOrder[i] = response.length !== 0 ? response[0].totalOrder : 0;
+            weeklyRevenue[i] =
+              response.length !== 0 ? response[0].totalRevenue : 0;
+
             weekStatistics.push(...response);
           }
 
-          setStatistics(weekStatistics);
+          const dailyReport = weeklyRevenue.map((totalRevenue, index) => ({
+            day: dayArray[index],
+            month: monthArray[index],
+            year: yearArray[index],
+            totalOrder: dailyOrder[index],
+            totalRevenue: totalRevenue,
+          }));
+
+          setStatistics(dailyReport);
 
           const total = weekStatistics.reduce((sum, stat) => {
             return sum + stat.totalRevenue;
@@ -91,17 +117,66 @@ export default function Report() {
           );
         } else if (selectedView === "month") {
           const response = await getStatistics("", month, year);
-          setStatistics(response);
+
+          const daysInMonth = new Date(year, month, 0).getDate();
+          const monthlyRevenue = Array(daysInMonth).fill(0);
+          const monthlyOrder = Array(daysInMonth).fill(0);
+
+          response.forEach((stat) => {
+            if (stat.day) {
+              const dayIndex = stat.day - 1;
+              if (dayIndex >= 0 && dayIndex < daysInMonth) {
+                monthlyOrder[dayIndex] += stat.totalOrder || 0;
+                monthlyRevenue[dayIndex] += stat.totalRevenue || 0;
+              }
+            }
+          });
+
+          const dailyReport = monthlyRevenue.map((totalRevenue, index) => ({
+            day: index + 1,
+            month: month,
+            year: year,
+            totalOrder: monthlyOrder[index],
+            totalRevenue: totalRevenue,
+          }));
+
+          setStatistics(dailyReport);
+
           const total = response.reduce((sum, stat) => {
             return sum + stat.totalRevenue;
           }, 0);
+
           setTotalOrder(
             response.reduce((sum, stat) => sum + stat.totalOrder, 0)
           );
+
           setTotalRevenue(total);
         } else if (selectedView === "year") {
           const response = await getStatistics("", "", year);
-          setStatistics(response);
+
+          const yearlyRevenue = Array(12).fill(0);
+          const yearlyOrder = Array(12).fill(0);
+
+          response.forEach((stat) => {
+            if (stat._id) {
+              if (stat._id.month) {
+                const monthIndex = stat._id.month - 1;
+                if (monthIndex >= 0 && monthIndex < 12) {
+                  yearlyOrder[monthIndex] += stat.totalOrder || 0;
+                  yearlyRevenue[monthIndex] += stat.totalRevenue || 0;
+                }
+              }
+            }
+          });
+
+          const monthlyReport = yearlyRevenue.map((totalRevenue, index) => ({
+            year: year,
+            month: index + 1,
+            totalOrder: yearlyOrder[index],
+            totalRevenue: totalRevenue,
+          }));
+
+          setStatistics(monthlyReport);
           const total = response.reduce((sum, stat) => {
             return sum + stat.totalRevenue;
           }, 0);
@@ -110,16 +185,29 @@ export default function Report() {
           );
           setTotalRevenue(total);
         }
+        setCurrentPage(1);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     }
   };
 
-  const chartData = statistics.map((stat) => ({
-    date: `${stat.day}/${stat.month}/${stat.year}`,
-    revenue: stat.totalRevenue,
-  }));
+  const chartData = useMemo(() => {
+    return selectedView !== "year"
+      ? statistics.map((stat) => ({
+          date: `${stat?.day}/${stat?.month}/${stat?.year}`,
+          revenue: stat.totalRevenue,
+        }))
+      : statistics.map((stat) => ({
+          date: `${stat.month}/${stat.year}`,
+          revenue: stat.totalRevenue,
+        }));
+  }, [statistics, selectedView]);
+
+  const currentStatistics = statistics.slice(
+    (currentPage - 1) * ITEM_PER_PAGE,
+    currentPage * ITEM_PER_PAGE
+  );
 
   const handleViewChange = (value) => {
     setSelectedView(value);
@@ -163,7 +251,12 @@ export default function Report() {
     reportCell2.font = { bold: true };
     reportCell2.alignment = { vertical: "middle", horizontal: "center" };
 
-    worksheet.getRow(3).values = ["STT", "Ngày", "Số đơn hàng", "Doanh thu"];
+    worksheet.getRow(3).values = [
+      "STT",
+      "Thời gian",
+      "Số đơn hàng",
+      "Doanh thu",
+    ];
     const headerRow = worksheet.getRow(3);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true };
@@ -184,7 +277,9 @@ export default function Report() {
     statistics.forEach((stat, index) => {
       worksheet.addRow([
         index + 1,
-        `${stat.day}/${stat.month}/${stat.year}`,
+        selectedView !== "year"
+          ? `${stat.day}/${stat.month}/${stat.year}`
+          : `${stat.month}/${stat.year}`,
         stat.totalOrder,
         stat.totalRevenue,
       ]);
@@ -263,22 +358,35 @@ export default function Report() {
           <Table hoverable>
             <Table.Head className="normal-case text-sm">
               <Table.HeadCell className="w-40">STT</Table.HeadCell>
-              <Table.HeadCell className="w-40">Ngày</Table.HeadCell>
+              <Table.HeadCell className="w-40">Thời gian</Table.HeadCell>
               <Table.HeadCell className="w-40">Số đơn hàng</Table.HeadCell>
               <Table.HeadCell className="w-40">Doanh thu</Table.HeadCell>
             </Table.Head>
             <Table.Body className="divide-y">
-              {statistics.map((stat, index) => (
+              {currentStatistics.map((stat, index) => (
                 <Table.Row key={index}>
                   <Table.Cell>{index + 1}</Table.Cell>
                   <Table.Cell>
-                    {`${stat.day}/${stat.month}/${stat.year}`}
+                    {selectedView !== "year"
+                      ? `${stat.day}/${stat.month}/${stat.year}`
+                      : `${stat.month}/${stat.year}`}
                   </Table.Cell>
                   <Table.Cell>{stat.totalOrder}</Table.Cell>
                   <Table.Cell>{formatToVND(stat.totalRevenue)}</Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>
+            {currentStatistics.length > 0 && (
+              <div className="mt-2">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(statistics.length / ITEM_PER_PAGE)}
+                  onPageChange={setCurrentPage}
+                  svgClassName={"w-5 h-5"}
+                  textClassName={"text-sm px-3 py-2"}
+                />
+              </div>
+            )}
           </Table>
           <Table>
             <Table.Head className="normal-case text-sm">

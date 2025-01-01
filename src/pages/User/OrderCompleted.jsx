@@ -86,7 +86,10 @@ function OrderCompleted() {
 
         const orderData = await getOrderById(orderId);
 
+        console.log(orderData);
+
         if (!orderData) {
+          console.log("Hehe");
           setError(true);
           return;
         }
@@ -168,7 +171,7 @@ function OrderCompleted() {
         route={"Trang chủ / Thanh toán / Hoàn tất đơn hàng"}
       />
       <div className="px-40">
-        {error ? (
+        {!error ? (
           <div className="flex flex-col py-20 justify-center gap-y-10 items-center">
             <div className="flex flex-col justify-center items-center">
               <svg

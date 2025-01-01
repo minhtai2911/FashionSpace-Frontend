@@ -201,7 +201,13 @@ export default function UpdateOrder() {
                 status !== ORDER_STATUS.CANCELLED_BY_EMPLOYEE ? (
                   <select
                     value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
+                    onChange={(e) => {
+                      const selectedStatus = e.target.value;
+                      setNewStatus(selectedStatus);
+                      if (selectedStatus === ORDER_STATUS.SHIPPED) {
+                        setNewPaymentStatus(PAYMENT_STATUS.PAID);
+                      }
+                    }}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
                   >
                     {orderStatusValues.map((value, index) => {
@@ -280,12 +286,13 @@ export default function UpdateOrder() {
                     value={newPaymentStatus}
                     onChange={(e) => setNewPaymentStatus(e.target.value)}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
-                    disabled={
+                    disabled /* ={
                       // (status !== ORDER_STATUS.CANCELLED &&
                       //   orderWithDetails?.paymentDetails?.paymentMethod ===
                       //     "COD") ||
-                      status !== ORDER_STATUS.SHIPPED
-                    }
+                      // status === ORDER_STATUS.SHIPPED
+                      true
+                    } */
                   >
                     {Object.values(PAYMENT_STATUS).map((value, index) => (
                       <option
