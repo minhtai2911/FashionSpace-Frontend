@@ -244,7 +244,7 @@ export default function MyOrders() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-fit h-fit font-medium text-lg px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a] text-sm"
+              className="w-fit h-fit font-medium text-lg px-5 py-3 border-none focus:ring-0 focus:outline-none rounded-lg bg-[#F8F8F8] text-[#0a0a0a]"
               required
             >
               <option value={"All"}>Tất cả</option>
