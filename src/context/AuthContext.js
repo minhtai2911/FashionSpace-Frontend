@@ -209,6 +209,7 @@ export const AuthProvider = ({ children }) => {
           Cookies.remove("permission");
           toast.success("Đăng xuất thành công", { duration: 2000 });
           navigate("/login");
+          await new Promise((resolve) => setTimeout(resolve, 2000));
           Cookies.remove("user");
         }
       }

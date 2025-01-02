@@ -117,10 +117,35 @@ export default function Dashboard() {
   const fetchYearStatistics = async () => {
     try {
       const data = await getStatistics(undefined, undefined, dayjs().year());
+
+      const yearlyRevenue = Array(12).fill(0);
+      const yearlyOrder = Array(12).fill(0);
+
+      data.forEach((stat) => {
+        if (stat._id) {
+          if (stat._id.month) {
+            const monthIndex = stat._id.month - 1;
+            if (monthIndex >= 0 && monthIndex < 12) {
+              yearlyOrder[monthIndex] += stat.totalOrder || 0;
+              yearlyRevenue[monthIndex] += stat.totalRevenue || 0;
+            }
+          }
+        }
+      });
+
+      const monthlyReport = yearlyRevenue.map((totalRevenue, index) => ({
+        year: dayjs().year(),
+        month: index + 1,
+        totalOrder: yearlyOrder[index],
+        totalRevenue: totalRevenue,
+      }));
+
+      setStatistics(monthlyReport);
+
       const total = data.reduce((sum, stat) => {
         return sum + stat.totalRevenue;
       }, 0);
-      setStatistics(data);
+      // setStatistics(data);
       setYearRevenue(total);
     } catch (error) {}
   };
@@ -161,7 +186,7 @@ export default function Dashboard() {
   }, []);
 
   const chartData = statistics.map((stat) => ({
-    date: `${stat._id?.month}/${stat._id?.year}`,
+    date: `${stat.month}/${stat.year}`,
     revenue: stat.totalRevenue,
   }));
 
