@@ -39,7 +39,7 @@ function Home() {
     fetchNewArrivalProducts();
     fetchBestSellerProducts();
 
-    if (user) {
+    if (user || (permission && permission.includes("HOME"))) {
       fetchRelatedProducts();
     }
   }, []);

@@ -9,6 +9,9 @@ import { formatToVND, formatURL } from "../utils/format";
 import { getAllImagesByProductId } from "../data/productImages";
 import { getUserById } from "../data/users";
 import { getCategoryById } from "../data/categories";
+
+import useSpeechToText from "react-hook-speech-to-text";
+
 function Header() {
   const { auth, logout, user } = useContext(AuthContext);
   const [userData, setUserData] = useState({});
@@ -21,6 +24,18 @@ function Header() {
   const modalRef = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  const {
+    error,
+    interimResult,
+    isRecording,
+    results,
+    startSpeechToText,
+    stopSpeechToText,
+  } = useSpeechToText({
+    continuous: true,
+    useLegacyResults: false,
+  });
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -112,6 +127,10 @@ function Header() {
           product.category.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
+
+  useEffect(() => {
+    results.map((result) => console.log(result.transcript));
+  });
   return (
     <>
       <header className="bg-white px-40 py-4 shadow-md min-w-full z-[50]">
@@ -358,7 +377,7 @@ function Header() {
             className="w-[60%] flex items-center p-[1rem] bg-white rounded"
             style={{ boxShadow: "0 1rem 1rem rgba(0, 0, 0, .2)" }}
           >
-            <div className="relative w-full flex justify-center">
+            <div className="relative w-full flex justify-center items-center">
               <div className="flex rounded overflow-hidden w-full">
                 <label htmlFor="search-input" className="flex items-center">
                   <svg width="20" height="20" viewBox="0 0 20 20">
@@ -412,6 +431,19 @@ function Header() {
                   </div>
                 ))}
               </div>
+              <button
+                className="mx-4 rounded-full border p-2"
+                onClick={isRecording ? stopSpeechToText : startSpeechToText}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  className="size-6 fill-current hover:fill-red-500"
+                >
+                  <path d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z" />
+                  <path d="M6 10.5a.75.75 0 0 1 .75.75v1.5a5.25 5.25 0 1 0 10.5 0v-1.5a.75.75 0 0 1 1.5 0v1.5a6.751 6.751 0 0 1-6 6.709v2.291h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-2.291a6.751 6.751 0 0 1-6-6.709v-1.5A.75.75 0 0 1 6 10.5Z" />
+                </svg>
+              </button>
               <button
                 onClick={closeSearchModal}
                 id="close-search"
