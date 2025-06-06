@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { clearCart } from "../stores/cart";
 import {
   getProductVariantById,
-  getProductVariantByProductIdColorIdSizeId,
+  getProductVariantByProductInfo,
 } from "../data/productVariant";
 import {
   createShoppingCart,
@@ -75,19 +75,16 @@ export const AuthProvider = ({ children }) => {
   const createCart = async (currentCarts) => {
     const user = Cookies.get("user");
     try {
-      const previousCarts = await getShoppingCartByUserId(user._id);
+      const previousCarts = await getShoppingCartByUserId(user.id);
 
       const enrichedPreviousCarts = await Promise.all(
         previousCarts.map(async (item) => {
-          const variantDetails = await getProductVariantById(
-            item.productVariantId
-          );
-          console.log(variantDetails);
+          const variantDetails = item.productVariantId;
           return {
             ...item,
             productId: variantDetails.productId,
-            colorId: variantDetails.colorId,
-            sizeId: variantDetails.sizeId,
+            color: variantDetails.color,
+            size: variantDetails.size,
           };
         })
       );
@@ -97,8 +94,8 @@ export const AuthProvider = ({ children }) => {
           !enrichedPreviousCarts.some(
             (prevItem) =>
               prevItem.productId === currentItem.productId &&
-              prevItem.colorId === currentItem.colorId &&
-              prevItem.sizeId === currentItem.sizeId
+              prevItem.color === currentItem.color &&
+              prevItem.size === currentItem.size
           )
       );
 
@@ -107,8 +104,8 @@ export const AuthProvider = ({ children }) => {
           !currentCarts.some(
             (currentItem) =>
               currentItem.productId === prevItem.productId &&
-              currentItem.colorId === prevItem.colorId &&
-              currentItem.sizeId === prevItem.sizeId
+              currentItem.color === prevItem.color &&
+              currentItem.size === prevItem.size
           )
       );
 
@@ -116,61 +113,48 @@ export const AuthProvider = ({ children }) => {
         const matchingItem = enrichedPreviousCarts.find(
           (prevItem) =>
             prevItem.productId === currentItem.productId &&
-            prevItem.colorId === currentItem.colorId &&
-            prevItem.sizeId === currentItem.sizeId
+            prevItem.color === currentItem.color &&
+            prevItem.size === currentItem.size
         );
         return matchingItem && matchingItem.quantity !== currentItem.quantity;
       });
 
       const promises = [];
 
+      console.log({ addedItems, deletedItems, updatedItems });
+
       addedItems.forEach((item) => {
         promises.push(
-          getProductVariantByProductIdColorIdSizeId(
+          getProductVariantByProductInfo(
             item.productId,
-            item.colorId,
-            item.sizeId
-          ).then((variantResponse) =>
-            createShoppingCart(user._id, variantResponse._id, item.quantity)
-          )
+            item.color,
+            item.size
+          ).then((variantResponse) => {
+            console.log(variantResponse);
+            createShoppingCart(variantResponse._id, item.quantity);
+          })
         );
       });
 
       deletedItems.forEach((item) => {
-        promises.push(
-          getProductVariantByProductIdColorIdSizeId(
-            item.productId,
-            item.colorId,
-            item.sizeId
-          ).then((variantResponse) =>
-            getShoppingCartByUserIdProductVariantId(
-              user._id,
-              variantResponse._id
-            ).then((shoppingCartResponse) =>
-              deleteShoppingCartById(shoppingCartResponse._id)
-            )
-          )
-        );
+        promises.push(deleteShoppingCartById(item._id));
       });
 
       updatedItems.forEach((item) => {
-        promises.push(
-          getProductVariantByProductIdColorIdSizeId(
-            item.productId,
-            item.colorId,
-            item.sizeId
-          ).then((variantResponse) =>
-            getShoppingCartByUserIdProductVariantId(
-              user._id,
-              variantResponse._id
-            ).then((shoppingCartResponse) =>
-              updateShoppingCartQuantityById(
-                shoppingCartResponse._id,
-                item.quantity
-              )
-            )
-          )
+        const matchedCart = enrichedPreviousCarts.find(
+          (prevItem) =>
+            prevItem.productId === item.productId &&
+            prevItem.color === item.color &&
+            prevItem.size === item.size
         );
+
+        console.log(matchedCart);
+
+        if (matchedCart) {
+          promises.push(
+            updateShoppingCartQuantityById(matchedCart._id, item.quantity)
+          );
+        }
       });
 
       await Promise.all(promises);
@@ -182,35 +166,29 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      const refreshToken = Cookies.get("refreshToken");
+      let refreshToken = Cookies.get("refreshToken");
+      const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
       const response = await instance.post(
-        "/auth/refreshToken",
+        "/auth/logout",
         {
           refreshToken: refreshToken,
         },
-        { headers: { "Content-Type": "application/json" } }
+        { requiresAuth: true }
       );
-      const accessToken = response.data.accessToken;
-      if (accessToken) {
-        const response = await instance.post("/auth/logout", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        if (response.status === 200) {
-          setAuth({ permission: null, isAuth: false });
-          setUser(null);
+      if (response.status === 200) {
+        setAuth({ permission: null, isAuth: false });
+        setUser(null);
+        if (user.roleName === "CUSTOMER") {
           await createCart(carts);
           dispatch(clearCart());
-          Cookies.remove("carts");
-          Cookies.remove("accessToken");
-          Cookies.remove("refreshToken");
-          Cookies.remove("permission");
-          toast.success("Đăng xuất thành công", { duration: 2000 });
-          navigate("/login");
-          Cookies.remove("user");
         }
+        Cookies.remove("carts");
+        Cookies.remove("accessToken");
+        Cookies.remove("refreshToken");
+        Cookies.remove("permission");
+        toast.success("Đăng xuất thành công", { duration: 2000 });
+        navigate("/login");
+        Cookies.remove("user");
       }
     } catch (error) {
       console.log(error);
@@ -219,31 +197,6 @@ export const AuthProvider = ({ children }) => {
       });
     }
   };
-
-  // const getUserById = async (id) => {
-  //   try {
-  //     const refreshToken = Cookies.get("refreshToken");
-  //     const tokenResponse = await instance.post(
-  //       "/auth/refreshToken",
-  //       { refreshToken: refreshToken },
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //       }
-  //     );
-  //     const accessToken = tokenResponse.data.accessToken;
-  //     const response = await instance.get(`/user/${id}`, {
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${accessToken}`,
-  //       },
-  //     });
-  //     return response.data;
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
 
   const contextData = {
     user: user,

@@ -13,13 +13,9 @@ import DashboardCard from "../../components/DashboardCard";
 import { getAllOrders } from "../../data/orders";
 import { getAllProducts, getBestSellerProducts } from "../../data/products";
 import { getAllUsers, getUserById } from "../../data/users";
-import { getAllImagesByProductId } from "../../data/productImages";
 
 import { formatDate, formatToVND, formatURL } from "../../utils/format";
 import { ORDER_STATUS } from "../../utils/Constants";
-import { getPaymentDetailById } from "../../data/paymentDetail";
-import { getOrderDetailsByOrderId } from "../../data/orderDetail";
-import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import { getStatistics } from "../../data/statistic";
 import dayjs from "dayjs";
 import toast from "react-hot-toast";
@@ -38,7 +34,7 @@ export default function Dashboard() {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [yearRevenue, setYearRevenue] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const BEST_SELLER_PRODUCTS_PER_PAGE = 2;
+  const BEST_SELLER_PRODUCTS_PER_PAGE = 3;
 
   const { setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
@@ -48,12 +44,9 @@ export default function Dashboard() {
       const fetchedOrders = await getAllOrders();
       const ordersWithDetails = await Promise.all(
         fetchedOrders.map(async (order) => {
-          const user = await getUserById(order.userId);
-          const paymentDetails = await getPaymentDetailById(
-            order.paymentDetailId
-          );
-          const details = await getOrderDetailsByOrderId(order._id);
-          const trackingData = await getOrderTrackingByOrderId(order._id);
+          const user = order.userInfo;
+          const paymentMethod = order.paymentMethod;
+          const trackingData = order.deliveryInfo;
           const tracking = trackingData.length
             ? trackingData[trackingData.length - 1]
             : {};
@@ -61,8 +54,7 @@ export default function Dashboard() {
           return {
             ...order,
             user,
-            paymentDetails,
-            details,
+            paymentMethod,
             tracking,
           };
         })
@@ -96,7 +88,7 @@ export default function Dashboard() {
       const fetchedBestSeller = await getBestSellerProducts();
       const data = await Promise.all(
         fetchedBestSeller.map(async (product) => {
-          const images = await getAllImagesByProductId(product._id);
+          const images = product.images;
           return { ...product, images };
         })
       );
@@ -340,10 +332,7 @@ export default function Dashboard() {
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"
                 >
                   <Table.Cell className="min-w-32">
-                    <img
-                      src={formatURL(product.images[0].imagePath)}
-                      className="w-full"
-                    />
+                    <img src={product.images[0].url} className="w-full" />
                   </Table.Cell>
                   <Table.Cell className="min-w-40">{product.name}</Table.Cell>
                   <Table.Cell>{formatToVND(product.price)}</Table.Cell>
@@ -385,7 +374,7 @@ export default function Dashboard() {
                 <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
                   {order._id}
                 </Table.Cell>
-                <Table.Cell>{formatDate(order.createdDate)}</Table.Cell>
+                <Table.Cell>{formatDate(order.createdAt)}</Table.Cell>
                 <Table.Cell>{order.user.fullName}</Table.Cell>
                 <Table.Cell>
                   <div
@@ -396,8 +385,8 @@ export default function Dashboard() {
                     {order.tracking.status}
                   </div>
                 </Table.Cell>
-                <Table.Cell>{formatToVND(order.total)}</Table.Cell>
-                <Table.Cell>{order.paymentDetails.paymentMethod}</Table.Cell>
+                <Table.Cell>{formatToVND(order.finalPrice)}</Table.Cell>
+                <Table.Cell>{order.paymentMethod}</Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>

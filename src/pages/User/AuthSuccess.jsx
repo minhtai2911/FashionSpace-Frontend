@@ -21,8 +21,6 @@ function AuthSuccess() {
   const { setUser, setAuth, setHasError } = useContext(AuthContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  let email;
-  let hashId;
   const location = useLocation();
 
   const mergeUserCart = async (userId) => {
@@ -49,40 +47,25 @@ function AuthSuccess() {
   useEffect(() => {
     const handleAuthSuccess = async () => {
       const url = location.pathname;
-      const regex = /\/success\/([^\/]+)\/(.+)/;
-      const match = url.match(regex);
-
-      email = match[1];
-      hashId = match[2];
+      const token = url.split("success/")[1];
 
       try {
         const response = await instance.post(
           "http://localhost:8000/api/v1/auth/loginGoogleSuccess",
           {
-            email,
-            token: hashId,
+            token,
           }
         );
-        const { refreshToken, ...data } = response.data.data;
-        const tokenResponse = await instance.post(
-          "/auth/refreshToken",
-          { refreshToken: refreshToken },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const accessToken = tokenResponse.data.accessToken;
+        const { refreshToken, accessToken, ...data } = response.data.data;
         setAuth((prevAuth) => ({ ...prevAuth, isAuth: true }));
         Cookies.set("accessToken", accessToken);
         Cookies.set("refreshToken", refreshToken);
         Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
         const user = jwtDecode(accessToken);
         setUser(user);
-        const role = await getUserRoleById(user.roleId);
+        const role = user.roleName;
         setHasError(false);
-        if (role.roleName === "Customer") {
+        if (role === "Customer") {
           setAuth((prevAuth) => ({
             ...prevAuth,
             permission: CUSTOMER_PERMISSIONS,
@@ -97,14 +80,14 @@ function AuthSuccess() {
           } else {
             navigate("/");
           }
-        } else if (role.roleName === "Admin") {
+        } else if (role === "Admin") {
           setAuth((prevAuth) => ({
             ...prevAuth,
             permission: ADMIN_PERMISSIONS,
           }));
           Cookies.set("permission", ADMIN_PERMISSIONS);
           navigate("/admin");
-        } else if (role.roleName === "Employee") {
+        } else if (role === "Employee") {
           setAuth((prevAuth) => ({
             ...prevAuth,
             permission: EMPLOYEE_PERMISSIONS,

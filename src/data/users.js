@@ -2,25 +2,8 @@ import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
 export const getAllUsers = async () => {
-  const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
-    const response = await instance.get("/user", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await instance.get("/user", { requiresAuth: true });
     return response.data.data;
   } catch (error) {
     throw error;
@@ -29,48 +12,25 @@ export const getAllUsers = async () => {
 
 export const getUserById = async (id) => {
   try {
-    const response = await instance.get(`/user/${id}`);
+    const response = await instance.get(`/user/${id}`, { requiresAuth: false });
     return response.data.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const createUser = async (
-  email,
-  fullName,
-  phone,
-  password,
-  roleName
-) => {
-  const refreshToken = Cookies.get("refreshToken");
+export const createUser = async (email, fullName, phone, password, roleId) => {
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
     const response = await instance.post(
       "/user",
       {
-        email: email,
-        fullName: fullName,
-        phone: phone,
-        password: password,
-        roleName: roleName,
+        email,
+        fullName,
+        phone,
+        password,
+        roleId,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      { requiresAuth: true }
     );
     return response.data.data;
   } catch (error) {
@@ -79,20 +39,7 @@ export const createUser = async (
 };
 
 export const updateUserById = async (id, fullName, phone, roleId) => {
-  const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
     const response = await instance.put(
       `/user/${id}`,
       {
@@ -100,11 +47,7 @@ export const updateUserById = async (id, fullName, phone, roleId) => {
         phone: phone,
         roleId: roleId,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      { requiresAuth: true }
     );
     return response.data.data;
   } catch (error) {
@@ -113,24 +56,9 @@ export const updateUserById = async (id, fullName, phone, roleId) => {
 };
 
 export const archiveUserById = async (id) => {
-  const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
     const response = await instance.delete(`/user/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      requiresAuth: true,
     });
     return response.data.data;
   } catch (error) {

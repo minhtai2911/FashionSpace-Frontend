@@ -3,30 +3,26 @@ import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 import { FileInput, Label } from "flowbite-react";
 
 import { getAllCategories, getCategoryById } from "../../data/categories";
-import { getAllColors, getColorById } from "../../data/colors";
-import { getAllSizes, getSizesByCategory, getSizeById } from "../../data/sizes";
 import {
   createProductVariant,
   deleteProductVariant,
-  getProductVariantsByProductId,
   updateProductVariant,
+  getProductVariantsByProductId,
 } from "../../data/productVariant";
 import {
   createProduct,
+  createProductImages,
+  deleteProductImageById,
   getProductById,
   updateProduct,
 } from "../../data/products";
-import {
-  createProductImage,
-  deleteProductImageById,
-  getAllImagesByProductId,
-  updateProductImageById,
-} from "../../data/productImages";
 import toast from "react-hot-toast";
 import { formatURL } from "../../utils/format";
 import Error from "../Error";
 import AuthContext from "../../context/AuthContext";
 import Cookies from "js-cookie";
+import ColorDropdown from "../../components/ColorDropdown";
+import { COLORS } from "../../utils/Constants";
 
 export default function UpdateProduct() {
   const navigate = useNavigate();
@@ -42,7 +38,7 @@ export default function UpdateProduct() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [sizes, setSizes] = useState([]);
-  const [colors, setColors] = useState([]);
+  const [currentPhotos, setCurrentPhotos] = useState({});
   const [variants, setVariants] = useState([
     { size: "", color: "", quantity: "" },
   ]);
@@ -89,13 +85,16 @@ export default function UpdateProduct() {
         setProductName(product.name);
         setPrice(product.price);
         setDescription(product.description);
-        const fetchedCategory = await getCategoryById(product.categoryId);
-        setCategoryId(product.categoryId);
-        setCategory(fetchedCategory.name);
-        const fetchedSizes = await getSizesByCategory(product.categoryId);
-        setSizes(fetchedSizes);
-        const fetchedImages = await getAllImagesByProductId(id);
+
+        if (product.categoryId) {
+          const fetchedCategory = await getCategoryById(product.categoryId);
+          setCategoryId(product.categoryId);
+          setCategory(fetchedCategory.name);
+        }
+
+        const fetchedImages = product.images;
         setPhotos(fetchedImages);
+        setCurrentPhotos(fetchedImages);
       } catch (error) {}
     };
 
@@ -104,9 +103,9 @@ export default function UpdateProduct() {
         const fetchedVariants = await getProductVariantsByProductId(id);
         const variantsData = await Promise.all(
           fetchedVariants.map(async (variant) => {
-            const color = await getColorById(variant.colorId);
-            const size = await getSizeById(variant.sizeId);
-            return { size, color, quantity: variant.quantity };
+            const color = variant.color;
+            const size = variant.size;
+            return { size, color, quantity: variant.stock };
           })
         );
         setVariants(variantsData);
@@ -120,91 +119,79 @@ export default function UpdateProduct() {
       } catch (error) {}
     };
 
-    const fetchColors = async () => {
-      try {
-        const fetchedColors = await getAllColors();
-        setColors(fetchedColors);
-      } catch (error) {}
-    };
-
     fetchProduct();
     fetchVariants();
     fetchCategories();
-    fetchColors();
   }, [id]);
 
   const handleCategoryChange = async (selectedCategory) => {
     setCategoryId(selectedCategory);
-    const fetchedSizes = await getSizesByCategory(selectedCategory);
-    setSizes(fetchedSizes);
   };
 
   const handleUpdateProduct = async () => {
     try {
       await updateProduct(id, productName, description, categoryId, price);
 
-      const existingImages = await getAllImagesByProductId(id);
+      const existingImages = currentPhotos;
+      console.log(existingImages);
 
       const existingImagesMap = existingImages.reduce((map, image) => {
-        map[image._id] = image;
+        map[image.publicId] = image;
         return map;
       }, {});
 
       const newImages = [];
       await Promise.all(
         photos.map(async (photo) => {
-          const existingImage = existingImagesMap[photo._id];
+          const existingImage = existingImagesMap[photo.publicId];
 
-          if (existingImage) {
-            if (existingImage.imagePath !== photo.imagePath) {
-              await updateProductImageById(
-                existingImage._id,
-                id,
-                photo.imagePath
-              );
-            }
-          } else {
+          if (!existingImage) {
             newImages.push(photo);
           }
         })
       );
 
       if (newImages.length > 0) {
-        await createProductImage(id, newImages);
+        await createProductImages(id, newImages);
       }
 
       const imagesToDelete = existingImages.filter(
-        (existing) => !photos.some((photo) => photo._id === existing._id)
+        (existing) =>
+          !photos.some((photo) => photo.publicId === existing.publicId)
       );
+      console.log(imagesToDelete);
 
       await Promise.all(
-        imagesToDelete.map((image) => deleteProductImageById(image._id))
+        imagesToDelete.map((image) =>
+          deleteProductImageById(id, image.publicId)
+        )
       );
 
       const existingVariants = await getProductVariantsByProductId(id);
 
       const existingVariantsMap = existingVariants.reduce((map, variant) => {
-        map[`${variant.sizeId}-${variant.colorId}`] = variant;
+        map[`${variant.size}-${variant.color}`] = variant;
         return map;
       }, {});
 
       await Promise.all(
         variants.map(async (variant) => {
-          const key = `${variant.size._id}-${variant.color._id}`;
+          const key = `${variant.size}-${variant.color}`;
           const existingVariant = existingVariantsMap[key];
+          console.log(existingVariant);
 
           if (existingVariant) {
             const hasChanged =
-              existingVariant.quantity !== variant.quantity ||
-              existingVariant.sizeId !== variant.size._id ||
-              existingVariant.colorId !== variant.color._id;
+              existingVariant.quantity !== variant.stock ||
+              existingVariant.size !== variant.size ||
+              existingVariant.color !== variant.color;
 
             if (hasChanged) {
               await updateProductVariant(
                 existingVariant._id,
                 existingVariant.productId,
-                variant.size._id,
-                variant.color._id,
+                variant.size,
+                variant.color,
                 variant.quantity
               );
             }
@@ -224,8 +211,8 @@ export default function UpdateProduct() {
           (existing) =>
             !variants.some(
               (variant) =>
-                existing.sizeId === variant.size._id &&
-                existing.colorId === variant.color._id
+                existing.size === variant.size &&
+                existing.color === variant.color
             )
         )
         .map((existing) => existing._id);
@@ -237,6 +224,7 @@ export default function UpdateProduct() {
       toast.success("Chỉnh sửa sản phẩm thành công", { duration: 2000 });
       navigate("/admin/products");
     } catch (error) {
+      console.log(error);
       toast.error(error.response.data.message, { duration: 2000 });
     }
   };
@@ -258,7 +246,7 @@ export default function UpdateProduct() {
       <div className="bg-white rounded-lg mt-10 p-6 shadow-md flex flex-col gap-y-5">
         <p className="font-extrabold text-base">Chỉnh sửa sản phẩm</p>
         <div className="flex flex-row gap-x-10 px-10 justify-between ">
-          {photos.length === 0 && (
+          {photos && photos.length === 0 && (
             <FileInput
               id="dropzone-file"
               className="hidden"
@@ -268,16 +256,18 @@ export default function UpdateProduct() {
           )}
           <div
             className={`flex h-fit flex-[1] p-5 overflow-scroll max-h-80 flex-row flex-wrap items-center rounded-lg border-2 border-dashed border-gray-300 ${
-              photos.length === 0
+              photos && photos.length === 0
                 ? "cursor-pointer hover:bg-gray-50 justify-center"
                 : ""
             }`}
           >
             <Label
               htmlFor="dropzone-file"
-              className={`${photos.length === 0 ? "cursor-pointer" : ""}`}
+              className={`${
+                photos && photos.length === 0 ? "cursor-pointer" : ""
+              }`}
             >
-              {photos.length === 0 && (
+              {photos && photos.length === 0 && (
                 <div className="flex flex-col items-center justify-center">
                   <svg
                     width="60"
@@ -315,19 +305,20 @@ export default function UpdateProduct() {
               )}
             </Label>
             <div className="flex gap-2 flex-wrap items-center">
-              {photos.map((photo, index) => (
-                <img
-                  key={index}
-                  src={formatURL(photo.imagePath)}
-                  alt={`Uploaded ${index}`}
-                  className="object-cover w-24 rounded-lg cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemovePhoto(index);
-                  }}
-                />
-              ))}
-              {photos.length > 0 && (
+              {photos &&
+                photos.map((photo, index) => (
+                  <img
+                    key={index}
+                    src={photo.url ?? photo.imagePath}
+                    alt={`Uploaded ${index}`}
+                    className="object-cover w-24 rounded-lg cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemovePhoto(index);
+                    }}
+                  />
+                ))}
+              {photos && photos.length > 0 && (
                 <Label
                   htmlFor="dropzone-file-more"
                   className="flex w-fit h-fit flex-[1] p-5 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 hover:bg-gray-50 "
@@ -425,7 +416,7 @@ export default function UpdateProduct() {
             <div className="flex gap-x-10 px-10">
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold">Kích cỡ</p>
-                <select
+                <input
                   id="size"
                   value={variant.size}
                   onChange={(e) =>
@@ -433,38 +424,18 @@ export default function UpdateProduct() {
                   }
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
                   required
-                >
-                  <option value={variant.size._id ?? ""}>
-                    {variant.size.size ?? "Chọn kích cỡ"}
-                  </option>
-                  {sizes.map((size) => (
-                    <option key={size._id} value={size._id}>
-                      {size.size}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div className="flex-[2] flex flex-row gap-x-10">
                 <div className="flex flex-col gap-y-2 flex-1">
                   <p className="font-manrope font-semibold">Màu sắc</p>
-                  <select
-                    id="color"
+                  <ColorDropdown
                     value={variant.color}
-                    onChange={(e) =>
-                      handleVariantChange(index, "color", e.target.value)
+                    onChange={(color) =>
+                      handleVariantChange(index, "color", color)
                     }
-                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
-                    required
-                  >
-                    <option value={variant.color._id ?? ""}>
-                      {variant.color.color ?? "Chọn màu sắc"}
-                    </option>
-                    {colors.map((color) => (
-                      <option key={color._id} value={color._id}>
-                        {color.color}
-                      </option>
-                    ))}
-                  </select>
+                    colors={COLORS}
+                  />
                 </div>
                 <div className="flex flex-col flex-1 gap-y-2">
                   <p className="font-manrope font-semibold">Số lượng</p>

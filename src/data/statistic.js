@@ -2,20 +2,22 @@ import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
 export const getStatistics = async (day, month, year) => {
-  const refreshToken = Cookies.get("refreshToken");
+  // const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
+    // const tokenResponse = await instance.post(
+    //   "/auth/refreshToken",
+    //   {
+    //     refreshToken: refreshToken,
+    //   },
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   }
+    // );
+    // const accessToken = tokenResponse.data.data.accessToken;
+    // Cookies.remove("refreshToken");
+    // Cookies.set("refreshToken", tokenResponse.data.data.refreshToken);
 
     const params = new URLSearchParams();
 
@@ -32,9 +34,7 @@ export const getStatistics = async (day, month, year) => {
     }
 
     const response = await instance.get(`/statistic?${params.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      requireAuth: true,
     });
     return response.data.data;
   } catch (error) {

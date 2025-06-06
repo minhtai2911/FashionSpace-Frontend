@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 
 export const getAllProducts = async (
   isActive,
+  categoryIds,
   search,
   minPrice,
   maxPrice,
@@ -14,9 +15,9 @@ export const getAllProducts = async (
       params.append("isActive", isActive);
     }
 
-    // if (categoryId) {
-    //   params.append("categoryId", categoryId);
-    // }
+    if (categoryIds) {
+      params.append("categoryIds", categoryIds);
+    }
 
     if (search) {
       params.append("search", search);
@@ -41,7 +42,13 @@ export const getAllProducts = async (
     if (sortName) {
       params.append("sortName", sortName);
     }
-    const response = await instance.get(`/product?${params.toString()}`);
+    console.log(params.toString());
+    const response = await instance.get(
+      `/product?${params.toString()}&limit=100`,
+      {
+        requiresAuth: false,
+      }
+    );
     return response.data.data;
   } catch (error) {
     console.log(error);
@@ -51,7 +58,10 @@ export const getAllProducts = async (
 
 export const getNewArrivalProducts = async () => {
   try {
-    const response = await instance.get("/product/get/newArrivalProduct");
+    const response = await instance.get(
+      "/product?sortBy=createdAt&sortOrder=desc&limit=5",
+      { requiresAuth: false }
+    );
     return response.data.data;
   } catch (error) {
     console.log(error);
@@ -61,7 +71,10 @@ export const getNewArrivalProducts = async () => {
 
 export const getBestSellerProducts = async () => {
   try {
-    const response = await instance.get("/product/get/bestSellerProduct");
+    const response = await instance.get(
+      "/product?sortBy=soldQuantity&sortOrder=desc&limit=5",
+      { requiresAuth: false }
+    );
     return response.data.data;
   } catch (error) {
     console.log(error);
@@ -71,7 +84,9 @@ export const getBestSellerProducts = async () => {
 
 export const getProductById = async (productId) => {
   try {
-    const response = await instance.get(`/product/${productId}`);
+    const response = await instance.get(`/product/${productId}`, {
+      requiresAuth: false,
+    });
     return response.data.data;
   } catch (error) {
     console.log(error);
@@ -86,20 +101,7 @@ export const createProduct = async (
   price,
   rating = 0
 ) => {
-  const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
     const response = await instance.post(
       "/product",
       {
@@ -109,11 +111,45 @@ export const createProduct = async (
         price: price,
         rating: rating,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+      { requiresAuth: true }
+    );
+    return response.data.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const createProductImages = async (productId, images) => {
+  try {
+    const formData = new FormData();
+    formData.append("productId", productId);
+
+    images.forEach((image) => {
+      if (image.imageFile) {
+        formData.append("images", image.imageFile);
       }
+    });
+
+    const response = await instance.post("/product/images", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      requiresAuth: true,
+    });
+
+    return response.data.data;
+  } catch (error) {
+    console.error("Error uploading images:", error);
+    throw error;
+  }
+};
+
+export const deleteProductImageById = async (productId, publicId) => {
+  try {
+    const response = await instance.delete(
+      `/product/images/${productId}/${publicId}`,
+      { requiresAuth: true }
     );
     return response.data.data;
   } catch (error) {
@@ -130,20 +166,21 @@ export const updateProduct = async (
   price,
   rating = 0
 ) => {
-  const refreshToken = Cookies.get("refreshToken");
+  // const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
+    // const tokenResponse = await instance.post(
+    //   "/auth/refreshToken",
+    //   {
+    //     refreshToken: refreshToken,
+    //   },
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   }
+    // );
+    // const accessToken = tokenResponse.data.data.accessToken;
+    // Cookies.set("refreshToken", tokenResponse.data.data.refreshToken);
     const response = await instance.put(
       `/product/${productId}`,
       {
@@ -153,11 +190,12 @@ export const updateProduct = async (
         price: price,
         rating: rating,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      { requiresAuth: true }
+      // {
+      //   headers: {
+      //     Authorization: `Bearer ${accessToken}`,
+      //   },
+      // }
     );
     return response.data.data;
   } catch (error) {
@@ -167,24 +205,23 @@ export const updateProduct = async (
 };
 
 export const archiveProductById = async (id) => {
-  const refreshToken = Cookies.get("refreshToken");
+  // const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
-    const response = await instance.delete(`/product/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+    // const tokenResponse = await instance.post(
+    //   "/auth/refreshToken",
+    //   {
+    //     refreshToken: refreshToken,
+    //   },
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   }
+    // );
+    // const accessToken = tokenResponse.data.data.accessToken;
+    // Cookies.set("refreshToken", tokenResponse.data.data.refreshToken);
+    const response = await instance.put(`/product/archive/${id}`, {
+      requiresAuth: true,
     });
     return response.data.data;
   } catch (error) {

@@ -1,7 +1,6 @@
 import { useContext } from "react";
 import { Link, useNavigate, useRouteError } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
-import { getUserRoleById } from "../data/userRoles";
 import Cookies from "js-cookie";
 import {
   ADMIN_PERMISSIONS,
@@ -14,20 +13,21 @@ export default function Error({
   content = "Không tìm thấy tài nguyên hay trang",
 }) {
   const navigate = useNavigate();
-  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
   const { setHasError, setAuth } = useContext(AuthContext);
+  const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
 
   const handleCheckRole = async () => {
     if (!user) {
+      setHasError(false);
       navigate("/");
       return;
     }
 
-    const role = await getUserRoleById(user.roleId);
-    if (role.roleName === "Admin") {
+    const role = user.roleName;
+    if (role === "Admin") {
       setHasError(false);
       navigate("/admin/dashboard");
-    } else if (role.roleName === "Employee") {
+    } else if (role === "Employee") {
       setHasError(false);
       navigate("/admin/orders");
     } else {

@@ -1,25 +1,18 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Table, Datepicker } from "flowbite-react";
-import { getOrderById, updateOrderById } from "../../data/orders";
-import { getOrderDetailsByOrderId } from "../../data/orderDetail";
 import {
-  getPaymentDetailById,
-  updatePaymentDetailById,
-} from "../../data/paymentDetail";
-import { getUserById } from "../../data/users";
+  getOrderById,
+  sendMailDeliveryInfo,
+  updateDeliveryInfoById,
+  updatePaymentStatusById,
+} from "../../data/orders";
 import { formatDate, formatToVND } from "../../utils/format";
 import { getProductVariantById } from "../../data/productVariant";
 import { getProductById } from "../../data/products";
-import { getSizeById } from "../../data/sizes";
-import { getColorById } from "../../data/colors";
 import { getCategoryById } from "../../data/categories";
 import { ORDER_STATUS, PAYMENT_STATUS } from "../../utils/Constants";
 import toast from "react-hot-toast";
-import {
-  createOrderTracking,
-  getOrderTrackingByOrderId,
-} from "../../data/orderTracking";
 import Error from "../Error";
 import AuthContext from "../../context/AuthContext";
 import Cookies from "js-cookie";
@@ -53,14 +46,17 @@ export default function UpdateOrder() {
 
   async function fetchOrders() {
     try {
-      const order = await getOrderById(id);
-      const user = await getUserById(order.userId);
-      const paymentDetails = await getPaymentDetailById(order.paymentDetailId);
-      const details = await getOrderDetailsByOrderId(order._id);
-      const trackingData = await getOrderTrackingByOrderId(order._id);
-      const tracking = trackingData.length
-        ? trackingData[trackingData.length - 1]
-        : {};
+      const data = await getOrderById(id);
+      const order = data[0];
+      const user = order.userInfo;
+      const paymentDetails = {
+        status: order.paymentStatus,
+        paymentMethod: order.paymentMethod,
+      };
+      const details = order.orderItems;
+      const trackingData = order.deliveryInfo;
+      const tracking =
+        trackingData.length != 0 ? trackingData[trackingData.length - 1] : {};
 
       const orderDetails = {
         ...order,
@@ -75,16 +71,16 @@ export default function UpdateOrder() {
           const productVariant = await getProductVariantById(
             item.productVariantId
           );
-          const product = await getProductById(productVariant.productId);
-          const size = await getSizeById(productVariant.sizeId);
-          const color = await getColorById(productVariant.colorId);
+          const product = await getProductById(item.productId);
+          const size = productVariant.size;
+          const color = productVariant.color;
           const category = await getCategoryById(product.categoryId);
 
           return {
             product,
             size,
             color,
-            category,
+            category: category.name,
             quantity: item.quantity,
           };
         })
@@ -97,12 +93,12 @@ export default function UpdateOrder() {
       );
       setPaymentStatus(orderDetails.paymentDetails.status || "");
       setNewPaymentStatus(orderDetails.paymentDetails.status || "");
-      setCurrentAddress(orderDetails.tracking.currentAddress || "");
+      setCurrentAddress(orderDetails.tracking.deliveryAddress || "");
       setStatus(orderDetails.tracking.status || "");
       setNewDeliveryDate(
-        formatToDateInput(orderDetails.tracking.expectedDeliveryDate) || ""
+        formatToDateInput(orderDetails.expectedDeliveryDate) || ""
       );
-      setNewCurrentAddress(orderDetails.tracking.currentAddress || "");
+      setNewCurrentAddress(orderDetails.tracking.deliveryAddress || "");
       setNewStatus(orderDetails.tracking.status || "");
     } catch (error) {
       console.error("Error fetching order details:", error);
@@ -115,18 +111,28 @@ export default function UpdateOrder() {
 
   const handleUpdateOrder = async () => {
     try {
-      await updatePaymentDetailById(
-        orderWithDetails.paymentDetails._id,
-        newPaymentStatus
-      );
+      await updatePaymentStatusById(id, newPaymentStatus);
       if (
         deliveryDate !== newDeliveryDate ||
         status !== newStatus ||
         currentAddress !== newCurrentAddress
       ) {
-        await createOrderTracking(id, newStatus, currentAddress, deliveryDate);
+        await updateDeliveryInfoById(
+          id,
+          newStatus,
+          newCurrentAddress,
+          new Date(newDeliveryDate)
+        );
       }
       toast.success("Cập nhật đơn hàng thành công", { duration: 2000 });
+      await toast.promise(
+        sendMailDeliveryInfo(id, orderWithDetails.user.email),
+        {
+          loading: "Đang gửi email cập nhật trạng thái đơn hàng",
+          success: "Gửi email cập nhật trạng thái đơn hàng thành công",
+          error: "Gửi email cập nhật trạng thái đơn hàng thất bại",
+        }
+      );
       navigate("/admin/orders");
     } catch (error) {
       console.log(error);
@@ -195,7 +201,6 @@ export default function UpdateOrder() {
               </div>
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">Trạng thái</p>
-                {console.log(status)}
                 {status !== ORDER_STATUS.SHIPPED &&
                 status !== ORDER_STATUS.CANCELLED_BY_YOU &&
                 status !== ORDER_STATUS.CANCELLED_BY_EMPLOYEE ? (
@@ -265,6 +270,7 @@ export default function UpdateOrder() {
                     //   status === ORDER_STATUS.CANCELLED_BY_YOU ||
                     //   status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
                     // }
+                    disabled={paymentStatus === PAYMENT_STATUS.PAID}
                   >
                     {Object.values(PAYMENT_STATUS).map((value, index) => (
                       <option
@@ -317,7 +323,7 @@ export default function UpdateOrder() {
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">Tổng tiền</p>
                 <input
-                  value={`${formatToVND(orderWithDetails.total)}` || ""}
+                  value={`${formatToVND(orderWithDetails.finalPrice)}` || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
                   disabled
                 />
@@ -327,7 +333,7 @@ export default function UpdateOrder() {
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">Ngày tạo</p>
                 <input
-                  value={formatDate(orderWithDetails.createdDate) || ""}
+                  value={formatDate(orderWithDetails.createdAt) || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm disabled:cursor-not-allowed"
                   disabled
                 />
@@ -361,8 +367,8 @@ export default function UpdateOrder() {
                   Địa chỉ hiện tại
                 </p>
                 <input
-                  value={currentAddress}
-                  onChange={(e) => setCurrentAddress(e.target.value)}
+                  value={newCurrentAddress}
+                  onChange={(e) => setNewCurrentAddress(e.target.value)}
                   disabled={
                     status === ORDER_STATUS.SHIPPED ||
                     status === ORDER_STATUS.CANCELLED_BY_YOU ||
@@ -401,9 +407,9 @@ export default function UpdateOrder() {
                     <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
                       {item.product.name}
                     </Table.Cell>
-                    <Table.Cell>{item.category.name}</Table.Cell>
-                    <Table.Cell>{item.size.size}</Table.Cell>
-                    <Table.Cell>{item.color.color}</Table.Cell>
+                    <Table.Cell>{item.category}</Table.Cell>
+                    <Table.Cell>{item.size}</Table.Cell>
+                    <Table.Cell>{item.color}</Table.Cell>
                     <Table.Cell>{formatToVND(item.product.price)}</Table.Cell>
                     <Table.Cell>{item.quantity}</Table.Cell>
                   </Table.Row>

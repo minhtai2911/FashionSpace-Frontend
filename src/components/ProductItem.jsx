@@ -4,11 +4,8 @@ import AuthContext from "../context/AuthContext";
 import { Modal } from "flowbite-react";
 
 import { getProductById } from "../data/products";
-import { getAllImagesByProductId } from "../data/productImages";
 import { getCategoryById } from "../data/categories";
 import { getProductVariantsByProductId } from "../data/productVariant";
-import { getColorById } from "../data/colors";
-import { getSizeById } from "../data/sizes";
 import { formatToVND, formatURL } from "../utils/format";
 
 import BestSellerIcon from "../assets/icons/best-seller.svg";
@@ -19,64 +16,57 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { addToCart } from "../stores/cart";
 
-function ProductItem({ id, usage }) {
+function ProductItem({
+  id,
+  usage,
+  soldQuantity,
+  productName,
+  rating,
+  category,
+  image,
+  price,
+}) {
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const [openModal, setOpenModal] = useState(false);
   const [openCartModal, setOpenCartModal] = useState(false);
-  const [productName, setProductName] = useState("");
   const [variants, setVariants] = useState([]);
   const [colors, setColors] = useState([]);
-  const [price, setPrice] = useState(0);
-  const [category, setCategory] = useState("");
-  const [rating, setRating] = useState(0);
-  const [image, setImage] = useState(null);
   const [selectedColor, setSelectedColor] = useState();
   const [availableSizes, setAvailableSizes] = useState([]);
   const [selectedSize, setSelectedSize] = useState();
-  const [mainImage, setMainImage] = useState();
   const [quantity, setQuantity] = useState(1);
-
-  const fetchProduct = async () => {
-    const product = await getProductById(id);
-    setProductName(product.name);
-    setPrice(product.price);
-    setRating(product.rating);
-    const fetchedCategory = await getCategoryById(product.categoryId);
-    setCategory(fetchedCategory.name);
-    const fetchedImages = await getAllImagesByProductId(id);
-    setImage(fetchedImages[0].imagePath);
-    setMainImage(fetchedImages[0].imagePath);
-  };
+  const [imageLoading, setImageLoading] = useState(true);
 
   const fetchVariants = async () => {
     const fetchedVariants = await getProductVariantsByProductId(id);
-    const variantsData = await Promise.all(
-      fetchedVariants.map(async (variant) => {
-        const color = await getColorById(variant.colorId);
-        const size = await getSizeById(variant.sizeId);
-        return { size, color, quantity: variant.quantity };
-      })
-    );
-    setSelectedColor(variantsData[0].color._id);
-    setSelectedSize(variantsData[0].size._id);
-    setVariants(variantsData);
+    if (fetchedVariants) {
+      const variantsData = await Promise.all(
+        fetchedVariants.map(async (variant) => {
+          const color = variant.color;
+          const size = variant.size;
+          return { size, color, quantity: variant.stock };
+        })
+      );
+      setSelectedColor(variantsData[0].color);
+      setSelectedSize(variantsData[0].size);
+      setVariants(variantsData);
+    }
   };
 
   useEffect(() => {
-    fetchProduct();
     fetchVariants();
   }, [id]);
 
   const uniqueColors = useMemo(() => {
     const colorSet = new Set();
     variants.forEach((variant) => {
-      colorSet.add(variant.color._id);
+      colorSet.add(variant.color);
     });
-    const colorList = Array.from(colorSet).map((colorId) => {
-      return variants.find((variant) => variant.color._id === colorId).color;
+    const colorList = Array.from(colorSet).map((color) => {
+      return variants.find((variant) => variant.color === color).color;
     });
     setColors(colorList);
   }, [variants]);
@@ -88,9 +78,9 @@ function ProductItem({ id, usage }) {
       categoryId: category,
       price: price,
       quantity: quantity,
-      sizeId: selectedSize,
-      colorId: selectedColor,
-      image: mainImage,
+      size: selectedSize,
+      color: selectedColor,
+      image,
     };
     dispatch(addToCart(product));
     toast.success("Sản phẩm đã được thêm vào giỏ hàng", { duration: 2000 });
@@ -100,7 +90,7 @@ function ProductItem({ id, usage }) {
   useEffect(() => {
     if (selectedColor) {
       const filteredSizes = variants
-        .filter((variant) => variant.color._id === selectedColor)
+        .filter((variant) => variant.color === selectedColor)
         .map((variant) => variant.size);
       setAvailableSizes(filteredSizes);
     }
@@ -114,8 +104,8 @@ function ProductItem({ id, usage }) {
     const selectedCartItems = [
       {
         productId: id,
-        sizeId: selectedSize,
-        colorId: selectedColor,
+        size: selectedSize,
+        color: selectedColor,
         quantity: quantity,
       },
     ];
@@ -135,6 +125,10 @@ function ProductItem({ id, usage }) {
         navigate("/checkout", { state: { orderSummary, type: "Buy Now" } });
       }
     }
+  };
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
   };
 
   return (
@@ -175,9 +169,10 @@ function ProductItem({ id, usage }) {
             />
           )}
           <img
-            className="object-cover h-60 w-56"
-            src={formatURL(image)}
+            className={`object-cover h-60 w-56`}
+            src={image}
             alt="product image"
+            onLoad={handleImageLoad}
             defaultValue={"https://via.placeholder.com/800x600?text=Team+Image"}
           />
         </Link>
@@ -191,14 +186,15 @@ function ProductItem({ id, usage }) {
               {category}
             </h3>
           </span>
-          <span>
-            <h5
-              className="tracking-tight font-bold text-base text-slate-900"
-              id="product-name"
-            >
-              {productName}
-            </h5>
-          </span>
+          <h5
+            className="tracking-tight font-bold text-base text-slate-900"
+            id="product-name"
+          >
+            {productName}
+          </h5>
+          <h5 className="tracking-tight text-sm mt-1 text-slate-500">
+            (Đã bán: {soldQuantity})
+          </h5>
           <div className="mt-2 mb-3 flex items-center justify-between">
             <p>
               <span
@@ -281,11 +277,7 @@ function ProductItem({ id, usage }) {
         <Modal.Body className="py-5 shadow-sm border-t border-b flex flex-col gap-y-5">
           <div className="flex flex-col gap-y-5">
             <div className="flex flex-row gap-x-5">
-              <img
-                src={formatURL(mainImage)}
-                alt={productName}
-                className="w-40 rounded-lg"
-              />
+              <img src={image} alt={productName} className="w-40 rounded-lg" />
               <div className="flex flex-col justify-between flex-1">
                 <p className="text-sm">{category}</p>
                 <div className="flex flex-col gap-y-1">
@@ -364,23 +356,20 @@ function ProductItem({ id, usage }) {
               <div className="flex flex-row gap-x-2">
                 {colors.map((color) => (
                   <button
-                    key={color._id}
-                    onClick={() => setSelectedColor(color._id)}
+                    key={color}
+                    onClick={() => setSelectedColor(color)}
                     className={`w-7 h-7 rounded-full flex items-center justify-center border-2
       ${
-        selectedColor === color._id
-          ? `border-${color.color}`
-          : "border-gray-300"
+        selectedColor === color ? `border-${color}` : "border-gray-300"
       } transition-all duration-200`}
                     style={{
-                      borderColor:
-                        selectedColor === color._id ? color.color : "#D9D9D9",
+                      borderColor: selectedColor === color ? color : "#D9D9D9",
                     }}
                   >
                     <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
                       <div
                         className={`w-5 h-5 rounded-full`}
-                        style={{ backgroundColor: color.color }}
+                        style={{ backgroundColor: color }}
                       ></div>
                     </div>
                   </button>
@@ -392,17 +381,17 @@ function ProductItem({ id, usage }) {
               <div className="flex flex-row gap-x-2">
                 {availableSizes.map((size) => (
                   <button
-                    key={size._id}
+                    key={size}
                     className={`inline-block px-3 py-1 border rounded-md 
                                       ${
-                                        selectedSize === size._id
+                                        selectedSize === size
                                           ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
                                           : "bg-white text-black border-gray-300"
                                       } 
                                       cursor-pointer transition-all duration-300`}
-                    onClick={() => setSelectedSize(size._id)}
+                    onClick={() => setSelectedSize(size)}
                   >
-                    {size.size}
+                    {size}
                   </button>
                 ))}
               </div>
@@ -450,11 +439,7 @@ function ProductItem({ id, usage }) {
         <Modal.Body className="py-5 shadow-sm border-t border-b flex flex-col gap-y-5">
           <div className="flex flex-col gap-y-5">
             <div className="flex flex-row gap-x-5">
-              <img
-                src={formatURL(mainImage)}
-                alt={productName}
-                className="w-40 rounded-lg"
-              />
+              <img src={image} alt={productName} className="w-40 rounded-lg" />
               <div className="flex flex-col justify-between flex-1">
                 <p className="text-sm">{category}</p>
                 <div className="flex flex-col gap-y-1">
@@ -533,23 +518,20 @@ function ProductItem({ id, usage }) {
               <div className="flex flex-row gap-x-2">
                 {colors.map((color) => (
                   <button
-                    key={color._id}
-                    onClick={() => setSelectedColor(color._id)}
+                    key={color}
+                    onClick={() => setSelectedColor(color)}
                     className={`w-7 h-7 rounded-full flex items-center justify-center border-2
       ${
-        selectedColor === color._id
-          ? `border-${color.color}`
-          : "border-gray-300"
+        selectedColor === color ? `border-${color}` : "border-gray-300"
       } transition-all duration-200`}
                     style={{
-                      borderColor:
-                        selectedColor === color._id ? color.color : "#D9D9D9",
+                      borderColor: selectedColor === color ? color : "#D9D9D9",
                     }}
                   >
                     <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
                       <div
                         className={`w-5 h-5 rounded-full`}
-                        style={{ backgroundColor: color.color }}
+                        style={{ backgroundColor: color }}
                       ></div>
                     </div>
                   </button>
@@ -561,17 +543,17 @@ function ProductItem({ id, usage }) {
               <div className="flex flex-row gap-x-2">
                 {availableSizes.map((size) => (
                   <button
-                    key={size._id}
+                    key={size}
                     className={`inline-block px-3 py-1 border rounded-md 
                                       ${
-                                        selectedSize === size._id
+                                        selectedSize === size
                                           ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
                                           : "bg-white text-black border-gray-300"
                                       } 
                                       cursor-pointer transition-all duration-300`}
-                    onClick={() => setSelectedSize(size._id)}
+                    onClick={() => setSelectedSize(size)}
                   >
-                    {size.size}
+                    {size}
                   </button>
                 ))}
               </div>

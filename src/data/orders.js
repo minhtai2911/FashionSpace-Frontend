@@ -6,20 +6,7 @@ export const getAllOrders = async (
   paymentMethod,
   paymentStatus
 ) => {
-  const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
     const params = new URLSearchParams();
 
     if (orderTrackingStatus) {
@@ -34,11 +21,8 @@ export const getAllOrders = async (
       params.append("paymentStatus", paymentStatus);
     }
 
-    const accessToken = tokenResponse.data.accessToken;
     const response = await instance.get(`/order?${params.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      requiresAuth: true,
     });
     return response.data.data;
   } catch (error) {
@@ -47,25 +31,8 @@ export const getAllOrders = async (
 };
 
 export const getOrderById = async (id) => {
-  const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
-    const response = await instance.get(`/order/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await instance.get(`/order/${id}`, { requiresAuth: true });
     return response.data.data;
   } catch (error) {
     throw error;
@@ -73,30 +40,13 @@ export const getOrderById = async (id) => {
 };
 
 export const getOrderByUserId = async (userId) => {
-  const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
     const response = await instance.get(
       "/order/get/userId",
       {
         userId: userId,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      { requiresAuth: true }
     );
     return response.data.data;
   } catch (error) {
@@ -105,38 +55,50 @@ export const getOrderByUserId = async (userId) => {
 };
 
 export const createOrder = async (
-  total,
-  paymentDetailId,
-  orderAddressId,
-  shippingFee
+  orderItems,
+  discount,
+  userAddressId,
+  shippingFee,
+  paymentMethod,
+  deliveryInfo,
+  expectedDeliveryDate
 ) => {
-  const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
     const response = await instance.post(
       "/order",
       {
-        total,
-        paymentDetailId,
-        orderAddressId,
+        orderItems,
+        discount,
+        userAddressId,
         shippingFee,
+        paymentMethod,
+        deliveryInfo,
+        expectedDeliveryDate,
       },
+      { requiresAuth: true }
+    );
+    return response.data.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const updateDeliveryInfoById = async (
+  orderId,
+  status,
+  deliveryAddress,
+  expectedDeliveryDate
+) => {
+  try {
+    const response = await instance.put(
+      `/order/deliveryInfo/${orderId}`,
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+        status,
+        deliveryAddress,
+        expectedDeliveryDate,
+      },
+      { requiresAuth: true }
     );
     return response.data.data;
   } catch (error) {
@@ -144,38 +106,30 @@ export const createOrder = async (
   }
 };
 
-export const updateOrderById = async (
-  status,
-  deliveryDate,
-  currentAddress,
-  id
-) => {
-  const refreshToken = Cookies.get("refreshToken");
+export const updatePaymentStatusById = async (orderId, paymentStatus) => {
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
     const response = await instance.put(
-      `/order/${id}`,
+      `/order/paymentStatus/${orderId}`,
       {
-        status: status,
-        deliveryDate: deliveryDate,
-        currentAddress: currentAddress,
+        paymentStatus,
       },
+      { requiresAuth: true }
+    );
+    return response.data.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sendMailDeliveryInfo = async (orderId, email) => {
+  try {
+    const response = await instance.post(
+      `/order/sendDeliveryInfo`,
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+        orderId,
+        email,
+      },
+      { requiresAuth: false }
     );
     return response.data.data;
   } catch (error) {

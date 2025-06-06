@@ -9,8 +9,8 @@ function ForgotPassword() {
   const [email, setEmail] = useState("");
 
   const sendOtpAndNavigate = async () => {
-    const otpResponse = await instance.post(
-      "/auth/generateOTP",
+    const sendMail = await instance.post(
+      "/auth/sendOTP",
       { email: email },
       {
         headers: {
@@ -18,21 +18,8 @@ function ForgotPassword() {
         },
       }
     );
-    const { otp } = otpResponse.data;
-
-    if (otpResponse.status === 200) {
-      const sendMail = await instance.post(
-        "/auth/sendOTP",
-        { email: email, OTP: otp },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (sendMail.status === 200) {
-        navigate("/verifyCode", { state: { email } });
-      }
+    if (sendMail.status === 200) {
+      navigate("/verifyCode", { state: { email } });
     }
   };
 
@@ -43,30 +30,15 @@ function ForgotPassword() {
     }
 
     try {
-      const response = await instance.post(
-        "/auth/checkEmail",
-        { email: email },
+      toast.promise(
+        sendOtpAndNavigate(),
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+          loading: "Đang gửi mã OTP...",
+          success: "Mã OTP được gửi thành công",
+          error: "Gửi mã OTP thất bại",
+        },
+        { duration: 3000 }
       );
-      const data = response.data;
-      if (response.status === 200) {
-        toast.promise(
-          sendOtpAndNavigate(),
-          {
-            loading: "Đang gửi mã OTP...",
-            success: "Mã OTP được gửi thành công",
-            error: "Gửi mã OTP thất bại",
-          },
-          { duration: 3000 }
-        );
-      } else {
-        toast.error(response.data.message, { duration: 2000 });
-        return;
-      }
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.message, {

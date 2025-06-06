@@ -3,15 +3,14 @@ import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 
 import Banner from "../../components/Banner";
-import instance from "../../services/axiosConfig";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 import AuthContext from "../../context/AuthContext";
-import {
-  getOrderAddressById,
-  updateOrderAddress,
-} from "../../data/orderAddress";
 import Error from "../Error";
+import {
+  getUserAddressById,
+  updateUserAddressById,
+} from "../../data/userAddress";
 
 const apiUrl = "https://api.mysupership.vn";
 const apiEndpointProvince = apiUrl + "/v1/partner/areas/province";
@@ -84,13 +83,13 @@ function EditAddress() {
     )?.name;
 
     try {
-      const response = await updateOrderAddress(
-        orderAddress._id,
+      const response = await updateUserAddressById(
+        id,
         selectedCityName,
         selectedDistrictName,
         selectedCommuneName,
-        phone,
-        street
+        street,
+        phone
       );
       toast.success("Cập nhật thông tin giao hàng thành công", {
         duration: 2000,
@@ -107,7 +106,7 @@ function EditAddress() {
   useEffect(() => {
     const fetchOrderAddressData = async () => {
       try {
-        const orderAddressData = await getOrderAddressById(id);
+        const orderAddressData = await getUserAddressById(id);
         setOrderAddress(orderAddressData);
 
         const provincesList = await fetchData(apiEndpointProvince);

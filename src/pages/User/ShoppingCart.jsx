@@ -7,9 +7,9 @@ import AuthContext from "../../context/AuthContext.js";
 import { removeItem, clearCart, mergeCart } from "../../stores/cart.js";
 import { FREE_SHIPPING, SHIPPING_RATE } from "../../utils/Constants.js";
 
-import CartItem from "../../components/CartItem.js";
-import Banner from "../../components/Banner.js";
-import CheckBox from "../../components/CheckBox.js";
+import CartItem from "../../components/CartItem.jsx";
+import Banner from "../../components/Banner.jsx";
+import CheckBox from "../../components/CheckBox.jsx";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { getProductById } from "../../data/products.js";
 import { formatToVND } from "../../utils/format.js";
@@ -32,7 +32,7 @@ function ShoppingCart() {
 
   const selectedCartItems = carts.filter(
     (product) =>
-      selectedItems[`${product.productId}-${product.colorId}-${product.sizeId}`]
+      selectedItems[`${product.productId}-${product.color}-${product.size}`]
   );
 
   const totalItems = selectedCartItems.reduce(
@@ -61,23 +61,23 @@ function ShoppingCart() {
   );
   const totalPrice = useMemo(() => subTotal + shipping, [subTotal, shipping]);
 
-  const handleCheckboxChange = (productId, colorId, sizeId) => {
-    const key = `${productId}-${colorId}-${sizeId}`;
+  const handleCheckboxChange = (productId, color, size) => {
+    const key = `${productId}-${color}-${size}`;
     setSelectedItems((prev) => ({
       ...prev,
       [key]: !prev[key],
     }));
   };
 
-  const handleRemoveItem = (productId, colorId, sizeId) => {
-    dispatch(removeItem({ productId, colorId, sizeId }));
+  const handleRemoveItem = (productId, color, size) => {
+    dispatch(removeItem({ productId, color, size }));
   };
 
   const handleRemoveSelectedItems = () => {
     Object.keys(selectedItems).forEach((key) => {
-      const [productId, colorId, sizeId] = key.split("-");
+      const [productId, color, size] = key.split("-");
       if (selectedItems[key]) {
-        dispatch(removeItem({ productId, colorId, sizeId }));
+        dispatch(removeItem({ productId, color, size }));
       }
     });
     toast.success("Sản phẩm đã được xóa khỏi giỏ hàng!", { duration: 2000 });
@@ -107,11 +107,11 @@ function ShoppingCart() {
 
   const handleCheckout = () => {
     if (selectedCartItems.length > 0) {
-      if (!auth.isAuth) {
-        navigate("/login", { state: { orderSummary } });
-      } else {
-        navigate("/checkout", { state: { orderSummary } });
-      }
+      // if (!auth.isAuth) {
+      //   navigate("/login", { state: { orderSummary } });
+      // } else {
+      navigate("/checkout", { state: { orderSummary } });
+      // }
     }
   };
 
@@ -176,14 +176,14 @@ function ShoppingCart() {
                         <CheckBox
                           isChecked={
                             !!selectedItems[
-                              `${product.productId}-${product.colorId}-${product.sizeId}`
+                              `${product.productId}-${product.color}-${product.size}`
                             ]
                           }
                           onChange={() =>
                             handleCheckboxChange(
                               product.productId,
-                              product.colorId,
-                              product.sizeId
+                              product.color,
+                              product.size
                             )
                           }
                         />
@@ -193,8 +193,8 @@ function ShoppingCart() {
                           onClick={() => {
                             handleRemoveItem(
                               product.productId,
-                              product.colorId,
-                              product.sizeId
+                              product.color,
+                              product.size
                             );
                           }}
                         >

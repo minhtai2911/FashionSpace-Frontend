@@ -1,19 +1,14 @@
 import { useState, useEffect } from "react";
 import { getProductById } from "../data/products";
-import { getAllImagesByProductId } from "../data/productImages";
 import { getCategoryById } from "../data/categories";
 import { useDispatch } from "react-redux";
 import { changeQuantity } from "../stores/cart";
 import { formatToVND, formatURL } from "../utils/format";
-import { getColorById } from "../data/colors";
-import { getSizeById } from "../data/sizes";
 
 function CartItem(props) {
-  const { productId, quantity, colorId, sizeId } = props.data;
+  const { productId, quantity, color, size } = props.data;
   const [products, setProducts] = useState([]);
   const [productData, setProductData] = useState([]);
-  const [size, setSize] = useState("");
-  const [color, setColor] = useState("");
   const [image, setImage] = useState("");
   const [productName, setProductName] = useState("");
   const [price, setPrice] = useState("");
@@ -23,46 +18,24 @@ function CartItem(props) {
     const fetchProductData = async () => {
       try {
         const product = await getProductById(productId);
-        const images = await getAllImagesByProductId(productId);
+        console.log(product);
+        const images = product.images;
         setProductName(product.name);
         setPrice(product.price);
-        setImage(images[0].imagePath);
+        setImage(images[0].url);
       } catch (error) {
         console.error(error);
       }
     };
-
-    const fetchColor = async () => {
-      try {
-        const color = await getColorById(colorId);
-        setColor(color.color);
-      } catch (error) {
-        console.error("Failed to fetch color:", error);
-        setColor("Không rõ màu");
-      }
-    };
-
-    const fetchSize = async () => {
-      try {
-        const size = await getSizeById(sizeId);
-        setSize(size.size);
-      } catch (error) {
-        console.error("Failed to fetch size:", error);
-        setSize("Không rõ kích cỡ");
-      }
-    };
-
     fetchProductData();
-    fetchColor();
-    fetchSize();
-  }, [productId, colorId, sizeId]);
+  }, [productId, color, size]);
 
   const handleMinusQuantity = () => {
     dispatch(
       changeQuantity({
         productId,
-        colorId,
-        sizeId,
+        color,
+        size,
         quantity: quantity - 1,
       })
     );
@@ -72,8 +45,8 @@ function CartItem(props) {
     dispatch(
       changeQuantity({
         productId,
-        colorId,
-        sizeId,
+        color,
+        size,
         quantity: quantity + 1,
       })
     );
@@ -82,11 +55,7 @@ function CartItem(props) {
   return (
     <>
       <td className="flex items-center space-x-4 py-2">
-        <img
-          src={formatURL(image)}
-          alt="Product"
-          className="h-24 w-24 object-cover"
-        />
+        <img src={image} alt="Product" className="h-24 w-24 object-cover" />
         <div>
           <h2 className="font-medium text-lg">{productName}</h2>
           <p className="font-light">

@@ -5,15 +5,16 @@ import { Dropdown } from "flowbite-react";
 import { Clock8 } from "lucide-react";
 
 import { getAllCategories } from "../../data/categories";
-import { getAllColors } from "../../data/colors";
-import { getAllSizes, getSizesByCategory } from "../../data/sizes";
+// import { getAllColors } from "../../data/colors";
+// import { getAllSizes, getSizesByCategory } from "../../data/sizes";
 import { createProductVariant } from "../../data/productVariant";
-import { createProduct } from "../../data/products";
-import { createProductImage } from "../../data/productImages";
+import { createProduct, createProductImages } from "../../data/products";
 import toast from "react-hot-toast";
 import Error from "../Error";
 import AuthContext from "../../context/AuthContext";
 import Cookies from "js-cookie";
+import { COLORS } from "../../utils/Constants";
+import ColorDropdown from "../../components/ColorDropdown";
 
 export default function CreateProduct() {
   const navigate = useNavigate();
@@ -74,23 +75,13 @@ export default function CreateProduct() {
     } catch (error) {}
   };
 
-  const fetchColors = async () => {
-    try {
-      const fetchedColors = await getAllColors();
-      setColors(fetchedColors);
-    } catch (error) {}
-  };
-
   useEffect(() => {
     fetchCategories();
-    fetchColors();
   }, []);
 
   const handleCategoryChange = async (selectedCategory) => {
     try {
       setCategoryId(selectedCategory);
-      const fetchedSizes = await getSizesByCategory(selectedCategory);
-      setSizes(fetchedSizes);
     } catch (error) {
       toast.error(error.response.data.message);
     }
@@ -110,7 +101,7 @@ export default function CreateProduct() {
         const productId = productResponse._id;
 
         if (photos.length > 0) {
-          const imageResponse = await createProductImage(productId, photos);
+          const imageResponse = await createProductImages(productId, photos);
           if (!imageResponse) {
             throw new Error("Failed to create product images");
           }
@@ -329,7 +320,7 @@ export default function CreateProduct() {
                 <p className="font-manrope font-semibold">
                   Kích cỡ <b className="text-[#EF0606]">*</b>
                 </p>
-                <select
+                <input
                   id="size"
                   value={variant.size}
                   onChange={(e) =>
@@ -337,40 +328,20 @@ export default function CreateProduct() {
                   }
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
                   required
-                >
-                  <option value="" className="text-[#808191]">
-                    Chọn kích cỡ
-                  </option>
-                  {sizes.map((size) => (
-                    <option key={size._id} value={size._id}>
-                      {size.size}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div className="flex-[2] flex flex-row gap-x-10">
                 <div className="flex flex-col gap-y-2 flex-1">
                   <p className="font-manrope font-semibold">
                     Màu sắc <b className="text-[#EF0606]">*</b>
                   </p>
-                  <select
-                    id="color"
+                  <ColorDropdown
                     value={variant.color}
-                    onChange={(e) =>
-                      handleVariantChange(index, "color", e.target.value)
+                    onChange={(color) =>
+                      handleVariantChange(index, "color", color)
                     }
-                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
-                    required
-                  >
-                    <option value="" className="text-[#808191]">
-                      Chọn màu sắc
-                    </option>
-                    {colors.map((color) => (
-                      <option key={color._id} value={color._id}>
-                        {color.color}
-                      </option>
-                    ))}
-                  </select>
+                    colors={COLORS}
+                  />
                 </div>
                 <div className="flex flex-col flex-1 gap-y-2">
                   <p className="font-manrope font-semibold">

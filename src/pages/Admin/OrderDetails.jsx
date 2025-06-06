@@ -2,16 +2,10 @@ import { useState, useEffect, useContext } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Table } from "flowbite-react";
 import { getOrderById } from "../../data/orders";
-import { getOrderDetailsByOrderId } from "../../data/orderDetail";
-import { getPaymentDetailById } from "../../data/paymentDetail";
-import { getUserById } from "../../data/users";
 import { formatDate, formatToVND } from "../../utils/format";
 import { getProductVariantById } from "../../data/productVariant";
 import { getProductById } from "../../data/products";
-import { getSizeById } from "../../data/sizes";
-import { getColorById } from "../../data/colors";
 import { getCategoryById } from "../../data/categories";
-import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import { ORDER_STATUS } from "../../utils/Constants";
 import Error from "../Error";
 import AuthContext from "../../context/AuthContext";
@@ -27,14 +21,17 @@ export default function OrderDetails() {
 
   async function fetchOrders() {
     try {
-      const order = await getOrderById(id);
-      const user = await getUserById(order.userId);
-      const paymentDetails = await getPaymentDetailById(order.paymentDetailId);
-      const details = await getOrderDetailsByOrderId(order._id);
-      const trackingData = await getOrderTrackingByOrderId(order._id);
-      const tracking = trackingData.length
-        ? trackingData[trackingData.length - 1]
-        : {};
+      const data = await getOrderById(id);
+      const order = data[0];
+      const user = order.userInfo;
+      const paymentDetails = {
+        status: order.paymentStatus,
+        paymentMethod: order.paymentMethod,
+      };
+      const details = order.orderItems;
+      const trackingData = order.deliveryInfo;
+      const tracking =
+        trackingData.length != 0 ? trackingData[trackingData.length - 1] : {};
 
       const orderDetails = {
         ...order,
@@ -50,15 +47,15 @@ export default function OrderDetails() {
             item.productVariantId
           );
           const product = await getProductById(productVariant.productId);
-          const size = await getSizeById(productVariant.sizeId);
-          const color = await getColorById(productVariant.colorId);
+          const size = productVariant.size;
+          const color = productVariant.color;
           const category = await getCategoryById(product.categoryId);
 
           return {
             product: product,
             size: size,
             color: color,
-            category: category,
+            category: category.name,
             quantity: item.quantity,
           };
         })
@@ -147,7 +144,7 @@ export default function OrderDetails() {
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">Tổng tiền</p>
                 <input
-                  value={`${formatToVND(orderWithDetails?.total)}` || ""}
+                  value={`${formatToVND(orderWithDetails?.finalPrice)}` || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
                 />
@@ -157,7 +154,7 @@ export default function OrderDetails() {
               <div className="flex flex-col gap-y-2 flex-1">
                 <p className="font-manrope font-semibold text-sm">Ngày tạo</p>
                 <input
-                  value={formatDate(orderWithDetails?.createdDate) || ""}
+                  value={formatDate(orderWithDetails?.createdAt) || ""}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
                 />
@@ -171,10 +168,8 @@ export default function OrderDetails() {
                 <input
                   value={
                     orderWithDetails?.tracking?.status !== ORDER_STATUS.SHIPPED
-                      ? formatDate(
-                          orderWithDetails?.tracking?.expectedDeliveryDate
-                        )
-                      : formatDate(orderWithDetails?.tracking?.date)
+                      ? formatDate(orderWithDetails?.expectedDeliveryDate)
+                      : formatDate(orderWithDetails?.tracking?.deliveryDate)
                   }
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
@@ -214,9 +209,9 @@ export default function OrderDetails() {
                     <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
                       {item.product.name}
                     </Table.Cell>
-                    <Table.Cell>{item.category.name}</Table.Cell>
-                    <Table.Cell>{item.size.size}</Table.Cell>
-                    <Table.Cell>{item.color.color}</Table.Cell>
+                    <Table.Cell>{item.category}</Table.Cell>
+                    <Table.Cell>{item.size}</Table.Cell>
+                    <Table.Cell>{item.color}</Table.Cell>
                     <Table.Cell>{formatToVND(item.product.price)}</Table.Cell>
                     <Table.Cell>{item.quantity}</Table.Cell>
                   </Table.Row>

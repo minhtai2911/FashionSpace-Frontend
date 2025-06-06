@@ -7,7 +7,6 @@ import SideBar from "../../components/SideBar";
 import Error from "../Error";
 
 import AuthContext from "../../context/AuthContext";
-import { getUserRoleById } from "../../data/userRoles";
 
 export default function Admin() {
   const { auth, hasError } = useContext(AuthContext);
@@ -26,9 +25,9 @@ export default function Admin() {
         return;
       }
 
-      const role = await getUserRoleById(user.roleId);
-      if (role.roleName === "Admin" || role.roleName === "Employee") {
-        setUserRole(role.roleName);
+      const role = user.roleName;
+      if (role === "Admin" || role === "Employee") {
+        setUserRole(role);
       } else {
         setError({
           errorCode: 403,

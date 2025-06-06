@@ -14,19 +14,20 @@ import {
 } from "../../utils/Constants";
 import { SORT_BY } from "../../utils/Constants";
 import { getAllCategories, getCategoryById } from "../../data/categories";
-import { getAllImagesByProductId } from "../../data/productImages";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import { formatToVND, formatURL } from "../../utils/format";
 import Cookies from "js-cookie";
 import AuthContext from "../../context/AuthContext";
 import Error from "../Error";
+import SkeletonItem from "../../components/Skeleton";
 
 function Shop() {
   const [minPrice, setMinPrice] = useState(MIN_PRICE);
   const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
   const [tempMinPrice, setTempMinPrice] = useState(MIN_PRICE);
   const [tempMaxPrice, setTempMaxPrice] = useState(MAX_PRICE);
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+  const [selectedCategoryNames, setSelectedCategoryNames] = useState([]);
   const [sortCriteria, setSortCriteria] = useState(SORT_BY[0].value);
   const [currentPage, setCurrentPage] = useState(1);
   const [productData, setProductData] = useState([]);
@@ -57,16 +58,31 @@ function Shop() {
   };
 
   const handleCategoryChange = (category) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((item) => item !== category)
-        : [...prev, category]
-    );
+    const categoryId = `${category._id}`;
+    setSelectedCategoryIds((prevCategories) => {
+      if (prevCategories.includes(categoryId)) {
+        return prevCategories.filter((cat) => cat !== categoryId);
+      } else {
+        return [...prevCategories, categoryId];
+      }
+    });
+    setSelectedCategoryNames((prevNames) => {
+      if (prevNames.includes(`${category.name} [${category.gender}]`)) {
+        return prevNames.filter(
+          (name) => name !== `${category.name} [${category.gender}]`
+        );
+      } else {
+        return [...prevNames, `${category.name} [${category.gender}]`];
+      }
+    });
   };
 
-  const handleRemoveCategory = (categoryToRemove) => {
-    setSelectedCategories((prevCategories) =>
-      prevCategories.filter((category) => category !== categoryToRemove)
+  const handleRemoveCategory = (categoryIdToRemove) => {
+    setSelectedCategoryIds((prevCategories) =>
+      prevCategories.filter((category) => category !== categoryIdToRemove)
+    );
+    setSelectedCategoryNames((prevNames) =>
+      prevNames.filter((name) => name !== categoryIdToRemove.replace(/_/g, " "))
     );
   };
 
@@ -80,7 +96,8 @@ function Shop() {
 
   const clearAllFilters = () => {
     resetPrice();
-    setSelectedCategories([]);
+    setSelectedCategoryIds([]);
+    setSelectedCategoryNames([]);
   };
 
   useEffect(() => {
@@ -103,39 +120,40 @@ function Shop() {
 
   const applyFilters = () => {
     setIsApplied(true);
+    console.log(tempMaxPrice, tempMinPrice);
     setMinPrice(tempMinPrice);
     setMaxPrice(tempMaxPrice);
   };
 
-  const filteredProducts = productData.filter((product) => {
-    const isInPriceRange =
-      product.price >= minPrice && product.price <= maxPrice;
-    const isInSelectedCategories =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(product.category + ` [${product.gender}]`);
-    return isInPriceRange && isInSelectedCategories;
-  });
+  // const filteredProducts = productData.filter((product) => {
+  //   const isInPriceRange =
+  //     product.price >= minPrice && product.price <= maxPrice;
+  //   const isInSelectedCategories =
+  //     selectedCategoryIds.length === 0 ||
+  //     selectedCategoryIds.includes(product.category + ` [${product.gender}]`);
+  //   return isInPriceRange && isInSelectedCategories;
+  // });
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortCriteria) {
-      case "price_asc":
-        return a.price - b.price;
-      case "price_desc":
-        return b.price - a.price;
-      case "rating_asc":
-        return a.rating - b.rating;
-      case "rating_desc":
-        return b.rating - a.rating;
-      case "name_asc":
-        return a.name.localeCompare(b.name);
-      case "name_desc":
-        return b.name.localeCompare(a.name);
-      default:
-        return 0;
-    }
-  });
+  // const sortedProducts = [...filteredProducts].sort((a, b) => {
+  //   switch (sortCriteria) {
+  //     case "price_asc":
+  //       return a.price - b.price;
+  //     case "price_desc":
+  //       return b.price - a.price;
+  //     case "rating_asc":
+  //       return a.rating - b.rating;
+  //     case "rating_desc":
+  //       return b.rating - a.rating;
+  //     case "name_asc":
+  //       return a.name.localeCompare(b.name);
+  //     case "name_desc":
+  //       return b.name.localeCompare(a.name);
+  //     default:
+  //       return 0;
+  //   }
+  // });
 
-  const currentProducts = sortedProducts.slice(
+  const currentProducts = productData.slice(
     (currentPage - 1) * PRODUCTS_PER_PAGE,
     currentPage * PRODUCTS_PER_PAGE
   );
@@ -144,15 +162,27 @@ function Shop() {
     setIsLoading(true);
 
     try {
-      const fetchedProducts = await getAllProducts();
+      const fetchedProducts = await getAllProducts(
+        true,
+        selectedCategoryIds.join(","),
+        null,
+        minPrice,
+        maxPrice,
+        sortCriteria
+      );
+      setProductData(fetchedProducts);
 
       const fetchedCategories = await getAllCategories();
       setCategories(fetchedCategories);
 
       const updatedProducts = await Promise.all(
         fetchedProducts.map(async (product) => {
-          const images = await getAllImagesByProductId(product._id);
-          const category = await getCategoryById(product.categoryId);
+          const images = product.images;
+          let category = {};
+          if (product.categoryId) {
+            const categoryData = await getCategoryById(product.categoryId._id);
+            category = categoryData;
+          }
           return {
             ...product,
             images: images || [],
@@ -171,7 +201,7 @@ function Shop() {
 
   useEffect(() => {
     fetchData();
-  }, [isApplied, selectedCategories, sortCriteria]);
+  }, [isApplied, selectedCategoryIds, sortCriteria, minPrice, maxPrice]);
 
   if (user && (!permission || !permission.includes("SHOP"))) {
     setHasError(true);
@@ -200,14 +230,8 @@ function Shop() {
                   key={index}
                 >
                   <CheckBox
-                    isChecked={selectedCategories.includes(
-                      `${category.name} [${category.gender}]`
-                    )}
-                    onChange={() =>
-                      handleCategoryChange(
-                        `${category.name} [${category.gender}]`
-                      )
-                    }
+                    isChecked={selectedCategoryIds.includes(`${category._id}`)}
+                    onChange={() => handleCategoryChange(category)}
                   />
                   <label className="">{`${category.name} [${category.gender}]`}</label>
                 </div>
@@ -263,20 +287,24 @@ function Shop() {
         </div>
         <div className="flex flex-col ml-20 gap-y-10 w-full">
           {isLoading ? (
-            <LoadingOverlay content={"Đang lấy sản phẩm..."} />
+            <div className="flex flex-wrap gap-5">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <SkeletonItem key={index} />
+              ))}
+            </div>
           ) : (
             <>
               <div className="flex flex-col gap-y-5">
                 <div className="flex justify-between items-center">
                   <div>
-                    {filteredProducts.length > 0 ? (
+                    {productData.length > 0 ? (
                       <div>
                         Hiển thị {(currentPage - 1) * PRODUCTS_PER_PAGE + 1} -{" "}
                         {Math.min(
                           currentPage * PRODUCTS_PER_PAGE,
-                          filteredProducts.length
+                          productData.length
                         )}{" "}
-                        của {filteredProducts.length} kết quả
+                        của {productData.length} kết quả
                       </div>
                     ) : (
                       <div>Hiển thị 0 - 0 của 0 kết quả</div>
@@ -303,7 +331,7 @@ function Shop() {
                 >
                   <span className="mr-2">Bộ lọc hiện tại:</span>
                   <div className="flex gap-3 flex-wrap">
-                    {selectedCategories.map((category, index) => (
+                    {selectedCategoryNames.map((category, index) => (
                       <FilterItem
                         key={index}
                         name={category}
@@ -320,7 +348,7 @@ function Shop() {
                       />
                     )}
                   </div>
-                  {(selectedCategories.length > 0 ||
+                  {(selectedCategoryIds.length > 0 ||
                     minPrice !== MIN_PRICE ||
                     maxPrice !== MAX_PRICE) && (
                     <div
@@ -340,12 +368,11 @@ function Shop() {
                   currentProducts.map((product) => (
                     <ProductItem
                       key={product._id}
-                      name={product.name}
+                      soldQuantity={product.soldQuantity}
+                      productName={product.name}
                       rating={product.rating}
                       image={
-                        product.images.length > 0
-                          ? formatURL(product.images[0].imagePath)
-                          : ""
+                        product.images.length > 0 ? product.images[0].url : ""
                       }
                       category={product.category}
                       price={product.price}
@@ -363,7 +390,7 @@ function Shop() {
                   <Pagination
                     currentPage={currentPage}
                     totalPages={Math.ceil(
-                      filteredProducts.length / PRODUCTS_PER_PAGE
+                      productData.length / PRODUCTS_PER_PAGE
                     )}
                     onPageChange={setCurrentPage}
                     svgClassName={"w-6 h-6"}

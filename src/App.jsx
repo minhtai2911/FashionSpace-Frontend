@@ -14,8 +14,8 @@ import Categories from "./pages/Admin/Categories";
 import Dashboard from "./pages/Admin/Dashboard";
 import Products from "./pages/Admin/AdminProducts";
 import Users from "./pages/Admin/Users";
-import Sizes from "./pages/Admin/Sizes";
-import Colors from "./pages/Admin/Colors";
+// import Sizes from "./pages/Admin/Sizes";
+// import Colors from "./pages/Admin/Colors";
 import AdminAccount from "./pages/Admin/Account";
 import CreateProduct from "./pages/Admin/CreateProduct";
 
@@ -176,7 +176,7 @@ function App() {
         />
         <Route path="/aboutUs" element={<AboutUs />} />
         <Route path="/contactUs" element={<ContactUs />} />
-        <Route path="/success/*" element={<AuthSuccess />} />
+        <Route path="/loginGoogle/success/*" element={<AuthSuccess />} />
         <Route path="/setPassword" element={<SetNewPassword />} />
         <Route
           path="/admin"
@@ -200,12 +200,10 @@ function App() {
           <Route path="categories" element={<Categories />} />
           <Route path="report" element={<Report />} />
           <Route path="users" element={<Users />} />
-          <Route path="sizes" element={<Sizes />} />
           <Route path="orders" element={<Orders />} />
           <Route path="/admin/orders/details/:id" element={<OrderDetails />} />
           <Route path="/admin/orders/update/:id" element={<UpdateOrder />} />
           <Route path="reviews" element={<Reviews />} />
-          <Route path="colors" element={<Colors />} />
           <Route path="account" element={<AdminAccount />} />
         </Route>
       </Routes>

@@ -6,15 +6,9 @@ import { ORDER_STATUS } from "../../utils/Constants";
 import OrderStatus from "../../components/OrderStatus";
 import { formatDate, formatURL, getTime } from "../../utils/format";
 import { getOrderById } from "../../data/orders";
-import { getOrderDetailsByOrderId } from "../../data/orderDetail";
-import { getPaymentDetailById } from "../../data/paymentDetail";
 import { getProductVariantById } from "../../data/productVariant";
 import { getProductById } from "../../data/products";
-import { getSizeById } from "../../data/sizes";
-import { getColorById } from "../../data/colors";
 import { getCategoryById } from "../../data/categories";
-import { getAllImagesByProductId } from "../../data/productImages";
-import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import AuthContext from "../../context/AuthContext";
 import Cookies from "js-cookie";
 import Error from "../Error";
@@ -276,10 +270,10 @@ export default function TrackOrder() {
         setTracking(trackingData);
       } else {
         const fetchedOrder = await getOrderById(id);
-        const details = await getOrderDetailsByOrderId(fetchedOrder._id);
-        const trackingData = await getOrderTrackingByOrderId(fetchedOrder._id);
+        const details = fetchedOrder[0].orderItems;
+        const trackingData = fetchedOrder[0].deliveryInfo;
         orderDetails = {
-          ...fetchedOrder,
+          ...fetchedOrder[0],
           details,
         };
         setTracking(trackingData);
@@ -291,10 +285,10 @@ export default function TrackOrder() {
             item.productVariantId
           );
           const product = await getProductById(productVariant.productId);
-          const images = await getAllImagesByProductId(product._id);
-          const size = await getSizeById(productVariant.sizeId);
-          const color = await getColorById(productVariant.colorId);
-          const category = await getCategoryById(product.categoryId);
+          const images = product.images;
+          const size = productVariant.size;
+          const color = productVariant.color;
+          const category = product.categoryId;
 
           return {
             product: product,
@@ -329,6 +323,7 @@ export default function TrackOrder() {
       />
     );
   }
+
   console.log(order);
 
   return (
@@ -347,9 +342,9 @@ export default function TrackOrder() {
                   status={item.status}
                   index={index}
                   orderStatus={tracking[tracking.length - 1].status}
-                  date={formatDate(item.date)}
-                  time={getTime(item.date)}
-                  address={item.currentAddress}
+                  date={formatDate(item.deliveryDate)}
+                  time={getTime(item.deliveryDate)}
+                  address={item.deliveryAddress}
                   isEnd={item === tracking[tracking.length - 1]}
                 />
               ))}
@@ -367,16 +362,15 @@ export default function TrackOrder() {
                         <hr />
                         <div className="py-3 flex items-center">
                           <img
-                            src={formatURL(item.images[0].imagePath)}
+                            src={item.images[0].url}
                             alt={item.name}
                             className="w-16 h-16 mr-4"
                           />
                           <div>
                             <p className="font-medium">{item.product.name}</p>
                             <p className="font-light">
-                              Màu sắc: {item.color.color} | Kích cỡ:{" "}
-                              {item.size.size} | Số lượng:{" "}
-                              {order.details[index].quantity}
+                              Màu sắc: {item.color} | Kích cỡ: {item.size} | Số
+                              lượng: {order.details[index].quantity}
                             </p>
                           </div>
                         </div>

@@ -5,16 +5,13 @@ import Search from "../../components/Search";
 
 import toast from "react-hot-toast";
 import { getAllOrders } from "../../data/orders";
-import { getOrderDetailsByOrderId } from "../../data/orderDetail";
 import { Link } from "react-router-dom";
-import { getPaymentDetailById } from "../../data/paymentDetail";
 import {
   ITEM_PER_PAGE,
   ORDER_STATUS,
+  PAYMENT_METHOD,
   PAYMENT_STATUS,
 } from "../../utils/Constants";
-import { getUserById } from "../../data/users";
-import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import { formatToVND } from "../../utils/format";
 import Pagination from "../../components/Pagination";
 import AuthContext from "../../context/AuthContext";
@@ -71,12 +68,12 @@ export default function Orders() {
       const fetchedOrders = await getAllOrders();
       const ordersWithDetails = await Promise.all(
         fetchedOrders.map(async (order) => {
-          const user = await getUserById(order.userId);
-          const paymentDetails = await getPaymentDetailById(
-            order.paymentDetailId
-          );
-          const details = await getOrderDetailsByOrderId(order._id);
-          const trackingData = await getOrderTrackingByOrderId(order._id);
+          const user = order.userInfo;
+          const paymentDetails = {
+            status: order.paymentStatus,
+            paymentMethod: order.paymentMethod,
+          };
+          const trackingData = order.deliveryInfo;
           const tracking = trackingData.length
             ? trackingData[trackingData.length - 1]
             : {};
@@ -85,7 +82,6 @@ export default function Orders() {
             ...order,
             user,
             paymentDetails,
-            details,
             tracking,
           };
         })
@@ -188,8 +184,11 @@ export default function Orders() {
                 required
               >
                 <option value={"All"}>Tất cả</option>
-                <option value={"MOMO"}>MOMO</option>
-                <option value={"COD"}>COD</option>
+                {PAYMENT_METHOD.map((criteria) => (
+                  <option key={criteria.value} value={criteria.value}>
+                    {criteria.value}
+                  </option>
+                ))}
               </select>
               <select
                 value={selectedPaymentStatus}
@@ -237,7 +236,7 @@ export default function Orders() {
                           : order?.tracking?.status}
                       </div>
                     </Table.Cell>
-                    <Table.Cell>{formatToVND(order?.total)}</Table.Cell>
+                    <Table.Cell>{formatToVND(order?.finalPrice)}</Table.Cell>
                     <Table.Cell className="w-20">
                       {order?.paymentDetails?.paymentMethod}
                     </Table.Cell>

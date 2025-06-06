@@ -2,10 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getProductById } from "../../data/products";
 import { getCategoryById } from "../../data/categories";
-import { getColorById } from "../../data/colors";
 import { getProductVariantsByProductId } from "../../data/productVariant";
-import { getSizeById } from "../../data/sizes";
-import { getAllImagesByProductId } from "../../data/productImages";
 import { formatURL } from "../../utils/format";
 import toast from "react-hot-toast";
 import Error from "../Error";
@@ -27,12 +24,13 @@ export default function AdminProductDetails() {
   const fetchProduct = async () => {
     try {
       const product = await getProductById(id);
+      console.log(product);
       setProductName(product.name);
       setPrice(product.price);
       setDescription(product.description);
       const fetchedCategory = await getCategoryById(product.categoryId);
       setCategory(fetchedCategory.name);
-      const fetchedImages = await getAllImagesByProductId(id);
+      const fetchedImages = product.images;
       setPhotos(fetchedImages);
     } catch (error) {}
   };
@@ -42,9 +40,9 @@ export default function AdminProductDetails() {
       const fetchedVariants = await getProductVariantsByProductId(id);
       const variantsData = await Promise.all(
         fetchedVariants.map(async (variant) => {
-          const color = await getColorById(variant.colorId);
-          const size = await getSizeById(variant.sizeId);
-          return { size, color, quantity: variant.quantity };
+          const color = variant.color;
+          const size = variant.size;
+          return { size, color, quantity: variant.stock };
         })
       );
       setVariants(variantsData);
@@ -77,7 +75,7 @@ export default function AdminProductDetails() {
             {photos.map((photo, index) => (
               <img
                 key={index}
-                src={formatURL(photo.imagePath)}
+                src={photo.url}
                 alt={`Uploaded ${index}`}
                 className="object-cover w-24 rounded-lg"
               />
@@ -134,7 +132,7 @@ export default function AdminProductDetails() {
                 <p className="font-manrope font-semibold">Kích cỡ</p>
                 <input
                   id="size"
-                  value={variant?.size?.size}
+                  value={variant?.size}
                   className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                   disabled
                 />
@@ -144,7 +142,7 @@ export default function AdminProductDetails() {
                   <p className="font-manrope font-semibold">Màu sắc</p>
                   <input
                     id="color"
-                    value={variant?.color?.color}
+                    value={variant?.color}
                     className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#808191] text-sm"
                     disabled
                   />

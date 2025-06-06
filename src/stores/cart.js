@@ -10,12 +10,12 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart(state, action) {
-      const { productId, quantity, sizeId, colorId } = action.payload;
+      const { productId, quantity, size, color } = action.payload;
       const indexProductId = state.items.findIndex(
         (item) =>
           item.productId === productId &&
-          item.sizeId === sizeId &&
-          item.colorId === colorId
+          item.size === size &&
+          item.color === color
       );
       if (indexProductId >= 0) {
         state.items[indexProductId].quantity += quantity;
@@ -23,8 +23,8 @@ const cartSlice = createSlice({
         state.items.push({
           productId,
           quantity,
-          sizeId,
-          colorId,
+          size,
+          color,
         });
       }
       Cookies.set("carts", JSON.stringify(state.items));
@@ -35,8 +35,8 @@ const cartSlice = createSlice({
         const indexProductId = state.items.findIndex(
           (cartItem) =>
             cartItem.productId === item.productId &&
-            cartItem.sizeId === item.sizeId &&
-            cartItem.colorId === item.colorId
+            cartItem.size === item.size &&
+            cartItem.color === item.color
         );
         if (indexProductId >= 0) {
           state.items[indexProductId].quantity += item.quantity;
@@ -47,12 +47,12 @@ const cartSlice = createSlice({
       Cookies.set("carts", JSON.stringify(state.items));
     },
     changeQuantity(state, action) {
-      const { productId, quantity, sizeId, colorId } = action.payload;
+      const { productId, quantity, size, color } = action.payload;
       const indexProductId = state.items.findIndex(
         (item) =>
           item.productId === productId &&
-          item.sizeId === sizeId &&
-          item.colorId === colorId
+          item.size === size &&
+          item.color === color
       );
       if (quantity > 0) {
         state.items[indexProductId].quantity = quantity;
@@ -60,12 +60,12 @@ const cartSlice = createSlice({
       Cookies.set("carts", JSON.stringify(state.items));
     },
     removeItem(state, action) {
-      const { productId, sizeId, colorId } = action.payload;
+      const { productId, size, color } = action.payload;
       state.items = state.items.filter(
         (item) =>
           item.productId !== productId ||
-          item.sizeId !== sizeId ||
-          item.colorId !== colorId
+          item.size !== size ||
+          item.color !== color
       );
       Cookies.set("carts", JSON.stringify(state.items));
     },

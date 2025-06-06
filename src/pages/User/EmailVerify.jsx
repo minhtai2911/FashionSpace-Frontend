@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useRef } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
@@ -15,16 +15,20 @@ import { getUserRoleById } from "../../data/userRoles";
 import { getShoppingCartByUserId } from "../../data/shoppingCart";
 import { getProductVariantById } from "../../data/productVariant";
 import { useDispatch } from "react-redux";
+import axios from "axios";
 
 const EmailVerify = () => {
   const { setAuth, setUser, setHasError } = useContext(AuthContext);
   const [validUrl, setValidUrl] = useState(true);
   const [redirectTimer, setRedirectTimer] = useState(3);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
   const [error, setError] = useState(null);
   const param = useParams();
+  const id = param.id;
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const hasRunRef = useRef();
 
   const mergeUserCart = async (userId) => {
     try {
@@ -47,89 +51,88 @@ const EmailVerify = () => {
     }
   };
 
-  useEffect(() => {
-    const verifyEmailUrl = async () => {
-      try {
-        const response = await instance.get(`/auth/verifyAccount/${param.id}`, {
-          headers: { "Content-Type": "application/json" },
-        });
-        const { refreshToken, ...data } = response.data.data;
-        const tokenResponse = await instance.post(
-          "/auth/refreshToken",
-          { refreshToken: refreshToken },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const accessToken = tokenResponse.data.accessToken;
-        setUser(jwtDecode(accessToken));
+  const verifyEmailUrl = async () => {
+    try {
+      const response = await instance.get(`/auth/verifyAccount/${id}`, {
+        requiresAuth: false,
+      });
+      const { refreshToken, accessToken } = response.data.data;
+      const user = jwtDecode(accessToken);
+      const role = user.roleName;
+
+      setUser(user);
+      setAuth((prevAuth) => ({
+        ...prevAuth,
+        isAuth: true,
+      }));
+      Cookies.set("accessToken", accessToken);
+      Cookies.set("refreshToken", refreshToken);
+      Cookies.set("user", JSON.stringify(user));
+      setValidUrl(true);
+      setHasError(false);
+
+      if (role === "Customer") {
         setAuth((prevAuth) => ({
           ...prevAuth,
-          isAuth: true,
+          permission: CUSTOMER_PERMISSIONS,
         }));
-        Cookies.set("accessToken", accessToken);
-        Cookies.set("refreshToken", refreshToken);
-        Cookies.set("user", JSON.stringify(jwtDecode(accessToken)));
-        setValidUrl(true);
-        const user = jwtDecode(accessToken);
-        const role = await getUserRoleById(user.roleId);
-        setHasError(false);
-        if (role.roleName === "Customer") {
-          setAuth((prevAuth) => ({
-            ...prevAuth,
-            permission: CUSTOMER_PERMISSIONS,
-          }));
-          Cookies.set("permission", CUSTOMER_PERMISSIONS);
-          await mergeUserCart(user.id);
-          const state = location.state;
-          if (state && state.orderSummary) {
-            navigate("/checkout", {
-              state: { orderSummary: state.orderSummary },
-            });
-          } else {
-            navigate("/");
-          }
-        } else if (role.roleName === "Admin") {
-          setAuth((prevAuth) => ({
-            ...prevAuth,
-            permission: ADMIN_PERMISSIONS,
-          }));
-          Cookies.set("permission", ADMIN_PERMISSIONS);
-          navigate("/admin");
-        } else if (role.roleName === "Employee") {
-          setAuth((prevAuth) => ({
-            ...prevAuth,
-            permission: EMPLOYEE_PERMISSIONS,
-          }));
-          Cookies.set("permission", EMPLOYEE_PERMISSIONS);
-          navigate("/admin/orders");
-        }
-      } catch (error) {
-        setError(error);
-        setValidUrl(false);
+        Cookies.set("permission", CUSTOMER_PERMISSIONS);
+        // await mergeUserCart(user.id);
+      } else if (role === "Admin") {
+        setAuth((prevAuth) => ({
+          ...prevAuth,
+          permission: ADMIN_PERMISSIONS,
+        }));
+        Cookies.set("permission", ADMIN_PERMISSIONS);
+      } else if (role === "Employee") {
+        setAuth((prevAuth) => ({
+          ...prevAuth,
+          permission: EMPLOYEE_PERMISSIONS,
+        }));
+        Cookies.set("permission", EMPLOYEE_PERMISSIONS);
       }
-    };
-    verifyEmailUrl();
 
-    let timer;
-    let redirectTimeout;
-    if (!error) {
-      timer = setInterval(() => {
+      setShouldRedirect(true);
+    } catch (error) {
+      console.log(error);
+      setError(error);
+      setValidUrl(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!hasRunRef.current) {
+      verifyEmailUrl();
+      hasRunRef.current = true;
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (shouldRedirect) {
+      const timer = setInterval(() => {
         setRedirectTimer((prev) => prev - 1);
       }, 1000);
 
-      redirectTimeout = setTimeout(() => {
-        navigate("/");
+      const redirectTimeout = setTimeout(() => {
+        const state = location.state;
+        if (state && state.orderSummary) {
+          navigate("/checkout", {
+            state: { orderSummary: state.orderSummary },
+          });
+        } else {
+          const user = JSON.parse(Cookies.get("user"));
+          if (user.roleName === "Admin") navigate("/admin");
+          else if (user.roleName === "Employee") navigate("/admin/orders");
+          else navigate("/");
+        }
       }, 3000);
-    }
 
-    return () => {
-      clearInterval(timer);
-      clearTimeout(redirectTimeout);
-    };
-  }, []);
+      return () => {
+        clearInterval(timer);
+        clearTimeout(redirectTimeout);
+      };
+    }
+  }, [shouldRedirect]);
 
   return validUrl && !error ? (
     <div className="w-screen h-screen flex flex-col justify-center items-center">

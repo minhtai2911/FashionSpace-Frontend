@@ -6,7 +6,6 @@ import Cookies from "js-cookie";
 
 import { getAllProducts } from "../data/products";
 import { formatToVND, formatURL } from "../utils/format";
-import { getAllImagesByProductId } from "../data/productImages";
 import { getUserById } from "../data/users";
 import { getCategoryById } from "../data/categories";
 
@@ -24,6 +23,8 @@ function Header() {
   const modalRef = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const [isSpeechPopupOpen, setIsSpeechPopupOpen] = useState(false);
+  const [speechTimeout, setSpeechTimeout] = useState(null);
 
   const {
     error,
@@ -35,6 +36,11 @@ function Header() {
   } = useSpeechToText({
     continuous: true,
     useLegacyResults: false,
+    timeout: 3000,
+    speechRecognitionProperties: {
+      lang: "vi-VN",
+      interimResults: true,
+    },
   });
 
   useEffect(() => {
@@ -42,11 +48,11 @@ function Header() {
       const fetchedProducts = await getAllProducts();
       const updatedProducts = await Promise.all(
         fetchedProducts.map(async (product) => {
-          const images = await getAllImagesByProductId(product._id);
-          const category = await getCategoryById(product.categoryId);
+          const images = product.images;
+          const category = product.categoryId;
           return {
             ...product,
-            imagePath: images[0].imagePath,
+            imagePath: images[0].url,
             category: category.name,
           };
         })
@@ -59,7 +65,6 @@ function Header() {
   useEffect(() => {
     const fetchUserData = async () => {
       if (user) {
-        console.log(user);
         const userData = await getUserById(user.id);
         setUserData(userData);
       }
@@ -129,8 +134,45 @@ function Header() {
     : [];
 
   useEffect(() => {
-    results.map((result) => console.log(result.transcript));
-  });
+    if (results.length > 0) {
+      // Use the most recent result
+      const lastResult = results[results.length - 1];
+      setSearchQuery(lastResult.transcript);
+    }
+  }, [results]);
+
+  const handleSpeech = () => {
+    setIsSpeechPopupOpen(true);
+    setSearchQuery("");
+    stopSpeechToText();
+    startSpeechToText();
+  };
+
+  useEffect(() => {
+    if (isRecording) {
+      const handleStopSpeaking = () => {
+        setIsSpeechPopupOpen(false);
+        stopSpeechToText();
+      };
+
+      if (speechTimeout) {
+        clearTimeout(speechTimeout);
+      }
+
+      const timeout = setTimeout(() => {
+        handleStopSpeaking();
+      }, 2000);
+
+      setSpeechTimeout(timeout);
+
+      window.addEventListener("speechend", handleStopSpeaking);
+      return () => {
+        clearTimeout(timeout);
+        window.removeEventListener("speechend", handleStopSpeaking);
+      };
+    }
+  }, [isRecording, results]);
+
   return (
     <>
       <header className="bg-white px-40 py-4 shadow-md min-w-full z-[50]">
@@ -394,7 +436,7 @@ function Header() {
                 </label>
                 <input
                   id="search-input"
-                  className="w-full border-none focus:ring-0 focus:outline-none ml-[.75rem] mr-[1rem]"
+                  className="flex-1 border-none focus:ring-0 focus:outline-none ml-[.75rem] mr-[1rem]"
                   type="text"
                   value={searchQuery}
                   placeholder="Tìm kiếm sản phẩm..."
@@ -403,7 +445,7 @@ function Header() {
                 />
               </div>
               <div
-                className="absolute mt-16 w-[80%] overflow-y-auto max-h-[300px] rounded-md bg-white"
+                className="absolute top-16 w-[80%] overflow-y-auto max-h-[300px] rounded-md bg-white"
                 style={{ boxShadow: "0 1rem 1rem rgba(0, 0, 0, .2)" }}
               >
                 {filteredProducts.map((product) => (
@@ -430,20 +472,30 @@ function Header() {
                     </Link>
                   </div>
                 ))}
+                {filteredProducts.length <= 0 && searchQuery != "" && (
+                  <p className="p-3">Không có sản phẩm phù hợp</p>
+                )}
               </div>
               <button
-                className="mx-4 rounded-full border p-2"
-                onClick={isRecording ? stopSpeechToText : startSpeechToText}
+                className="mr-6 rounded-full disabled:cursor-not-allowed microphone-button"
+                disabled={isRecording}
+                onClick={handleSpeech}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  className="size-6 fill-current hover:fill-red-500"
+                  className={`size-6 hover:fill-red-500 fill-current`}
                 >
                   <path d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z" />
                   <path d="M6 10.5a.75.75 0 0 1 .75.75v1.5a5.25 5.25 0 1 0 10.5 0v-1.5a.75.75 0 0 1 1.5 0v1.5a6.751 6.751 0 0 1-6 6.709v2.291h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-2.291a6.751 6.751 0 0 1-6-6.709v-1.5A.75.75 0 0 1 6 10.5Z" />
                 </svg>
+                {isRecording && <div className="microphone-animation" />}
               </button>
+              {/* {isSpeechPopupOpen && (
+                <div className="whitespace-nowrap mr-4">
+                  <p>Đang nghe...</p>
+                </div>
+              )} */}
               <button
                 onClick={closeSearchModal}
                 id="close-search"

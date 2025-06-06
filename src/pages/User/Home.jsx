@@ -22,20 +22,20 @@ function Home() {
   const { setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
 
-  useEffect(() => {
-    const fetchNewArrivalProducts = async () => {
-      const products = await getNewArrivalProducts();
-      setNewArrivalProducts(products);
-    };
-    const fetchBestSellerProducts = async () => {
-      const products = await getBestSellerProducts();
-      setBestSellerProducts(products);
-    };
-    const fetchRelatedProducts = async () => {
-      const products = await getRelatedProducts();
-      setRelatedProducts(products);
-    };
+  const fetchNewArrivalProducts = async () => {
+    const products = await getNewArrivalProducts();
+    setNewArrivalProducts(products);
+  };
+  const fetchBestSellerProducts = async () => {
+    const products = await getBestSellerProducts();
+    setBestSellerProducts(products);
+  };
+  const fetchRelatedProducts = async () => {
+    const products = await getRelatedProducts();
+    setRelatedProducts(products);
+  };
 
+  useEffect(() => {
     fetchNewArrivalProducts();
     fetchBestSellerProducts();
 

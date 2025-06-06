@@ -36,6 +36,14 @@ export const PAYMENT_METHOD = [
     value: "MOMO",
     title: "Thanh toán với Momo",
   },
+  {
+    value: "VNPAY",
+    title: "Thanh toán với VNPay",
+  },
+  {
+    value: "ZALOPAY",
+    title: "Thanh toán với ZaloPay",
+  },
 ];
 export const ORDER_STATUS = {
   PENDING: "Đang chờ",
@@ -43,7 +51,7 @@ export const ORDER_STATUS = {
   PROCESSING: "Đang xử lý",
   IN_DELIVERY: "Đang giao",
   SHIPPED: "Đã giao",
-  CANCELLED_BY_YOU: "Đã hủy bởi bạn",
+  CANCELLED_BY_YOU: "Đã hủy bởi người mua",
   CANCELLED_BY_EMPLOYEE: "Đã hủy bởi người bán",
 };
 export const REVIEW_STATUS = {
@@ -80,6 +88,28 @@ export const GENDER = [
   },
 ];
 export const TAX_RATE = 0.1;
+export const COLORS = [
+  "red",
+  "black",
+  "brown",
+  "orange",
+  "yellow",
+  "lime",
+  "green",
+  "teal",
+  "cyan",
+  "blue",
+  "indigo",
+  "violet",
+  "purple",
+  "fuchsia",
+  "pink",
+  "gray",
+];
+export const USER_TYPE = {
+  GUEST: "Khách vãng lai",
+  CUSTOMER: "Khách đã có tài khoản",
+};
 export const ROLE_NAME = [
   {
     key: "Quản trị viên",
@@ -94,6 +124,11 @@ export const ROLE_NAME = [
     value: "Customer",
   },
 ];
+export const REVIEW_TYPE = {
+  NEGATIVE: "Tiêu cực",
+  POSITIVE: "Tích cực",
+  NORMAL: "Trung lập",
+};
 export const REVIEW_RATING = [
   {
     key: "5 sao",
@@ -119,8 +154,6 @@ export const REVIEW_RATING = [
 export const ADMIN_PERMISSIONS = [
   "DASHBOARD",
   "PRODUCTS",
-  "COLORS",
-  "SIZES",
   "CATEGORIES",
   "USERS",
   "REPORT",

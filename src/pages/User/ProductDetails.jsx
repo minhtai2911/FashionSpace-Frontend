@@ -5,11 +5,8 @@ import AuthContext from "../../context/AuthContext";
 import { Modal } from "flowbite-react";
 
 import { getProductById } from "../../data/products";
-import { getAllImagesByProductId } from "../../data/productImages";
 import { getCategoryById } from "../../data/categories";
 import { getProductVariantsByProductId } from "../../data/productVariant";
-import { getColorById } from "../../data/colors";
-import { getSizeById } from "../../data/sizes";
 import { getAllReviews } from "../../data/reviews";
 import { getUserById } from "../../data/users";
 
@@ -23,6 +20,8 @@ import Pagination from "../../components/Pagination";
 import FeatureBanner from "../../components/FeatureBanner";
 import {
   FREE_SHIPPING,
+  REVIEW_STATUS,
+  REVIEW_TYPE,
   REVIEWS_PER_PAGE,
   SHIPPING_RATE,
 } from "../../utils/Constants";
@@ -32,6 +31,8 @@ import toast from "react-hot-toast";
 import Error from "../Error";
 import Cookies from "js-cookie";
 import instance from "../../services/axiosConfig";
+import { getSimilarProducts } from "../../data/recommendation";
+import Slider from "../../components/Slider";
 
 function ProductDetails() {
   const { auth, setHasError } = useContext(AuthContext);
@@ -43,11 +44,7 @@ function ProductDetails() {
   const carts = useSelector((store) => store.cart.items);
 
   const [product, setProduct] = useState({});
-  // const [productName, setProductName] = useState("");
-  // const [category, setCategory] = useState([]);
-  // const [price, setPrice] = useState("");
-  // const [description, setDescription] = useState("");
-  // const [rating, setRating] = useState(0);
+  const [similarProducts, setSimilarProducts] = useState();
   const [photos, setPhotos] = useState([]);
   const [variants, setVariants] = useState([]);
   const [colors, setColors] = useState([]);
@@ -63,44 +60,57 @@ function ProductDetails() {
 
   const fetchProduct = async () => {
     const product = await getProductById(id);
+    const fetchedImages = product.images ?? [];
 
-    // setProductName(product.name);
-    // setPrice(product.price);
-    // setDescription(product.description);
-    // setRating(product.rating);
-    const fetchedCategory = await getCategoryById(product.categoryId);
-    // setCategory(fetchedCategory.name);
-    const fetchedImages = await getAllImagesByProductId(id);
-    setMainImage(fetchedImages[0].imagePath);
+    setMainImage(fetchedImages[0]?.url ?? "");
     setPhotos(fetchedImages);
+
+    let categoryName = "";
+    if (product?.categoryId) {
+      const category = await getCategoryById(product.categoryId);
+      categoryName = category?.name || "";
+    }
 
     setProduct({
       productName: product.name,
       price: product.price,
       description: product.description,
       rating: product.rating,
-      category: fetchedCategory.name,
+      category: categoryName,
       soldQuantity: product.soldQuantity,
       totalReview: product.totalReview,
     });
   };
 
+  const fetchSimilarProducts = async () => {
+    try {
+      const relatedProducts = await getSimilarProducts(id);
+      console.log(relatedProducts);
+      setSimilarProducts(relatedProducts);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const fetchVariants = async () => {
     const fetchedVariants = await getProductVariantsByProductId(id);
-    const variantsData = await Promise.all(
-      fetchedVariants.map(async (variant) => {
-        const color = await getColorById(variant.colorId);
-        const size = await getSizeById(variant.sizeId);
-        return { size, color, quantity: variant.quantity };
-      })
-    );
-    setSelectedColor(variantsData[0].color._id);
-    setSelectedSize(variantsData[0].size._id);
-    setVariants(variantsData);
+    if (fetchedVariants) {
+      const variantsData = await Promise.all(
+        fetchedVariants.map(async (variant) => {
+          const color = variant.color;
+          const size = variant.size;
+          return { size, color, quantity: variant.stock };
+        })
+      );
+      setSelectedColor(variantsData[0]?.color ?? "");
+      setSelectedSize(variantsData[0]?.size ?? "");
+      setVariants(variantsData);
+    }
   };
 
   const fetchReviews = async () => {
     const fetchedReviews = await getAllReviews(
+      true,
       undefined,
       undefined,
       id,
@@ -110,12 +120,12 @@ function ProductDetails() {
     const data = await Promise.all(
       fetchedReviews.map(async (review) => {
         const user = await getUserById(review.userId);
-        const response = review.reviewResponses;
+        const response = review.response;
         let userResponse = null;
         let reviewResponse = null;
         if (response.length > 0) {
-          userResponse = await getUserById(response[0].userId);
-          reviewResponse = response[0];
+          userResponse = await getUserById(response[0]?.userId);
+          reviewResponse ??= response[0];
         }
         return { ...review, user, userResponse, reviewResponse };
       })
@@ -124,28 +134,11 @@ function ProductDetails() {
   };
 
   const addToProductView = async () => {
-    const refreshToken = Cookies.get("refreshToken");
     try {
-      const tokenResponse = await instance.post(
-        "/auth/refreshToken",
-        {
-          refreshToken: refreshToken,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const accessToken = tokenResponse.data.accessToken;
       const response = await instance.post(
         "/productView",
         { productId: id },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+        { requiresAuth: true }
       );
     } catch (error) {
       console.log(error);
@@ -156,16 +149,17 @@ function ProductDetails() {
     fetchProduct();
     fetchVariants();
     fetchReviews();
-    addToProductView();
+    fetchSimilarProducts();
+    if (user) addToProductView();
   }, [id]);
 
   const uniqueColors = useMemo(() => {
     const colorSet = new Set();
     variants.forEach((variant) => {
-      colorSet.add(variant.color._id);
+      colorSet.add(variant.color);
     });
-    const colorList = Array.from(colorSet).map((colorId) => {
-      return variants.find((variant) => variant.color._id === colorId).color;
+    const colorList = Array.from(colorSet).map((color) => {
+      return variants.find((variant) => variant.color === color).color;
     });
     setColors(colorList);
   }, [variants]);
@@ -173,7 +167,7 @@ function ProductDetails() {
   useEffect(() => {
     if (selectedColor) {
       const filteredSizes = variants
-        .filter((variant) => variant.color._id === selectedColor)
+        .filter((variant) => variant.color === selectedColor)
         .map((variant) => variant.size);
       setAvailableSizes(filteredSizes);
     }
@@ -192,8 +186,8 @@ function ProductDetails() {
       categoryId: product.category,
       price: product.price,
       quantity: quantity,
-      sizeId: selectedSize,
-      colorId: selectedColor,
+      size: selectedSize,
+      color: selectedColor,
       image: mainImage,
     };
     dispatch(addToCart(productData));
@@ -217,8 +211,8 @@ function ProductDetails() {
     const selectedCartItems = [
       {
         productId: id,
-        sizeId: selectedSize,
-        colorId: selectedColor,
+        size: selectedSize,
+        color: selectedColor,
         quantity: quantity,
       },
     ];
@@ -232,11 +226,11 @@ function ProductDetails() {
     };
 
     if (selectedCartItems.length > 0) {
-      if (!auth.isAuth) {
-        navigate("/login", { state: { orderSummary, type: "Buy Now" } });
-      } else {
-        navigate("/checkout", { state: { orderSummary, type: "Buy Now" } });
-      }
+      // if (!auth.isAuth) {
+      //   navigate("/login", { state: { orderSummary, type: "Buy Now" } });
+      // } else {
+      navigate("/checkout", { state: { orderSummary, type: "Buy Now" } });
+      // }
     }
   };
 
@@ -253,7 +247,7 @@ function ProductDetails() {
 
   return (
     <>
-      <div className="mb-20">
+      <div>
         <Banner
           title="Chi tiết sản phẩm"
           route={`Trang chủ / Cửa hàng / Chi tiết sản phẩm / ${product.productName}`}
@@ -261,26 +255,27 @@ function ProductDetails() {
         <div className="px-40">
           <div className="flex flex-row mt-10 gap-x-20">
             <div className="flex flex-col gap-y-2 w-[40%]">
-              <img src={formatURL(mainImage)} alt={product.productName} />
+              <img src={mainImage} alt={product.productName} />
 
               <div className="flex flex-row gap-x-[6.66px] overflow-y-scroll">
-                {photos.map((image, index) => (
-                  <img
-                    loading="lazy"
-                    key={index}
-                    src={formatURL(image.imagePath)}
-                    alt={`Thumbnail ${index}`}
-                    onClick={() => {
-                      setMainImage(image.imagePath);
-                      setSelectedImageIndex(index);
-                    }}
-                    className={`cursor-pointer border-2 w-28 transition-all duration-300 ${
-                      selectedImageIndex === index
-                        ? "border-black"
-                        : "border-transparent"
-                    }`}
-                  />
-                ))}
+                {Array.isArray(photos) &&
+                  photos.map((image, index) => (
+                    <img
+                      loading="lazy"
+                      key={index}
+                      src={image.url}
+                      alt={`Thumbnail ${index}`}
+                      onClick={() => {
+                        setMainImage(image.url);
+                        setSelectedImageIndex(index);
+                      }}
+                      className={`cursor-pointer border-2 w-28 transition-all duration-300 ${
+                        selectedImageIndex === index
+                          ? "border-black"
+                          : "border-transparent"
+                      }`}
+                    />
+                  ))}
               </div>
             </div>
             <div className="flex-1 gap-y-4 flex flex-col">
@@ -314,10 +309,10 @@ function ProductDetails() {
                 <div className="flex flex-row gap-x-2">
                   {colors.map((color) => (
                     <Color
-                      key={color._id}
-                      color={color.color}
-                      isSelected={selectedColor === color._id}
-                      onClick={() => setSelectedColor(color._id)}
+                      key={color}
+                      color={color}
+                      isSelected={selectedColor === color}
+                      onClick={() => setSelectedColor(color)}
                     />
                   ))}
                 </div>
@@ -328,10 +323,10 @@ function ProductDetails() {
                 <div className="flex flex-row gap-x-2">
                   {availableSizes.map((size) => (
                     <Size
-                      key={size._id}
-                      size={size.size}
-                      isSelected={selectedSize === size._id}
-                      onClick={() => setSelectedSize(size._id)}
+                      key={size}
+                      size={size}
+                      isSelected={selectedSize === size}
+                      onClick={() => setSelectedSize(size)}
                     />
                   ))}
                 </div>
@@ -482,25 +477,23 @@ function ProductDetails() {
                       </div>
                     </div>
                     <div className="flex flex-col gap-y-4">
-                      {reviews.length > 0 ? (
-                        <>
-                          {currentReviews.map((review) => (
-                            <div key={review.id} className="mt-5">
-                              <div className="flex flex-col gap-y-5">
-                                <Review {...review} />
-                                {review.userResponse &&
-                                  review.reviewResponse && (
-                                    <SellerFeedback
-                                      user={review.userResponse}
-                                      content={review.reviewResponse.content}
-                                      createdDate={
-                                        review.reviewResponse.createdDate
-                                      }
-                                    />
-                                  )}
-                              </div>
+                      {/* {reviews.length > 0 ? ( */}
+                      <>
+                        {currentReviews.map((review) => (
+                          <div key={review._id} className="mt-5">
+                            <div className={`flex flex-col gap-y-5`}>
+                              <Review {...review} />
+                              {review.userResponse && review.reviewResponse && (
+                                <SellerFeedback
+                                  user={review.userResponse}
+                                  content={review.reviewResponse.content}
+                                  createdDate={review.reviewResponse.createdAt}
+                                />
+                              )}
                             </div>
-                          ))}
+                          </div>
+                        ))}
+                        {reviews.length > 0 && (
                           <Pagination
                             currentPage={currentPage}
                             totalPages={Math.ceil(
@@ -510,17 +503,28 @@ function ProductDetails() {
                             svgClassName={"w-6 h-6"}
                             textClassName={"text-xl px-3 py-2"}
                           />
-                        </>
-                      ) : (
-                        <div className="text-center font-bold text-2xl">
-                          Chưa có đánh giá nào
-                        </div>
-                      )}
+                        )}
+                      </>
+                      {/* // ) : ( //{" "}
+                      <div className="text-center font-bold text-2xl">
+                        // Chưa có đánh giá nào //{" "}
+                      </div>
+                      // )} */}
                     </div>
                   </>
                 )}
               </div>
             </div>
+            {similarProducts && (
+              <div className="mb-10">
+                <div className=" flex-col text-center justify-center items-center pb-2">
+                  <h1 className="font-medium px-24 text-3xl">
+                    Khám phá các sản phẩm liên quan
+                  </h1>
+                </div>
+                <Slider products={similarProducts} usage={""} />
+              </div>
+            )}
             <FeatureBanner />
           </div>
         </div>
@@ -539,7 +543,7 @@ function ProductDetails() {
           <div className="flex flex-col gap-y-5">
             <div className="flex flex-row gap-x-5">
               <img
-                src={formatURL(mainImage)}
+                src={mainImage}
                 alt={product.productName}
                 className="w-40 rounded-lg"
               />
@@ -621,23 +625,20 @@ function ProductDetails() {
               <div className="flex flex-row gap-x-2">
                 {colors.map((color) => (
                   <button
-                    key={color._id}
-                    onClick={() => setSelectedColor(color._id)}
+                    key={color}
+                    onClick={() => setSelectedColor(color)}
                     className={`w-7 h-7 rounded-full flex items-center justify-center border-2
       ${
-        selectedColor === color._id
-          ? `border-${color.color}`
-          : "border-gray-300"
+        selectedColor === color ? `border-${color}` : "border-gray-300"
       } transition-all duration-200`}
                     style={{
-                      borderColor:
-                        selectedColor === color._id ? color.color : "#D9D9D9",
+                      borderColor: selectedColor === color ? color : "#D9D9D9",
                     }}
                   >
                     <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
                       <div
                         className={`w-5 h-5 rounded-full`}
-                        style={{ backgroundColor: color.color }}
+                        style={{ backgroundColor: color }}
                       ></div>
                     </div>
                   </button>
@@ -649,17 +650,17 @@ function ProductDetails() {
               <div className="flex flex-row gap-x-2">
                 {availableSizes.map((size) => (
                   <button
-                    key={size._id}
+                    key={size}
                     className={`inline-block px-3 py-1 border rounded-md 
                                       ${
-                                        selectedSize === size._id
+                                        selectedSize === size
                                           ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
                                           : "bg-white text-black border-gray-300"
                                       } 
                                       cursor-pointer transition-all duration-300`}
-                    onClick={() => setSelectedSize(size._id)}
+                    onClick={() => setSelectedSize(size)}
                   >
-                    {size.size}
+                    {size}
                   </button>
                 ))}
               </div>

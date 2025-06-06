@@ -2,18 +2,17 @@ import { useState, useEffect, useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import Banner from "../../components/Banner";
-import { FREE_SHIPPING, SHIPPING_RATE, TAX_RATE } from "../../utils/Constants";
+import {
+  FREE_SHIPPING,
+  PAYMENT_METHOD,
+  SHIPPING_RATE,
+  TAX_RATE,
+} from "../../utils/Constants";
 import { getProductById } from "../../data/products";
-import { getSizeById } from "../../data/sizes";
-import { getColorById } from "../../data/colors";
-import { getAllImagesByProductId } from "../../data/productImages";
 import { formatDate, formatToVND, formatURL } from "../../utils/format";
-import { getOrderDetailsByOrderId } from "../../data/orderDetail";
 import FeatureBanner from "../../components/FeatureBanner";
-import { getOrderTrackingByOrderId } from "../../data/orderTracking";
 import { getOrderById } from "../../data/orders";
 import { getProductVariantById } from "../../data/productVariant";
-import { getPaymentDetailById } from "../../data/paymentDetail";
 import Error from "../Error";
 import AuthContext from "../../context/AuthContext";
 import Cookies from "js-cookie";
@@ -21,11 +20,14 @@ import instance from "../../services/axiosConfig";
 import toast from "react-hot-toast";
 import { removeItem } from "../../stores/cart";
 import { useDispatch } from "react-redux";
+import axios from "axios";
 
 function OrderCompleted() {
   const url = window.location.href;
   const queryParams = new URLSearchParams(url.split("?")[1]);
-  const orderId = queryParams.get("orderId");
+  const orderId = queryParams.get("orderId")
+    ? queryParams.get("orderId")
+    : queryParams.get("apptransid").split("_")[1];
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -39,23 +41,10 @@ function OrderCompleted() {
   const permission = Cookies.get("permission") ?? null;
   const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
 
-  const checkStatusTransaction = async (orderId) => {
+  const checkStatusMomoTransaction = async (orderId) => {
     try {
-      const refreshToken = Cookies.get("refreshToken");
-      const response = await instance.post(
-        "/auth/refreshToken",
-        {
-          refreshToken: refreshToken,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const accessToken = response.data.accessToken;
       const checkStatusResponse = await instance.post(
-        "/paymentDetail/checkStatusTransaction",
+        "/order/checkStatusTransaction",
         {
           orderId: orderId,
         }
@@ -70,86 +59,105 @@ function OrderCompleted() {
 
   useEffect(() => {
     const fetchItemDetails = async () => {
-      if (orderId) {
-        if (location.state) {
-          const { items } = location.state;
-          items.forEach((item) => {
-            dispatch(
-              removeItem({
-                productId: item.productId,
-                colorId: item.colorId,
-                sizeId: item.sizeId,
-              })
-            );
-          });
-        }
+      const PAYMENT_METHOD_ENUM = PAYMENT_METHOD.reduce((acc, method) => {
+        acc[method.value] = method.value;
+        return acc;
+      }, {});
 
-        const orderData = await getOrderById(orderId);
-
-        console.log(orderData);
-
-        if (!orderData) {
-          console.log("Hehe");
-          setError(true);
-          return;
-        }
-
-        const items = await getOrderDetailsByOrderId(orderId);
-        const fetchedItems = await Promise.all(
-          items.map(async (item) => {
-            const productVariant = await getProductVariantById(
-              item.productVariantId
-            );
-            const product = await getProductById(productVariant.productId);
-            const size = await getSizeById(productVariant.sizeId);
-            const color = await getColorById(productVariant.colorId);
-
-            if (!location.state) {
+      try {
+        if (orderId) {
+          if (location.state) {
+            const { items } = location.state;
+            items.forEach((item) => {
               dispatch(
                 removeItem({
-                  productId: productVariant.productId,
-                  colorId: productVariant.colorId,
-                  sizeId: productVariant.sizeId,
+                  productId: item.productId,
+                  color: item.color,
+                  size: item.size,
                 })
               );
-            }
+            });
+          }
 
-            const images = await getAllImagesByProductId(
-              productVariant.productId
+          const token = Cookies.get("token")
+            ? JSON.parse(Cookies.get("token"))
+            : null;
+
+          let data;
+
+          if (token) {
+            const orderResponse = await axios.get(
+              `http://localhost:8000/api/v1/order/${orderId}`,
+              { headers: { Authorization: `Bearer ${token}` } }
             );
-            return {
-              ...item,
-              product,
-              size,
-              color,
-              images,
-            };
-          })
-        );
 
-        const orderTracking = await getOrderTrackingByOrderId(orderId);
-        setExpectedDeliveryDate(orderTracking[0].expectedDeliveryDate);
+            Cookies.remove("token");
 
-        const paymentDetails = await getPaymentDetailById(
-          orderData.paymentDetailId
-        );
+            data = orderResponse.data.data;
+          } else {
+            data = await getOrderById(orderId);
+          }
+          const order = data[0];
 
-        if (paymentDetails.paymentMethod === "MOMO") {
-          await checkStatusTransaction(orderId);
+          if (!data) {
+            setError(true);
+            return;
+          }
+
+          const items = order.orderItems;
+          const fetchedItems = await Promise.all(
+            items.map(async (item) => {
+              const productVariant = await getProductVariantById(
+                item.productVariantId
+              );
+              const product = await getProductById(item.productId);
+              const size = productVariant.size;
+              const color = productVariant.color;
+
+              if (!location.state) {
+                dispatch(
+                  removeItem({
+                    productId: productVariant.productId,
+                    color: productVariant.color,
+                    size: productVariant.size,
+                  })
+                );
+              }
+
+              const images = product.images;
+              return {
+                ...item,
+                product,
+                size,
+                color,
+                images,
+              };
+            })
+          );
+
+          setExpectedDeliveryDate(order.expectedDeliveryDate);
+
+          if (order.paymentMethod === PAYMENT_METHOD_ENUM.MOMO) {
+            await checkStatusMomoTransaction(orderId);
+          }
+
+          setPaymentMethod(order.paymentMethod);
+          setOrderData({ ...order, fetchedItems });
+        } else {
+          setHasError(true);
         }
-
-        setPaymentMethod(paymentDetails.paymentMethod);
-
-        setOrderData({ ...orderData, fetchedItems });
-      } else {
-        setHasError(true);
+      } catch (error) {
+        console.log(error);
+        toast.error(error?.response?.data?.message, {
+          duration: 2000,
+        });
       }
     };
 
     fetchItemDetails();
   }, [orderId]);
 
-  if (user && (!permission || !permission.includes("PRODUCT_DETAILS"))) {
+  if (user && (!permission || !permission.includes("ORDER_COMPLETED"))) {
     setHasError(true);
     return (
       <Error
@@ -238,15 +246,14 @@ function OrderCompleted() {
                       <td className="px-10 pt-4">
                         <div className="flex items-center">
                           <img
-                            src={formatURL(item.images[0].imagePath)}
+                            src={formatURL(item.images[0].url)}
                             alt={item.product.name}
                             className="w-16 h-16 mr-4"
                           />
                           <div>
                             <p className="font-medium">{item.product.name}</p>
                             <p className="font-light">
-                              Màu sắc: {item.color.color} | Kích cỡ:{" "}
-                              {item.size.size}
+                              Màu sắc: {item.color} | Kích cỡ: {item.size}
                             </p>
                           </div>
                         </div>
@@ -282,7 +289,7 @@ function OrderCompleted() {
                   <td className="px-10 py-4 font-medium" colSpan={4}>
                     <div className="flex justify-between">
                       <label>Tổng đơn hàng</label>
-                      <label>{formatToVND(orderData.total)}</label>
+                      <label>{formatToVND(orderData.finalPrice)}</label>
                     </div>
                   </td>
                 </tr>

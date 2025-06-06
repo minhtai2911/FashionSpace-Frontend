@@ -267,7 +267,11 @@ export default function Chatbot() {
     }
 
     try {
-      const response = await instance.post("/chatbot", { message: content });
+      const response = await instance.post(
+        "/chatbot",
+        { message: content },
+        { requiresAuth: false }
+      );
       console.log(response.data);
       const type = response.data.type;
       const botMessage = {
@@ -280,8 +284,9 @@ export default function Chatbot() {
           ? type === "Product"
             ? response.data.data
             : {
-                orderTracking: response.data.data.OrderTracking,
-                orderDetail: response.data.data.OrderDetail,
+                orderTracking: response.data.data.deliveryInfo,
+                orderDetail: response.data.data.orderItems,
+                orderId: response.data.data._id,
               }
           : null,
         type: response.data.type,
@@ -473,7 +478,19 @@ export default function Chatbot() {
                     <div className="mt-3 ml-8 overflow-x-scroll thin-scrollbar">
                       <div className="flex space-x-4 min-w-max pb-2">
                         {msg.results.map((result) => (
-                          <ProductItem key={result._id} id={result._id} />
+                          <ProductItem
+                            key={result._id}
+                            productName={result.name}
+                            rating={result.rating}
+                            image={
+                              result.images.length > 0
+                                ? result.images[0].url
+                                : ""
+                            }
+                            category={result.category}
+                            price={result.price}
+                            id={result._id}
+                          />
                         ))}
                       </div>
                     </div>
@@ -488,7 +505,7 @@ export default function Chatbot() {
 
                         return (
                           <div className="flex flex-col justify-center gap-y-3">
-                            <div className="ml-8 mt-3 flex flex-col gap-y-3 w-11/12">
+                            <div className="mt-3 flex flex-col gap-y-3">
                               <OrderStatus
                                 key={item._id}
                                 icon={getStatusObjectByStatus(item.status).icon}
@@ -497,17 +514,17 @@ export default function Chatbot() {
                                 orderStatus={
                                   tracking[tracking.length - 1].status
                                 }
-                                date={formatDate(item.date)}
-                                time={getTime(item.date)}
-                                address={item.currentAddress}
+                                date={formatDate(item.deliveryDate)}
+                                time={getTime(item.deliveryDate)}
+                                address={item.deliveryAddress}
                                 isEnd={item === tracking[tracking.length - 1]}
                               />
                             </div>
                             <button
-                              className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white"
+                              className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-sm w-fit self-center text-white"
                               onClick={() =>
                                 handleTrackOrder(
-                                  item.orderId,
+                                  msg.results.orderId,
                                   tracking,
                                   details
                                 )

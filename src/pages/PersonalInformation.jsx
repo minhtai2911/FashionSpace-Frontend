@@ -68,7 +68,7 @@ export default function PersonalInformation({ user }) {
           },
         }
       );
-      const accessToken = tokenResponse.data.accessToken;
+      const accessToken = tokenResponse.data.data.accessToken;
       const formData = new FormData();
       formData.append("fullName", data.fullName);
       formData.append("phone", data.phone);

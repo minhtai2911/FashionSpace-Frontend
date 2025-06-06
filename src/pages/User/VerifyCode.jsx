@@ -67,24 +67,11 @@ function VerifyCode() {
   };
   const handleResendCode = async () => {
     try {
-      const otpResponse = await instance.post(
-        "/auth/generateOTP",
-        { email: email },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const { otp } = otpResponse.data;
-      await toast.promise(
-        instance.post("/auth/sendOTP", { email: email, OTP: otp }),
-        {
-          loading: "Đang gửi mã OTP...",
-          success: "Mã OTP được gửi thành công",
-          error: "Gửi mã OTP thất bại",
-        }
-      );
+      await toast.promise(instance.post("/auth/sendOTP", { email: email }), {
+        loading: "Đang gửi mã OTP...",
+        success: "Mã OTP được gửi thành công",
+        error: "Gửi mã OTP thất bại",
+      });
       setExpirationTime(60);
     } catch (error) {
       console.log(error);

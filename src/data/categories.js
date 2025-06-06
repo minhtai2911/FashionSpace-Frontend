@@ -3,7 +3,9 @@ import Cookies from "js-cookie";
 
 export const getAllCategories = async () => {
   try {
-    const response = await instance.get("/category");
+    const response = await instance.get("/category?limit=100", {
+      requiresAuth: false,
+    });
     return response.data.data;
   } catch (error) {
     console.log(error);
@@ -13,8 +15,10 @@ export const getAllCategories = async () => {
 
 export const getCategoryById = async (id) => {
   try {
-    const response = await instance.get(`/category/${id}`);
-    return response.data.data;
+    const response = await instance.get(`/category/${id}`, {
+      requiresAuth: false,
+    });
+    return response.data;
   } catch (error) {
     console.log(error);
     throw error;
@@ -22,28 +26,30 @@ export const getCategoryById = async (id) => {
 };
 
 export const createCategory = async (category, gender) => {
-  const refreshToken = Cookies.get("refreshToken");
+  // const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
+    // const tokenResponse = await instance.post(
+    //   "/auth/refreshToken",
+    //   {
+    //     refreshToken: refreshToken,
+    //   },
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   }
+    // );
+    // const accessToken = tokenResponse.data.data.accessToken;
+    // Cookies.set("refreshToken", tokenResponse.data.data.refreshToken);
     const response = await instance.post(
       "/category",
       { name: category, gender: gender },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      { requiresAuth: true }
+      // {
+      //   headers: {
+      //     Authorization: `Bearer ${accessToken}`,
+      //   },
+      // }
     );
     return response.data.data;
   } catch (error) {
@@ -52,28 +58,30 @@ export const createCategory = async (category, gender) => {
 };
 
 export const updateCategory = async (id, name, gender) => {
-  const refreshToken = Cookies.get("refreshToken");
+  // const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
+    // const tokenResponse = await instance.post(
+    //   "/auth/refreshToken",
+    //   {
+    //     refreshToken: refreshToken,
+    //   },
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   }
+    // );
+    // const accessToken = tokenResponse.data.data.accessToken;
+    // Cookies.set("refreshToken", tokenResponse.data.data.refreshToken);
     const response = await instance.put(
       `/category/${id}`,
       { name: name, gender: gender },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+      { requiresAuth: true }
+      // {
+      //   headers: {
+      //     Authorization: `Bearer ${accessToken}`,
+      //   },
+      // }
     );
     return response.data.data;
   } catch (error) {
@@ -82,24 +90,23 @@ export const updateCategory = async (id, name, gender) => {
 };
 
 export const deleteCategoryById = async (id) => {
-  const refreshToken = Cookies.get("refreshToken");
+  // const refreshToken = Cookies.get("refreshToken");
   try {
-    const tokenResponse = await instance.post(
-      "/auth/refreshToken",
-      {
-        refreshToken: refreshToken,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const accessToken = tokenResponse.data.accessToken;
-    const response = await instance.delete(`/category/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+    // const tokenResponse = await instance.post(
+    //   "/auth/refreshToken",
+    //   {
+    //     refreshToken: refreshToken,
+    //   },
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   }
+    // );
+    // const accessToken = tokenResponse.data.data.accessToken;
+    // Cookies.set("refreshToken", tokenResponse.data.data.refreshToken);
+    const response = await instance.put(`/category/${id}`, {
+      requiresAuth: true,
     });
     return response.data.data;
   } catch (error) {

@@ -5,7 +5,6 @@ import { Table } from "flowbite-react";
 import { archiveProductById, getAllProducts } from "../../data/products";
 import { getAllCategories, getCategoryById } from "../../data/categories";
 import Search from "../../components/Search";
-import { deleteProductImagesByProductId } from "../../data/productImages";
 import { deleteProductVariantsByProductId } from "../../data/productVariant";
 import toast from "react-hot-toast";
 import { formatToVND } from "../../utils/format";
@@ -49,7 +48,7 @@ export default function Products() {
       const fetchedProducts = await getAllProducts(isActive, search);
       const updatedProducts = await Promise.all(
         fetchedProducts.map(async (product) => {
-          const category = await getCategoryById(product.categoryId);
+          const category = await getCategoryById(product.categoryId._id);
           return {
             ...product,
             category: `${category.name} [${category.gender}]`,

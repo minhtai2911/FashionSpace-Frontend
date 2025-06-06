@@ -46,7 +46,7 @@ function SetNewPassword() {
         }
       );
 
-      const accessToken = tokenResponse.data.accessToken;
+      const accessToken = tokenResponse.data.data.accessToken;
       const response = await instance.post(
         "/auth/forgotPassword",
         {

@@ -1,21 +1,25 @@
 import axios from "axios";
+import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import dayjs from "dayjs";
-import Cookies from "js-cookie";
 
 const baseURL = "http://localhost:8000/api/v1";
 
 const instance = axios.create({
   baseURL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 instance.interceptors.request.use(async (req) => {
-  let accessToken = Cookies.get("accessToken");
+  const accessToken = Cookies.get("accessToken");
+  const refreshToken = Cookies.get("refreshToken");
 
-  if (req.url.includes("/auth/login") || req.url.includes("/auth/signup")) {
+  const requiresAuth = req.requiresAuth !== false;
+
+  if (!requiresAuth) {
     return req;
   }
 
@@ -29,28 +33,28 @@ instance.interceptors.request.use(async (req) => {
     }
   }
 
-  const refreshToken = Cookies.get("refreshToken");
-  if (refreshToken) {
-    try {
-      const response = await axios.post(`${baseURL}/auth/refreshToken`, {
-        refreshToken,
-      });
-      const newAccessToken = response.data.accessToken;
+  try {
+    const response = await axios.post(
+      `${baseURL}/auth/refreshToken`,
+      { refreshToken },
+      { withCredentials: true }
+    );
 
-      Cookies.set("accessToken", newAccessToken);
-      req.headers.Authorization = `Bearer ${newAccessToken}`;
-      return req;
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      Cookies.remove("accessToken");
-      Cookies.remove("refreshToken");
-      window.location.href = "/login";
-      return Promise.reject(error);
-    }
-  } else {
-    console.log("No refresh token found");
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+      response.data.data;
+
+    Cookies.set("accessToken", newAccessToken);
+    Cookies.set("refreshToken", newRefreshToken);
+
+    req.headers.Authorization = `Bearer ${newAccessToken}`;
+    return req;
+  } catch (err) {
+    console.log(err);
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+
+    return req;
   }
-  return req;
 });
 
 export default instance;

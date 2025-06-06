@@ -32,29 +32,13 @@ export default function PasswordManager() {
     }
 
     try {
-      const refreshToken = Cookies.get("refreshToken");
-      const tokenResponse = await instance.post(
-        "/auth/refreshToken",
-        { refreshToken: refreshToken },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const accessToken = tokenResponse.data.accessToken;
-      const id = user.id;
       const response = await instance.post(
         `/auth/resetPassword`,
         {
           password: currentPassword,
           newPassword: newPassword,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+        { requiresAuth: true }
       );
 
       if (response.status === 200) {

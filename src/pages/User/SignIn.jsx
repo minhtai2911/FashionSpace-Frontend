@@ -41,12 +41,12 @@ function SignIn() {
       if (userCartData) {
         const data = await Promise.all(
           userCartData.map(async (cart) => {
-            const variant = await getProductVariantById(cart.productVariantId);
+            const variant = cart.productVariantId;
             const productId = variant.productId;
-            const sizeId = variant.sizeId;
-            const colorId = variant.colorId;
+            const size = variant.size;
+            const color = variant.color;
             const quantity = cart.quantity;
-            return { productId, sizeId, colorId, quantity };
+            return { productId, size, color, quantity };
           })
         );
         dispatch(mergeCart(data));
@@ -61,11 +61,7 @@ function SignIn() {
       const response = await instance.post(
         "/auth/login",
         { email, password },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { requiresAuth: false }
       );
       toast.success("Đăng nhập thành công", { duration: 1000 });
       const { accessToken, refreshToken, ...data } = response.data.data;
@@ -88,19 +84,15 @@ function SignIn() {
       }));
       if (error.status === 400) {
         toast.error("Tài khoản của bạn chưa được xác thực");
-        const id = error.response.data.data._id;
-        const sendMailResponse = await toast.promise(
+        const userId = error.response.data.data.userId;
+        await toast.promise(
           instance.post(
             "/auth/sendMailVerifyAccount",
             {
               email: email,
-              id: id,
+              id: userId,
             },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
+            { requiresAuth: false }
           ),
           {
             loading: "Đang gửi email xác thực...",
@@ -109,7 +101,7 @@ function SignIn() {
           }
         );
       } else {
-        toast.error(error.response.data.message);
+        toast.error(error.response.data.error);
       }
       throw error;
     }
@@ -132,9 +124,9 @@ function SignIn() {
     try {
       await login(data.email, data.password);
       const user = JSON.parse(Cookies.get("user"));
-      const role = await getUserRoleById(user.roleId);
+      const role = user.roleName;
       setHasError(false);
-      if (role.roleName === "Customer") {
+      if (role === "Customer") {
         setAuth((prevAuth) => ({
           ...prevAuth,
           permission: CUSTOMER_PERMISSIONS,
@@ -149,14 +141,14 @@ function SignIn() {
         } else {
           navigate("/");
         }
-      } else if (role.roleName === "Admin") {
+      } else if (role === "Admin") {
         setAuth((prevAuth) => ({
           ...prevAuth,
           permission: ADMIN_PERMISSIONS,
         }));
         Cookies.set("permission", ADMIN_PERMISSIONS);
         navigate("/admin");
-      } else if (role.roleName === "Employee") {
+      } else if (role === "Employee") {
         setAuth((prevAuth) => ({
           ...prevAuth,
           permission: EMPLOYEE_PERMISSIONS,

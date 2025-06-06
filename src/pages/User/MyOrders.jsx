@@ -3,32 +3,20 @@ import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { Modal, Button } from "flowbite-react";
 
-import AuthContext from "../../context/AuthContext";
 import {
   ITEM_PER_PAGE,
   ORDER_STATUS,
   PAYMENT_STATUS,
 } from "../../utils/Constants";
-import { getOrderByUserId } from "../../data/orders";
-import { getOrderById } from "../../data/orders";
-import { getOrderDetailsByOrderId } from "../../data/orderDetail";
-import { getPaymentDetailById } from "../../data/paymentDetail";
-import { getUserById } from "../../data/users";
+import { getOrderByUserId, updateDeliveryInfoById } from "../../data/orders";
 import { getProductVariantById } from "../../data/productVariant";
 import { getProductById } from "../../data/products";
-import { getSizeById } from "../../data/sizes";
-import { getColorById } from "../../data/colors";
-import { getCategoryById } from "../../data/categories";
 import { formatDate, formatToVND, formatURL } from "../../utils/format";
-import { getAllImagesByProductId } from "../../data/productImages";
-import {
-  createOrderTracking,
-  getOrderTrackingByOrderId,
-} from "../../data/orderTracking";
 import { createReview, getAllReviews, updateReview } from "../../data/reviews";
 import toast from "react-hot-toast";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import Pagination from "../../components/Pagination";
+import instance from "../../services/axiosConfig";
 
 export default function MyOrders() {
   const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
@@ -58,19 +46,18 @@ export default function MyOrders() {
       const orders = await getOrderByUserId(user.id);
       const fetchedOrders = await Promise.all(
         orders.map(async (order) => {
-          const user = await getUserById(order.userId);
-          const paymentDetails = await getPaymentDetailById(
-            order.paymentDetailId
-          );
-          const details = await getOrderDetailsByOrderId(order._id);
-          const trackingData = await getOrderTrackingByOrderId(order._id);
+          const paymentDetails = {
+            status: order.paymentStatus,
+            paymentMethod: order.paymentMethod,
+          };
+          const details = order.orderItems;
+          const trackingData = order.deliveryInfo;
           const tracking = trackingData.length
             ? trackingData[trackingData.length - 1]
             : {};
 
           const orderDetails = {
             ...order,
-            user,
             paymentDetails,
             details,
             tracking,
@@ -82,10 +69,10 @@ export default function MyOrders() {
                 item.productVariantId
               );
               const product = await getProductById(productVariant.productId);
-              const images = await getAllImagesByProductId(product._id);
-              const size = await getSizeById(productVariant.sizeId);
-              const color = await getColorById(productVariant.colorId);
-              const category = await getCategoryById(product.categoryId);
+              const images = product.images;
+              const size = productVariant.size;
+              const color = productVariant.color;
+              const category = product.categoryId;
 
               return {
                 product: product,
@@ -103,9 +90,6 @@ export default function MyOrders() {
           };
         })
       );
-
-      const fetchedReviews = await getAllReviews();
-      setReviewHistory(fetchedReviews);
 
       let filteredOrders =
         selectedStatus !== "All"
@@ -127,6 +111,8 @@ export default function MyOrders() {
             )
         )
       );
+      const reviews = await getAllReviews();
+      setReviewHistory(reviews);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -139,43 +125,53 @@ export default function MyOrders() {
   }, [selectedStatus]);
 
   const handleAddReview = async () => {
-    const response = await createReview(
-      review.productId,
-      review.rating,
-      review.content,
-      review.orderId
-    );
-    if (response) {
+    try {
+      const response = await instance.post(
+        "/review",
+        {
+          productId: review.productId,
+          rating: review.rating,
+          content: review.content,
+          orderId: review.orderId,
+        },
+        { requiresAuth: true }
+      );
       setOpenAddReviewModal(false);
       toast.success("Đánh giá của bạn đã được gửi thành công!", {
         duration: 2000,
       });
-      fetchOrders();
-    } else {
-      toast.error("Gửi đánh giá thất bại", { duration: 2000 });
+      await fetchOrders();
+    } catch (error) {
+      toast.error(error.response.data.message || "Gửi đánh giá thất bại", {
+        duration: 2000,
+      });
     }
   };
 
   const handleUpdateReview = async () => {
-    console.log(review.id, review.rating, review.content);
-    const response = await updateReview(
-      review.id,
-      review.rating,
-      review.content
-    );
+    try {
+      await instance.put(
+        `/review/${review.id}`,
+        {
+          rating: review.rating,
+          content: review.content,
+        },
+        { requiresAuth: true }
+      );
 
-    if (response) {
       setOpenEditReviewModal(false);
       toast.success("Chỉnh sửa đánh giá thành công", { duration: 2000 });
-      fetchOrders();
-    } else {
-      toast.error("Chỉnh sửa đánh giá thất bại", { duration: 2000 });
+      await fetchOrders();
+    } catch (error) {
+      console.log(error);
+      toast.error(
+        error.response.data.message || "Chỉnh sửa đánh giá thất bại",
+        {
+          duration: 2000,
+        }
+      );
     }
   };
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -200,7 +196,7 @@ export default function MyOrders() {
 
   const handleCancelOrder = async (order) => {
     try {
-      await createOrderTracking(
+      await updateDeliveryInfoById(
         order._id,
         ORDER_STATUS.CANCELLED_BY_YOU,
         order.tracking.currentAddress || "Không xác định",
@@ -215,8 +211,7 @@ export default function MyOrders() {
   };
 
   const handleEditAddress = async (order) => {
-    console.dir(order);
-    navigate(`/account/myOrders/editAddress/${order.orderAddressId}`);
+    navigate(`/account/myOrders/editAddress/${order.userAddressId}`);
   };
 
   const currentOrders = orders.slice(
@@ -285,7 +280,7 @@ export default function MyOrders() {
                       <td className="p-2 text-white w-[20%]">
                         Tổng đơn hàng
                         <br />
-                        {formatToVND(order.total)}
+                        {formatToVND(order.finalPrice)}
                       </td>
                       <td className="py-2 px-4 text-white rounded-tr-lg w-[35%]">
                         {order.tracking.status === ORDER_STATUS.SHIPPED
@@ -293,8 +288,8 @@ export default function MyOrders() {
                           : "Ngày giao hàng dự kiến"}
                         <br />
                         {order.tracking.status === ORDER_STATUS.SHIPPED
-                          ? formatDate(order.tracking.date)
-                          : formatDate(order.tracking.expectedDeliveryDate)}
+                          ? formatDate(order.tracking.deliveryDate)
+                          : formatDate(order.expectedDeliveryDate)}
                       </td>
                     </tr>
                     <tbody className="border-l border-r border-b">
@@ -303,8 +298,10 @@ export default function MyOrders() {
                           {order.detailedItems.map((item, index) => {
                             const existingReview = reviewHistory.find(
                               (review) =>
-                                review.productId === item.product._id &&
-                                review.orderId === order._id
+                                review.productId?.toString() ===
+                                  item.product._id?.toString() &&
+                                review.orderId?.toString() ===
+                                  order._id?.toString()
                             );
 
                             return (
@@ -314,7 +311,7 @@ export default function MyOrders() {
                                   className="px-4 py-2 flex items-center"
                                 >
                                   <img
-                                    src={formatURL(item.images[0].imagePath)}
+                                    src={item.images ? item.images[0]?.url : ""}
                                     alt={item.name}
                                     className="w-16 h-16 mr-4"
                                   />
@@ -323,8 +320,8 @@ export default function MyOrders() {
                                       {item.product.name}
                                     </p>
                                     <p className="font-light">
-                                      Màu sắc: {item.color.color} | Kích cỡ:{" "}
-                                      {item.size.size} | Số lượng:{" "}
+                                      Màu sắc: {item.color} | Kích cỡ:{" "}
+                                      {item.size} | Số lượng:{" "}
                                       {order.details[index].quantity}
                                     </p>
                                   </div>

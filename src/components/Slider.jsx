@@ -5,30 +5,11 @@ import "swiper/swiper-bundle.css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { formatURL } from "../utils/format";
-import { getAllImagesByProductId } from "../data/productImages";
 import { getCategoryById } from "../data/categories";
 
 function Slider({ products, usage }) {
   const [productImages, setProductImages] = useState({});
   const [categories, setCategories] = useState({});
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const images = {};
-      const categories = {};
-      for (const product of products) {
-        const imagesForProduct = await getAllImagesByProductId(product._id);
-        images[product._id] = imagesForProduct;
-
-        const categoryForProduct = await getCategoryById(product.categoryId);
-        categories[product._id] = categoryForProduct.name;
-      }
-      setProductImages(images);
-      setCategories(categories);
-    };
-
-    fetchData();
-  }, [products]);
 
   useEffect(() => {
     const swiper = new Swiper(".swiper", {
@@ -54,10 +35,10 @@ function Slider({ products, usage }) {
       const images = {};
       const categories = {};
       for (const product of products) {
-        const imagesForProduct = await getAllImagesByProductId(product._id);
+        const imagesForProduct = product.images;
         images[product._id] = imagesForProduct;
 
-        const categoryForProduct = await getCategoryById(product.categoryId);
+        const categoryForProduct = product.categoryId;
         categories[product._id] = categoryForProduct.name;
       }
       setProductImages(images);
@@ -74,12 +55,13 @@ function Slider({ products, usage }) {
           <div className="swiper-slide" key={product._id}>
             <ProductItem
               usage={usage}
-              name={product.name}
+              soldQuantity={product.soldQuantity}
+              productName={product.name}
               rating={product.rating}
               category={categories[product._id]}
               image={
                 productImages[product._id]?.[0]
-                  ? formatURL(productImages[product._id][0].imagePath)
+                  ? productImages[product._id][0].url
                   : ""
               }
               price={product.price}

@@ -136,6 +136,7 @@ export default function Users() {
       setUserRole("");
       setOpenCreateModal(false);
     } catch (error) {
+      console.log(error);
       toast.error(error.response.data.message, {
         duration: 2000,
       });
@@ -476,7 +477,7 @@ export default function Users() {
                 {userRoles.map((role) => (
                   <option
                     key={role._id}
-                    value={role.roleName}
+                    value={role._id}
                     className="font-medium font-manrope"
                   >
                     {role.roleName}

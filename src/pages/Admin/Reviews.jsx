@@ -3,10 +3,14 @@ import { Link } from "react-router-dom";
 import { Table, Modal } from "flowbite-react";
 import Search from "../../components/Search";
 
-import { getAllReviews } from "../../data/reviews";
+import {
+  createReviewResponse,
+  getAllReviews,
+  hideReview,
+  unhideReview,
+} from "../../data/reviews";
 import { getProductById } from "../../data/products";
 import { getUserById } from "../../data/users";
-import { createReviewResponse } from "../../data/reviewResponse";
 
 import Rating from "../../components/Rating";
 import toast from "react-hot-toast";
@@ -14,6 +18,7 @@ import {
   ITEM_PER_PAGE,
   REVIEW_RATING,
   REVIEW_STATUS,
+  REVIEW_TYPE,
 } from "../../utils/Constants";
 import Pagination from "../../components/Pagination";
 import Error from "../Error";
@@ -24,6 +29,7 @@ export default function Reviews() {
   const [reviews, setReviews] = useState([]);
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openReplyModal, setOpenReplyModal] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
   const [reviewDetails, setReviewDetails] = useState({});
   const [feedback, setFeedback] = useState("");
   const [selectedStatus, setSelectedStatus] = useState(REVIEW_STATUS.ALL);
@@ -48,7 +54,7 @@ export default function Reviews() {
           return {
             ...review,
             status:
-              review.reviewResponses.length > 0
+              review.status === REVIEW_STATUS.REPLIED
                 ? REVIEW_STATUS.REPLIED
                 : REVIEW_STATUS.NOT_REPLIED,
             productName: product.name,
@@ -93,11 +99,40 @@ export default function Reviews() {
     }
   };
 
+  const handleReviewAppearance = async (reviewId, isActive) => {
+    try {
+      if (isActive) {
+        await hideReview(reviewId);
+      } else {
+        await unhideReview(reviewId);
+      }
+      fetchData();
+      if (isActive) {
+        toast.success("Ẩn đánh giá thành công", { duration: 2000 });
+      } else {
+        toast.success("Hiện đánh giá thành công", { duration: 2000 });
+      }
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  };
+
   const getStatusClass = (status) => {
     switch (status) {
       case REVIEW_STATUS.REPLIED:
         return "bg-green-100 text-green-600";
       case REVIEW_STATUS.NOT_REPLIED:
+        return "bg-red-100 text-red-600";
+      default:
+        return "bg-gray-100 text-gray-600";
+    }
+  };
+
+  const getTypeClass = (type) => {
+    switch (type) {
+      case REVIEW_TYPE.POSITIVE:
+        return "bg-green-100 text-green-600";
+      case REVIEW_TYPE.NEGATIVE:
         return "bg-red-100 text-red-600";
       default:
         return "bg-gray-100 text-gray-600";
@@ -181,6 +216,7 @@ export default function Reviews() {
                 <Table.HeadCell>Tên khách hàng</Table.HeadCell>
                 <Table.HeadCell>Số sao</Table.HeadCell>
                 <Table.HeadCell className="truncate">Bình luận</Table.HeadCell>
+                <Table.HeadCell>Loại</Table.HeadCell>
                 <Table.HeadCell>Trạng thái</Table.HeadCell>
                 <Table.HeadCell>Thao tác</Table.HeadCell>
               </Table.Head>
@@ -217,6 +253,15 @@ export default function Reviews() {
                     </Table.Cell>
                     <Table.Cell>
                       <div
+                        className={`px-3 py-1 rounded-lg text-center font-semibold ${getTypeClass(
+                          review?.type
+                        )}`}
+                      >
+                        {review?.type}
+                      </div>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <div
                         className={`px-3 py-1 rounded-lg text-center font-semibold ${getStatusClass(
                           review?.status
                         )}`}
@@ -248,6 +293,41 @@ export default function Reviews() {
                               />
                             </svg>
                             <p className="text-[#0A0A0A]">Xem</p>
+                          </div>
+                        </button>
+                        <button
+                          className="font-medium hover:underline"
+                          onClick={() =>
+                            handleReviewAppearance(review._id, review.isActive)
+                          }
+                        >
+                          <div className="flex flex-row gap-x-1 items-center">
+                            {review.isActive ? (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="#EF0606"
+                                class="size-4"
+                              >
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z"
+                                  clip-rule="evenodd"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="#EF0606"
+                                class="size-4"
+                              >
+                                <path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 0 1-1.5 0V6.75a3.75 3.75 0 1 0-7.5 0v3a3 3 0 0 1 3 3v6.75a3 3 0 0 1-3 3H3.75a3 3 0 0 1-3-3v-6.75a3 3 0 0 1 3-3h9v-3c0-2.9 2.35-5.25 5.25-5.25Z" />
+                              </svg>
+                            )}
+                            <p className="text-[#EF0606]">
+                              {review.isActive ? "Ẩn" : "Hiện"}
+                            </p>
                           </div>
                         </button>
                         <button
