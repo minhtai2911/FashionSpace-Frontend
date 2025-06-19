@@ -28,6 +28,7 @@ function OrderCompleted() {
   const orderId = queryParams.get("orderId")
     ? queryParams.get("orderId")
     : queryParams.get("apptransid").split("_")[1];
+  const app_trans_id = queryParams.get("apptransid");
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -53,6 +54,24 @@ function OrderCompleted() {
       toast.error(error.response.data.message, {
         duration: 2000,
       });
+      return error;
+    }
+  };
+
+  const checkStatusZaloPayTransaction = async (app_trans_id) => {
+    try {
+      const checkStatusResponse = await instance.post(
+        "/order/checkStatusZaloPay",
+        {
+          app_trans_id: app_trans_id,
+        }
+      );
+    } catch (error) {
+      if (error.response.status !== 400) {
+        toast.error(error.response.data.message, {
+          duration: 2000,
+        });
+      }
       return error;
     }
   };
@@ -137,8 +156,11 @@ function OrderCompleted() {
 
           setExpectedDeliveryDate(order.expectedDeliveryDate);
 
-          if (order.paymentMethod === PAYMENT_METHOD_ENUM.MOMO) {
+          if (order.paymentMethod === "MOMO") {
             await checkStatusMomoTransaction(orderId);
+          } else if (order.paymentMethod === "ZALOPAY") {
+            console.log(app_trans_id);
+            await checkStatusZaloPayTransaction(app_trans_id);
           }
 
           setPaymentMethod(order.paymentMethod);

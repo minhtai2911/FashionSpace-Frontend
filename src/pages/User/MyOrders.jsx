@@ -111,8 +111,10 @@ export default function MyOrders() {
             )
         )
       );
-      const reviews = await getAllReviews();
-      setReviewHistory(reviews);
+      const result = await getAllReviews(1, 1000); // Get all reviews for this user
+      // Handle both old format (direct array) and new format (object with data property)
+      const reviews = result.data || result;
+      setReviewHistory(Array.isArray(reviews) ? reviews : []);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);

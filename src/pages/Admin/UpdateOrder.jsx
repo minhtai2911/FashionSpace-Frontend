@@ -12,6 +12,7 @@ import { getProductVariantById } from "../../data/productVariant";
 import { getProductById } from "../../data/products";
 import { getCategoryById } from "../../data/categories";
 import { ORDER_STATUS, PAYMENT_STATUS } from "../../utils/Constants";
+import GenericDropdown from "../../components/GenericDropdown";
 import toast from "react-hot-toast";
 import Error from "../Error";
 import AuthContext from "../../context/AuthContext";
@@ -160,6 +161,29 @@ export default function UpdateOrder() {
     return orderStatusValues.indexOf(status);
   };
 
+  // Prepare dropdown options
+  const orderStatusOptions = orderStatusValues
+    .filter((value) => value !== ORDER_STATUS.CANCELLED_BY_YOU)
+    .map((value, index) => ({
+      key: value.toLowerCase().replace(/ /g, "_"),
+      value: value,
+      label: value,
+      disabled:
+        index < getCurrentStatus(status) ||
+        (isCanCancel() &&
+          (value === ORDER_STATUS.CANCELLED_BY_YOU ||
+            value === ORDER_STATUS.CANCELLED_BY_EMPLOYEE)),
+    }));
+
+  const paymentStatusOptions = Object.values(PAYMENT_STATUS).map(
+    (value, index) => ({
+      key: value.toLowerCase().replace(/ /g, "_"),
+      value: value,
+      label: value,
+      disabled: false, // We'll handle disabled logic in the component
+    })
+  );
+
   if (!permission || !permission.includes("ORDERS")) {
     setHasError(true);
     return (
@@ -204,36 +228,20 @@ export default function UpdateOrder() {
                 {status !== ORDER_STATUS.SHIPPED &&
                 status !== ORDER_STATUS.CANCELLED_BY_YOU &&
                 status !== ORDER_STATUS.CANCELLED_BY_EMPLOYEE ? (
-                  <select
+                  <GenericDropdown
                     value={newStatus}
-                    onChange={(e) => {
-                      const selectedStatus = e.target.value;
+                    onChange={(selectedStatus) => {
                       setNewStatus(selectedStatus);
                       if (selectedStatus === ORDER_STATUS.SHIPPED) {
                         setNewPaymentStatus(PAYMENT_STATUS.PAID);
                       }
                     }}
-                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
-                  >
-                    {orderStatusValues.map((value, index) => {
-                      return (
-                        value !== ORDER_STATUS.CANCELLED_BY_YOU && (
-                          <option
-                            key={index}
-                            value={value}
-                            disabled={
-                              index < getCurrentStatus(status) ||
-                              (isCanCancel() &&
-                                (value === ORDER_STATUS.CANCELLED_BY_YOU ||
-                                  value === ORDER_STATUS.CANCELLED_BY_EMPLOYEE))
-                            }
-                          >
-                            {value}
-                          </option>
-                        )
-                      );
-                    })}
-                  </select>
+                    options={orderStatusOptions}
+                    placeholder="Chọn trạng thái"
+                    displayKey="label"
+                    valueKey="value"
+                    className="w-full"
+                  />
                 ) : (
                   <input
                     value={status}
@@ -259,64 +267,43 @@ export default function UpdateOrder() {
                   Trạng thái thanh toán
                 </p>
                 {orderWithDetails?.paymentDetails?.paymentMethod === "MOMO" ? (
-                  <select
+                  <GenericDropdown
                     value={newPaymentStatus}
-                    onChange={(e) => setNewPaymentStatus(e.target.value)}
-                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
-                    // disabled={
-                    //   ((status !== ORDER_STATUS.CANCELLED_BY_YOU ||
-                    //     status !== ORDER_STATUS.CANCELLED_BY_EMPLOYEE) &&
-                    //     paymentStatus === PAYMENT_STATUS.PAID) ||
-                    //   status === ORDER_STATUS.CANCELLED_BY_YOU ||
-                    //   status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
-                    // }
+                    onChange={(value) => setNewPaymentStatus(value)}
+                    options={paymentStatusOptions.map((option) => ({
+                      ...option,
+                      disabled:
+                        status === ORDER_STATUS.CANCELLED_BY_YOU ||
+                        status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
+                          ? option.value !== PAYMENT_STATUS.REFUNDED
+                          : false,
+                    }))}
+                    placeholder="Chọn trạng thái thanh toán"
+                    displayKey="label"
+                    valueKey="value"
+                    className="w-full"
                     disabled={paymentStatus === PAYMENT_STATUS.PAID}
-                  >
-                    {Object.values(PAYMENT_STATUS).map((value, index) => (
-                      <option
-                        key={index}
-                        value={value}
-                        disabled={
-                          status === ORDER_STATUS.CANCELLED_BY_YOU ||
-                          status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
-                            ? value !== PAYMENT_STATUS.REFUNDED
-                            : false
-                        }
-                      >
-                        {value}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 ) : (
-                  <select
+                  <GenericDropdown
                     value={newPaymentStatus}
-                    onChange={(e) => setNewPaymentStatus(e.target.value)}
-                    className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0A0A0A] text-sm"
-                    disabled /* ={
-                      // (status !== ORDER_STATUS.CANCELLED &&
-                      //   orderWithDetails?.paymentDetails?.paymentMethod ===
-                      //     "COD") ||
-                      // status === ORDER_STATUS.SHIPPED
-                      true
-                    } */
-                  >
-                    {Object.values(PAYMENT_STATUS).map((value, index) => (
-                      <option
-                        key={index}
-                        value={value}
-                        disabled={
-                          status === ORDER_STATUS.SHIPPED
-                            ? value !== PAYMENT_STATUS.PAID
-                            : status === ORDER_STATUS.CANCELLED_BY_YOU ||
-                              status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
-                            ? value !== PAYMENT_STATUS.UNPAID
-                            : false
-                        }
-                      >
-                        {value}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setNewPaymentStatus(value)}
+                    options={paymentStatusOptions.map((option) => ({
+                      ...option,
+                      disabled:
+                        status === ORDER_STATUS.SHIPPED
+                          ? option.value !== PAYMENT_STATUS.PAID
+                          : status === ORDER_STATUS.CANCELLED_BY_YOU ||
+                            status === ORDER_STATUS.CANCELLED_BY_EMPLOYEE
+                          ? option.value !== PAYMENT_STATUS.UNPAID
+                          : false,
+                    }))}
+                    placeholder="Chọn trạng thái thanh toán"
+                    displayKey="label"
+                    valueKey="value"
+                    className="w-full"
+                    disabled={true}
+                  />
                 )}
               </div>
 

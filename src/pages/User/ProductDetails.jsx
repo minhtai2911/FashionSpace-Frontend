@@ -109,28 +109,55 @@ function ProductDetails() {
   };
 
   const fetchReviews = async () => {
-    const fetchedReviews = await getAllReviews(
-      true,
-      undefined,
-      undefined,
-      id,
-      undefined,
-      undefined
-    );
-    const data = await Promise.all(
-      fetchedReviews.map(async (review) => {
-        const user = await getUserById(review.userId);
-        const response = review.response;
-        let userResponse = null;
-        let reviewResponse = null;
-        if (response.length > 0) {
-          userResponse = await getUserById(response[0]?.userId);
-          reviewResponse ??= response[0];
-        }
-        return { ...review, user, userResponse, reviewResponse };
-      })
-    );
-    setReviews(data);
+    try {
+      const result = await getAllReviews(
+        1, // page
+        1000, // limit - get all reviews for this product
+        undefined, // status
+        undefined, // rating
+        undefined, // isActive
+        id, // productId
+        undefined, // userId
+        undefined // orderId
+      );
+
+      // Handle both old format (direct array) and new format (object with data property)
+      const fetchedReviews = result.data || result;
+
+      if (!Array.isArray(fetchedReviews)) {
+        console.error("Invalid reviews data:", fetchedReviews);
+        setReviews([]);
+        return;
+      }
+
+      const data = await Promise.all(
+        fetchedReviews.map(async (review) => {
+          try {
+            const user = await getUserById(review.userId);
+            const response = review.response;
+            let userResponse = null;
+            let reviewResponse = null;
+            if (response.length > 0) {
+              userResponse = await getUserById(response[0]?.userId);
+              reviewResponse ??= response[0];
+            }
+            return { ...review, user, userResponse, reviewResponse };
+          } catch (error) {
+            console.error("Error processing review:", review._id, error);
+            return {
+              ...review,
+              user: { fullName: "Unknown User" },
+              userResponse: null,
+              reviewResponse: null,
+            };
+          }
+        })
+      );
+      setReviews(data);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      setReviews([]);
+    }
   };
 
   const addToProductView = async () => {

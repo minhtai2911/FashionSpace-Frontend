@@ -45,19 +45,32 @@ function Header() {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const fetchedProducts = await getAllProducts();
-      const updatedProducts = await Promise.all(
-        fetchedProducts.map(async (product) => {
-          const images = product.images;
-          const category = product.categoryId;
-          return {
-            ...product,
-            imagePath: images[0].url,
-            category: category.name,
-          };
-        })
-      );
-      setProducts(updatedProducts);
+      try {
+        const result = await getAllProducts(1, 1000); // Get first 1000 products for search
+        // Handle both old format (direct array) and new format (object with data property)
+        const fetchedProducts = result.data || result;
+
+        if (Array.isArray(fetchedProducts)) {
+          const updatedProducts = await Promise.all(
+            fetchedProducts.map(async (product) => {
+              const images = product.images;
+              const category = product.categoryId;
+              return {
+                ...product,
+                imagePath: images[0].url,
+                category: category.name,
+              };
+            })
+          );
+          setProducts(updatedProducts);
+        } else {
+          console.error("Invalid products data:", fetchedProducts);
+          setProducts([]);
+        }
+      } catch (error) {
+        console.error("Error fetching products for search:", error);
+        setProducts([]);
+      }
     };
     fetchProducts();
   }, []);

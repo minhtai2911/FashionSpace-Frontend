@@ -61,7 +61,6 @@ export const REVIEW_STATUS = {
 export const PAYMENT_STATUS = {
   PAID: "Đã thanh toán",
   UNPAID: "Chưa thanh toán",
-  REFUNDED: "Đã hoàn tiền",
 };
 export const PRODUCT_STATUS = {
   ACTIVE: "Đang bán",

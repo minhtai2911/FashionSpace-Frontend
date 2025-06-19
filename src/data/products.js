@@ -2,15 +2,28 @@ import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
 export const getAllProducts = async (
+  page = 1,
+  limit = 10,
+  search,
   isActive,
   categoryIds,
-  search,
   minPrice,
   maxPrice,
-  sortName
+  sortBy,
+  sortOrder
 ) => {
   try {
     const params = new URLSearchParams();
+
+    // Add pagination parameters
+    params.append("page", page);
+    params.append("limit", limit);
+
+    // Add filter parameters
+    if (search) {
+      params.append("search", search);
+    }
+
     if (isActive === 1 || isActive === 0) {
       params.append("isActive", isActive);
     }
@@ -18,18 +31,6 @@ export const getAllProducts = async (
     if (categoryIds) {
       params.append("categoryIds", categoryIds);
     }
-
-    if (search) {
-      params.append("search", search);
-    }
-
-    // if (page) {
-    //   params.append("page", page);
-    // }
-
-    // if (limit) {
-    //   params.append("limit", limit);
-    // }
 
     if (minPrice) {
       params.append("minPrice", minPrice);
@@ -39,17 +40,22 @@ export const getAllProducts = async (
       params.append("maxPrice", maxPrice);
     }
 
-    if (sortName) {
-      params.append("sortName", sortName);
+    if (sortBy) {
+      params.append("sortBy", sortBy);
     }
+
+    if (sortOrder) {
+      params.append("sortOrder", sortOrder);
+    }
+
     console.log(params.toString());
-    const response = await instance.get(
-      `/product?${params.toString()}&limit=100`,
-      {
-        requiresAuth: false,
-      }
-    );
-    return response.data.data;
+    const response = await instance.get(`/product?${params.toString()}`, {
+      requiresAuth: false,
+    });
+    return {
+      data: response.data.data,
+      meta: response.data.meta,
+    };
   } catch (error) {
     console.log(error);
     throw error;

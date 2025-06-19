@@ -480,6 +480,7 @@ export default function Chatbot() {
                         {msg.results.map((result) => (
                           <ProductItem
                             key={result._id}
+                            soldQuantity={result.soldQuantity}
                             productName={result.name}
                             rating={result.rating}
                             image={

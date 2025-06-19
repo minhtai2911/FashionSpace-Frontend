@@ -1,10 +1,40 @@
 import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
-export const getAllUsers = async () => {
+export const getAllUsers = async (
+  page = 1,
+  limit = 10,
+  search,
+  isActive,
+  roleName
+) => {
   try {
-    const response = await instance.get("/user", { requiresAuth: true });
-    return response.data.data;
+    const params = new URLSearchParams();
+
+    // Add pagination parameters
+    params.append("page", page);
+    params.append("limit", limit);
+
+    // Add filter parameters
+    if (search) {
+      params.append("search", search);
+    }
+
+    if (isActive !== undefined && isActive !== null) {
+      params.append("isActive", isActive);
+    }
+
+    if (roleName && roleName !== "All") {
+      params.append("roleName", roleName);
+    }
+
+    const response = await instance.get(`/user?${params.toString()}`, {
+      requiresAuth: true,
+    });
+    return {
+      data: response.data.data,
+      meta: response.data.meta,
+    };
   } catch (error) {
     throw error;
   }

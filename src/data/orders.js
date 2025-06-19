@@ -2,29 +2,47 @@ import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
 export const getAllOrders = async (
-  orderTrackingStatus,
+  page = 1,
+  limit = 10,
+  search,
+  status,
   paymentMethod,
   paymentStatus
 ) => {
   try {
     const params = new URLSearchParams();
 
-    if (orderTrackingStatus) {
-      params.append("orderTrackingStatus", orderTrackingStatus);
+    // Add pagination parameters
+    params.append("page", page);
+    params.append("limit", limit);
+
+    // Add search parameter
+    if (search) {
+      params.append("search", search);
     }
 
-    if (paymentMethod) {
+    // Add status filter (this maps to the backend's status parameter)
+    if (status && status !== "All") {
+      params.append("status", status);
+    }
+
+    // Add payment method filter
+    if (paymentMethod && paymentMethod !== "All") {
       params.append("paymentMethod", paymentMethod);
     }
 
-    if (paymentStatus) {
+    // Add payment status filter
+    if (paymentStatus && paymentStatus !== "All") {
       params.append("paymentStatus", paymentStatus);
     }
 
     const response = await instance.get(`/order?${params.toString()}`, {
       requiresAuth: true,
     });
-    return response.data.data;
+    return {
+      data: response.data.data,
+      meta: response.data.meta,
+    };
   } catch (error) {
     throw error;
   }
@@ -42,7 +60,7 @@ export const getOrderById = async (id) => {
 export const getOrderByUserId = async (userId) => {
   try {
     const response = await instance.get(
-      "/order/get/userId",
+      "/order/get/userId?limit=1000",
       {
         userId: userId,
       },

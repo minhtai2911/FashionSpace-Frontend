@@ -2,9 +2,11 @@ import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
 export const getAllReviews = async (
-  isActive,
+  page = 1,
+  limit = 10,
   status,
   rating,
+  isActive,
   productId,
   userId,
   orderId
@@ -12,16 +14,21 @@ export const getAllReviews = async (
   try {
     const params = new URLSearchParams();
 
-    if (isActive) {
-      params.append("isActive", isActive);
-    }
+    // Add pagination parameters
+    params.append("page", page);
+    params.append("limit", limit);
 
-    if (status) {
+    // Add filter parameters
+    if (status && status !== "All") {
       params.append("status", status);
     }
 
-    if (rating) {
+    if (rating && rating !== "All") {
       params.append("rating", rating);
+    }
+
+    if (isActive !== undefined && isActive !== null) {
+      params.append("isActive", isActive);
     }
 
     if (productId) {
@@ -39,7 +46,10 @@ export const getAllReviews = async (
     const response = await instance.get(`/review?${params.toString()}`, {
       requiresAuth: false,
     });
-    return response.data.data;
+    return {
+      data: response.data.data,
+      meta: response.data.meta,
+    };
   } catch (error) {
     console.log(error);
     throw error;

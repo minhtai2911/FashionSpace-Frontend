@@ -21,6 +21,23 @@ import AuthContext from "../../context/AuthContext";
 import Error from "../Error";
 import SkeletonItem from "../../components/Skeleton";
 
+// Add debounce hook
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 function Shop() {
   const [minPrice, setMinPrice] = useState(MIN_PRICE);
   const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
@@ -32,8 +49,17 @@ function Shop() {
   const [currentPage, setCurrentPage] = useState(1);
   const [productData, setProductData] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [isApplied, setIsApplied] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
+  const [metadata, setMetadata] = useState({
+    totalCount: 0,
+    currentPage: 1,
+    totalPages: 1,
+  });
+
+  // Debounce price filters to reduce API calls
+  const debouncedMinPrice = useDebounce(minPrice, 500);
+  const debouncedMaxPrice = useDebounce(maxPrice, 500);
 
   const { auth, setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
@@ -91,7 +117,6 @@ function Shop() {
     setMaxPrice(MAX_PRICE);
     setTempMinPrice(MIN_PRICE);
     setTempMaxPrice(MAX_PRICE);
-    setIsApplied(false);
   };
 
   const clearAllFilters = () => {
@@ -119,69 +144,75 @@ function Shop() {
   }, [tempMinPrice, tempMaxPrice]);
 
   const applyFilters = () => {
-    setIsApplied(true);
-    console.log(tempMaxPrice, tempMinPrice);
     setMinPrice(tempMinPrice);
     setMaxPrice(tempMaxPrice);
   };
 
-  // const filteredProducts = productData.filter((product) => {
-  //   const isInPriceRange =
-  //     product.price >= minPrice && product.price <= maxPrice;
-  //   const isInSelectedCategories =
-  //     selectedCategoryIds.length === 0 ||
-  //     selectedCategoryIds.includes(product.category + ` [${product.gender}]`);
-  //   return isInPriceRange && isInSelectedCategories;
-  // });
-
-  // const sortedProducts = [...filteredProducts].sort((a, b) => {
-  //   switch (sortCriteria) {
-  //     case "price_asc":
-  //       return a.price - b.price;
-  //     case "price_desc":
-  //       return b.price - a.price;
-  //     case "rating_asc":
-  //       return a.rating - b.rating;
-  //     case "rating_desc":
-  //       return b.rating - a.rating;
-  //     case "name_asc":
-  //       return a.name.localeCompare(b.name);
-  //     case "name_desc":
-  //       return b.name.localeCompare(a.name);
-  //     default:
-  //       return 0;
-  //   }
-  // });
-
-  const currentProducts = productData.slice(
-    (currentPage - 1) * PRODUCTS_PER_PAGE,
-    currentPage * PRODUCTS_PER_PAGE
-  );
+  // Products are already paginated from server, no need for client-side slicing
+  const currentProducts = productData;
 
   const fetchData = async () => {
     setIsLoading(true);
 
     try {
-      const fetchedProducts = await getAllProducts(
-        true,
-        selectedCategoryIds.join(","),
-        null,
-        minPrice,
-        maxPrice,
-        sortCriteria
+      // Build query parameters for server-side filtering
+      let categoryIds = undefined;
+      if (selectedCategoryIds.length > 0) {
+        categoryIds = selectedCategoryIds.join(",");
+      }
+
+      // Convert sort criteria to backend format
+      let sortBy = "name";
+      let sortOrder = "asc";
+      if (sortCriteria) {
+        const [field, order] = sortCriteria.split("_");
+        sortBy = field;
+        sortOrder = order;
+      }
+
+      // Get paginated products with server-side filtering
+      const result = await getAllProducts(
+        currentPage,
+        PRODUCTS_PER_PAGE,
+        null, // search
+        true, // isActive
+        categoryIds,
+        debouncedMinPrice !== MIN_PRICE ? debouncedMinPrice : undefined, // minPrice
+        debouncedMaxPrice !== MAX_PRICE ? debouncedMaxPrice : undefined, // maxPrice
+        sortBy, // sortBy
+        sortOrder // sortOrder
       );
-      setProductData(fetchedProducts);
 
-      const fetchedCategories = await getAllCategories();
-      setCategories(fetchedCategories);
+      // Handle both old format (direct array) and new format (object with data property)
+      const fetchedProducts = result.data || result;
+      const fetchedMetadata = result.meta || {
+        totalCount: 0,
+        currentPage: 1,
+        totalPages: 1,
+      };
 
+      if (!Array.isArray(fetchedProducts)) {
+        console.error("Invalid products data:", fetchedProducts);
+        setProductData([]);
+        setMetadata({ totalCount: 0, currentPage: 1, totalPages: 1 });
+        return;
+      }
+
+      // Process products with category information (server already filtered and sorted)
       const updatedProducts = await Promise.all(
         fetchedProducts.map(async (product) => {
           const images = product.images;
           let category = {};
           if (product.categoryId) {
-            const categoryData = await getCategoryById(product.categoryId._id);
-            category = categoryData;
+            try {
+              const categoryData = await getCategoryById(
+                product.categoryId._id
+              );
+              category = categoryData;
+            } catch (error) {
+              console.error("Error fetching category:", error);
+              category = { name: "Unknown", gender: "Unknown" };
+            }
           }
           return {
             ...product,
@@ -191,17 +222,56 @@ function Shop() {
           };
         })
       );
+
       setProductData(updatedProducts);
+      setMetadata(fetchedMetadata);
     } catch (error) {
       console.error("Error fetching data:", error);
+      setProductData([]);
+      setMetadata({ totalCount: 0, currentPage: 1, totalPages: 1 });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Fetch categories separately (only once)
+  const fetchCategories = async () => {
+    try {
+      const categoriesResult = await getAllCategories(1, 1000, undefined, true);
+      const fetchedCategories = categoriesResult.data || categoriesResult;
+
+      if (Array.isArray(fetchedCategories)) {
+        setCategories(fetchedCategories);
+      } else {
+        console.error("Invalid categories data:", fetchedCategories);
+        setCategories([]);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setCategories([]);
+    }
+  };
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategoryIds, debouncedMinPrice, debouncedMaxPrice, sortCriteria]);
+
+  // Fetch data when page or filters change
   useEffect(() => {
     fetchData();
-  }, [isApplied, selectedCategoryIds, sortCriteria, minPrice, maxPrice]);
+  }, [
+    currentPage,
+    selectedCategoryIds,
+    debouncedMinPrice,
+    debouncedMaxPrice,
+    sortCriteria,
+  ]);
 
   if (user && (!permission || !permission.includes("SHOP"))) {
     setHasError(true);
@@ -297,14 +367,15 @@ function Shop() {
               <div className="flex flex-col gap-y-5">
                 <div className="flex justify-between items-center">
                   <div>
-                    {productData.length > 0 ? (
+                    {metadata.totalCount > 0 ? (
                       <div>
-                        Hiển thị {(currentPage - 1) * PRODUCTS_PER_PAGE + 1} -{" "}
+                        Hiển thị{" "}
+                        {(metadata.currentPage - 1) * PRODUCTS_PER_PAGE + 1} -{" "}
                         {Math.min(
-                          currentPage * PRODUCTS_PER_PAGE,
-                          productData.length
+                          metadata.currentPage * PRODUCTS_PER_PAGE,
+                          metadata.totalCount
                         )}{" "}
-                        của {productData.length} kết quả
+                        của {metadata.totalCount} kết quả
                       </div>
                     ) : (
                       <div>Hiển thị 0 - 0 của 0 kết quả</div>
@@ -385,13 +456,11 @@ function Shop() {
                   </div>
                 )}
               </div>
-              {currentProducts.length > 0 && (
+              {metadata.totalPages > 1 && (
                 <div className="mt-5">
                   <Pagination
-                    currentPage={currentPage}
-                    totalPages={Math.ceil(
-                      productData.length / PRODUCTS_PER_PAGE
-                    )}
+                    currentPage={metadata.currentPage}
+                    totalPages={metadata.totalPages}
                     onPageChange={setCurrentPage}
                     svgClassName={"w-6 h-6"}
                     textClassName={"text-xl px-4 py-2"}

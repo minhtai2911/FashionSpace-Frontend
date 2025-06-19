@@ -743,27 +743,33 @@ function Checkout() {
               Thông tin giao hàng
             </h3>
             <div className="flex flex-col overflow-scroll max-h-96 gap-5 mb-4 thin-scrollbar">
-              {userAddresses.map((userAddress) => (
-                <div className="flex flex-row gap-5 items-start">
-                  <input
-                    type="radio"
-                    checked={selectedUserAddress?._id === userAddress._id}
-                    onChange={() => {
-                      setSelectedUserAddress(userAddress);
-                      setOpenSelectAddressModal(false);
-                    }}
-                    value={userAddress._id}
-                    className="mt-2 ml-2"
-                  />
-                  <div className="flex flex-col gap-y-2">
-                    <p>Số điện thoại: {userAddress.phone}</p>
-                    <p>Tỉnh/Thành phố: {userAddress.city}</p>
-                    <p>Quận/Huyện: {userAddress.district}</p>
-                    <p>Xã: {userAddress.commune}</p>
-                    <p>Đường: {userAddress.street}</p>
+              {userAddresses.length > 0 ? (
+                userAddresses.map((userAddress) => (
+                  <div className="flex flex-row gap-5 items-start">
+                    <input
+                      type="radio"
+                      checked={selectedUserAddress?._id === userAddress._id}
+                      onChange={() => {
+                        setSelectedUserAddress(userAddress);
+                        setOpenSelectAddressModal(false);
+                      }}
+                      value={userAddress._id}
+                      className="mt-2 ml-2"
+                    />
+                    <div className="flex flex-col gap-y-2">
+                      <p>Số điện thoại: {userAddress.phone}</p>
+                      <p>Tỉnh/Thành phố: {userAddress.city}</p>
+                      <p>Quận/Huyện: {userAddress.district}</p>
+                      <p>Xã: {userAddress.commune}</p>
+                      <p>Đường: {userAddress.street}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-center text-gray-500">
+                  Không có thông tin giao hàng
+                </p>
+              )}
             </div>
           </div>
         </Modal.Body>

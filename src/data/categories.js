@@ -1,12 +1,42 @@
 import instance from "../services/axiosConfig";
 import Cookies from "js-cookie";
 
-export const getAllCategories = async () => {
+export const getAllCategories = async (
+  page = 1,
+  limit = 10,
+  search,
+  isActive,
+  gender
+) => {
   try {
-    const response = await instance.get("/category?limit=100", {
+    const params = new URLSearchParams();
+
+    // Add pagination parameters
+    params.append("page", page);
+    params.append("limit", limit);
+
+    // Add search parameter
+    if (search) {
+      params.append("search", search);
+    }
+
+    // Add isActive filter
+    if (isActive !== undefined && isActive !== null) {
+      params.append("isActive", isActive);
+    }
+
+    // Add gender filter
+    if (gender) {
+      params.append("gender", gender);
+    }
+
+    const response = await instance.get(`/category?${params.toString()}`, {
       requiresAuth: false,
     });
-    return response.data.data;
+    return {
+      data: response.data.data,
+      meta: response.data.meta,
+    };
   } catch (error) {
     console.log(error);
     throw error;
@@ -89,23 +119,9 @@ export const updateCategory = async (id, name, gender) => {
   }
 };
 
-export const deleteCategoryById = async (id) => {
-  // const refreshToken = Cookies.get("refreshToken");
+export const updateStatusCategoryById = async (id) => {
   try {
-    // const tokenResponse = await instance.post(
-    //   "/auth/refreshToken",
-    //   {
-    //     refreshToken: refreshToken,
-    //   },
-    //   {
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //   }
-    // );
-    // const accessToken = tokenResponse.data.data.accessToken;
-    // Cookies.set("refreshToken", tokenResponse.data.data.refreshToken);
-    const response = await instance.put(`/category/${id}`, {
+    const response = await instance.put(`/category/archive/${id}`, {
       requiresAuth: true,
     });
     return response.data.data;

@@ -22,6 +22,7 @@ import Error from "../Error";
 import AuthContext from "../../context/AuthContext";
 import Cookies from "js-cookie";
 import ColorDropdown from "../../components/ColorDropdown";
+import CategoryDropdown from "../../components/CategoryDropdown";
 import { COLORS } from "../../utils/Constants";
 
 export default function UpdateProduct() {
@@ -114,7 +115,10 @@ export default function UpdateProduct() {
 
     const fetchCategories = async () => {
       try {
-        const fetchedCategories = await getAllCategories();
+        // Fetch all active categories for the dropdown (use large limit to get all)
+        const result = await getAllCategories(1, 1000, undefined, true);
+        // Handle both old format (direct array) and new format (object with data property)
+        const fetchedCategories = result.data || result;
         setCategories(fetchedCategories);
       } catch (error) {}
     };
@@ -356,7 +360,9 @@ export default function UpdateProduct() {
 
           <div className="flex-[2] flex flex-col gap-y-5">
             <div className="flex flex-col gap-y-2">
-              <p className="font-manrope font-semibold">Tên sản phẩm</p>
+              <p className="font-manrope font-semibold">
+                Tên sản phẩm <b className="text-[#EF0606]">*</b>
+              </p>
               <input
                 id="productName"
                 value={productName}
@@ -367,27 +373,19 @@ export default function UpdateProduct() {
             </div>
             <div className="flex flex-row gap-x-10">
               <div className="flex flex-col gap-y-2 flex-1">
-                <p className="font-manrope font-semibold">Danh mục</p>
-                <select
-                  id="categoryId"
+                <p className="font-manrope font-semibold">
+                  Danh mục <b className="text-[#EF0606]">*</b>
+                </p>
+                <CategoryDropdown
                   value={categoryId}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
-                  required
-                >
-                  {categories.map((category) => (
-                    <option
-                      key={category._id}
-                      value={category._id}
-                      defaultValue={categoryId}
-                    >
-                      {`${category.name} [${category.gender}]`}
-                    </option>
-                  ))}
-                </select>
+                  onChange={handleCategoryChange}
+                  categories={categories}
+                />
               </div>
               <div className="flex flex-col flex-1 gap-y-2">
-                <p className="font-manrope font-semibold">Đơn giá</p>
+                <p className="font-manrope font-semibold">
+                  Đơn giá <b className="text-[#EF0606]">*</b>
+                </p>
                 <input
                   id="price"
                   value={price}
@@ -398,7 +396,9 @@ export default function UpdateProduct() {
               </div>
             </div>
             <div className="flex flex-col gap-y-2">
-              <p className="font-manrope font-semibold">Mô tả</p>
+              <p className="font-manrope font-semibold">
+                Mô tả <b className="text-[#EF0606]">*</b>
+              </p>
               <textarea
                 rows="4"
                 id="description"
@@ -415,7 +415,9 @@ export default function UpdateProduct() {
           <main key={index} className="relative mb-2">
             <div className="flex gap-x-10 px-10">
               <div className="flex flex-col gap-y-2 flex-1">
-                <p className="font-manrope font-semibold">Kích cỡ</p>
+                <p className="font-manrope font-semibold">
+                  Kích cỡ <b className="text-[#EF0606]">*</b>
+                </p>
                 <input
                   id="size"
                   value={variant.size}
@@ -428,7 +430,9 @@ export default function UpdateProduct() {
               </div>
               <div className="flex-[2] flex flex-row gap-x-10">
                 <div className="flex flex-col gap-y-2 flex-1">
-                  <p className="font-manrope font-semibold">Màu sắc</p>
+                  <p className="font-manrope font-semibold">
+                    Màu sắc <b className="text-[#EF0606]">*</b>
+                  </p>
                   <ColorDropdown
                     value={variant.color}
                     onChange={(color) =>
@@ -438,7 +442,9 @@ export default function UpdateProduct() {
                   />
                 </div>
                 <div className="flex flex-col flex-1 gap-y-2">
-                  <p className="font-manrope font-semibold">Số lượng</p>
+                  <p className="font-manrope font-semibold">
+                    Số lượng <b className="text-[#EF0606]">*</b>
+                  </p>
                   <input
                     id="quantity"
                     value={variant.quantity}

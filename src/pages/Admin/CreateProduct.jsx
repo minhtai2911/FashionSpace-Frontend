@@ -15,6 +15,7 @@ import AuthContext from "../../context/AuthContext";
 import Cookies from "js-cookie";
 import { COLORS } from "../../utils/Constants";
 import ColorDropdown from "../../components/ColorDropdown";
+import CategoryDropdown from "../../components/CategoryDropdown";
 
 export default function CreateProduct() {
   const navigate = useNavigate();
@@ -70,7 +71,10 @@ export default function CreateProduct() {
 
   const fetchCategories = async () => {
     try {
-      const fetchedCategories = await getAllCategories();
+      // Fetch all active categories for the dropdown (use large limit to get all)
+      const result = await getAllCategories(1, 1000, undefined, true);
+      // Handle both old format (direct array) and new format (object with data property)
+      const fetchedCategories = result.data || result;
       setCategories(fetchedCategories);
     } catch (error) {}
   };
@@ -266,22 +270,11 @@ export default function CreateProduct() {
                 <p className="font-manrope font-semibold">
                   Danh mục <b className="text-[#EF0606]">*</b>
                 </p>
-                <select
-                  id="categoryId"
+                <CategoryDropdown
                   value={categoryId}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                  className="w-full font-semibold font-manrope px-5 py-3 border border-[#808191] focus:outline-none rounded-lg bg-transparent text-[#0a0a0a] text-sm"
-                  required
-                >
-                  <option value="" className="text-[#808191]">
-                    Chọn danh mục
-                  </option>
-                  {categories.map((category) => (
-                    <option key={category._id} value={category._id}>
-                      {`${category.name} [${category.gender}]`}
-                    </option>
-                  ))}
-                </select>
+                  onChange={handleCategoryChange}
+                  categories={categories}
+                />
               </div>
               <div className="flex flex-col flex-1 gap-y-2">
                 <p className="font-manrope font-semibold">
@@ -406,12 +399,19 @@ export default function CreateProduct() {
           </button>
         </div>
       </div>
-      <button
-        className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold mt-10"
-        onClick={handleCreateProduct}
-      >
-        Thêm sản phẩm
-      </button>
+      <div className="flex gap-x-5 mt-10 items-center">
+        <Link to={"/admin/products"}>
+          <button className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold">
+            Quay về
+          </button>
+        </Link>
+        <button
+          className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold"
+          onClick={handleCreateProduct}
+        >
+          Thêm sản phẩm
+        </button>
+      </div>
     </div>
   );
 }
