@@ -3,7 +3,9 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import dayjs from "dayjs";
 
-const baseURL = "http://localhost:8000/api/v1";
+const baseURL = process.env.REACT_APP_BUILD_MODE === "production"
+  ? "https://fashionspace-api.onrender.com/api/v1"
+  : "http://localhost:8000/api/v1";
 
 const instance = axios.create({
   baseURL,
