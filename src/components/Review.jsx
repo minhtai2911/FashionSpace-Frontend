@@ -4,6 +4,7 @@ import { CalendarDays } from "lucide-react";
 
 import Rating from "./Rating";
 import { formatDate, formatURL } from "../utils/format";
+import defaultAvatar from "../assets/avatars/default.png";
 
 function Review({ user = null, rating = null, content = "", updatedAt = "" }) {
   return (
@@ -11,8 +12,11 @@ function Review({ user = null, rating = null, content = "", updatedAt = "" }) {
       <div className="flex flex-row gap-x-2 items-center">
         <img
           className="w-12 h-12 rounded-full"
-          src={formatURL(user?.avatarPath)}
+          src={user?.avatarPath ? formatURL(user?.avatarPath) : defaultAvatar}
           alt={user?.fullName}
+          onError={(e) => {
+            e.target.src = defaultAvatar;
+          }}
         />
         <div className="flex flex-col">
           <div className="flex flex-row gap-x-3 items-center">

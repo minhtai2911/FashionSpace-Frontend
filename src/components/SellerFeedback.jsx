@@ -4,6 +4,7 @@ import { CalendarDays } from "lucide-react";
 
 import Rating from "./Rating";
 import { formatDate, formatURL } from "../utils/format";
+import defaultAvatar from "../assets/avatars/default.png";
 
 function SellerFeedback({ user = null, content = "", createdDate = "" }) {
   return (
@@ -13,8 +14,11 @@ function SellerFeedback({ user = null, content = "", createdDate = "" }) {
         <div className="flex flex-row gap-x-2 items-center">
           <img
             className="w-10 h-10 rounded-full"
-            src={formatURL(user?.avatarPath)}
+            src={user?.avatarPath ? formatURL(user?.avatarPath) : defaultAvatar}
             alt={user?.name}
+            onError={(e) => {
+              e.target.src = defaultAvatar;
+            }}
           />
           <div className="flex flex-col gap-y-1">
             <div className="flex flex-row gap-x-3 items-center">

@@ -8,6 +8,7 @@ import { getAllProducts } from "../data/products";
 import { formatToVND, formatURL } from "../utils/format";
 import { getUserById } from "../data/users";
 import { getCategoryById } from "../data/categories";
+import defaultAvatar from "../assets/avatars/default.png";
 
 import useSpeechToText from "react-hook-speech-to-text";
 
@@ -308,8 +309,15 @@ function Header() {
                 >
                   <img
                     className="w-8 h-8 rounded-full"
-                    src={formatURL(userData?.avatarPath)}
+                    src={
+                      userData?.avatarPath
+                        ? formatURL(userData?.avatarPath)
+                        : defaultAvatar
+                    }
                     alt="userData photo"
+                    onError={(e) => {
+                      e.target.src = defaultAvatar;
+                    }}
                   />
                 </button>
                 <div

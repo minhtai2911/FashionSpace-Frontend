@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import instance from "../services/axiosConfig";
 import { formatURL } from "../utils/format";
 import { getUserById } from "../data/users";
+import defaultAvatar from "../assets/avatars/default.png";
 
 export default function PersonalInformation({ user }) {
   const [data, setData] = useState({
@@ -123,9 +124,12 @@ export default function PersonalInformation({ user }) {
     <div className="w-[600px] mb-20">
       <div className="mb-6 relative w-24 h-24">
         <img
-          src={formatURL(data?.avatarPath)}
+          src={data?.avatarPath ? formatURL(data?.avatarPath) : defaultAvatar}
           alt="Profile"
           className="w-full h-full rounded-full object-cover"
+          onError={(e) => {
+            e.target.src = defaultAvatar;
+          }}
         />
         <button
           type="button"
