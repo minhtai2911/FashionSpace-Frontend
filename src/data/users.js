@@ -87,7 +87,7 @@ export const updateUserById = async (id, fullName, phone, roleId) => {
 
 export const archiveUserById = async (id) => {
   try {
-    const response = await instance.delete(`/user/${id}`, {
+    const response = await instance.put(`/user/archive/${id}`, {
       requiresAuth: true,
     });
     return response.data.data;
