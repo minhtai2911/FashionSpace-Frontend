@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getProductById } from "../../data/products";
 import { getCategoryById } from "../../data/categories";
 import { getProductVariantsByProductId } from "../../data/productVariant";
@@ -11,6 +11,7 @@ import Cookies from "js-cookie";
 
 export default function AdminProductDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [productName, setProductName] = useState("");
   const [photos, setPhotos] = useState([]);
   const [category, setCategory] = useState([]);
@@ -20,6 +21,10 @@ export default function AdminProductDetails() {
 
   const { auth, setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
 
   const fetchProduct = async () => {
     try {
@@ -161,11 +166,12 @@ export default function AdminProductDetails() {
           </main>
         ))}
       </div>
-      <Link to={"/admin/products"}>
-        <button className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10">
-          Quay về
-        </button>
-      </Link>
+      <button
+        onClick={handleGoBack}
+        className="px-6 py-2 rounded bg-[#0A0A0A] text-white font-extrabold mt-10"
+      >
+        Quay về
+      </button>
     </div>
   );
 }

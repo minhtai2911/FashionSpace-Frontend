@@ -127,7 +127,6 @@ export default function Dashboard() {
   };
 
   const fetchStatisticsOverview = async () => {
-    console.log("Fetching statistics overview");
     try {
       const data = await getStatisticsOverview();
       setStatisticsOverview(data);

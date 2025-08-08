@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useNavigate, useSearchParams } from "react-router-dom";
 import { Table, Modal, Button } from "flowbite-react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 
@@ -22,7 +22,6 @@ export default function Products() {
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [categories, setCategories] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [metadata, setMetadata] = useState({
     totalCount: 0,
     currentPage: 1,
@@ -33,8 +32,22 @@ export default function Products() {
   const [openArchiveModal, setOpenArchiveModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState({});
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const currentPage = parseInt(searchParams.get("page")) || 1;
+
   const { auth, setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
+
+  const handlePageChange = (page) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (page === 1) {
+      newSearchParams.delete("page");
+    } else {
+      newSearchParams.set("page", page.toString());
+    }
+    setSearchParams(newSearchParams);
+  };
 
   const handleDeleteProduct = async (productId, isActive) => {
     try {
@@ -61,7 +74,6 @@ export default function Products() {
       const search =
         debouncedSearchTerm === "" ? undefined : debouncedSearchTerm;
 
-      // Extract category ID from selected category for server-side filtering
       let categoryIds = undefined;
       if (selectedCategory !== "All") {
         const selectedCategoryObj = categories.find(
@@ -80,7 +92,6 @@ export default function Products() {
         categoryIds
       );
 
-      // Ensure result has the expected structure
       if (!result || !result.data) {
         console.error("Invalid API response:", result);
         setProducts([]);
@@ -120,7 +131,6 @@ export default function Products() {
     }
   }
 
-  // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -129,18 +139,25 @@ export default function Products() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Reset to page 1 when filters change
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useEffect(() => {
-    setCurrentPage(1);
+    if (hasInitialized && currentPage !== 1) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("page");
+      setSearchParams(newSearchParams);
+    }
   }, [debouncedSearchTerm, selectedStatus, selectedCategory]);
 
-  // Fetch categories first
+  useEffect(() => {
+    setHasInitialized(true);
+  }, []);
+
   useEffect(() => {
     const loadCategories = async () => {
       if (categories.length === 0) {
         try {
           const result = await getAllCategories(1, 1000, undefined, true);
-          // Handle both old format (direct array) and new format (object with data property)
           const fetchedCategories = result.data || result;
           if (Array.isArray(fetchedCategories)) {
             setCategories(fetchedCategories);
@@ -160,7 +177,6 @@ export default function Products() {
     loadCategories();
   }, []);
 
-  // Fetch data when page or filters change (after categories are loaded)
   useEffect(() => {
     if (categories.length > 0 || selectedCategory === "All") {
       fetchProducts();
@@ -173,10 +189,8 @@ export default function Products() {
     categories,
   ]);
 
-  // No need for client-side slicing since backend handles pagination
   const currentProducts = products;
 
-  // Prepare filter options
   const statusOptions = [
     { key: "all", value: "All", label: "Tất cả" },
     ...Object.values(PRODUCT_STATUS).map((status) => ({
@@ -429,7 +443,7 @@ export default function Products() {
               <Pagination
                 currentPage={currentPage}
                 totalPages={metadata.totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
                 svgClassName={"w-5 h-5"}
                 textClassName={"text-sm px-3 py-2"}
               />

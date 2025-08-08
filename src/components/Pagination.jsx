@@ -53,10 +53,7 @@ const Pagination = ({
       >
         {/* Previous button */}
         {currentPage === 1 ? (
-          <a
-            className="relative inline-flex items-center px-2 py-2 border-none bg-white text-sm font-bold text-gray-500 cursor-not-allowed"
-            href="javascript:void(0)"
-          >
+          <a className="relative inline-flex items-center px-2 py-2 border-none bg-white text-sm font-bold text-gray-500 cursor-not-allowed">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -109,10 +106,7 @@ const Pagination = ({
 
         {/* Next button */}
         {currentPage === totalPages ? (
-          <a
-            className="relative inline-flex items-center px-2 py-2 border-none bg-white text-sm font-bold text-gray-500 cursor-not-allowed"
-            href="javascript:void(0)"
-          >
+          <a className="relative inline-flex items-center px-2 py-2 border-none bg-white text-sm font-bold text-gray-500 cursor-not-allowed">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

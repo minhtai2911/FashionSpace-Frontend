@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FileInput, Label } from "flowbite-react";
 
 import { getAllCategories, getCategoryById } from "../../data/categories";
@@ -31,6 +31,10 @@ export default function UpdateProduct() {
   const permission = Cookies.get("permission") ?? null;
 
   const { id } = useParams();
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
   const [category, setCategory] = useState([]);
   const [productName, setProductName] = useState("");
   const [categoryId, setCategoryId] = useState(null);
@@ -226,7 +230,7 @@ export default function UpdateProduct() {
       );
 
       toast.success("Chỉnh sửa sản phẩm thành công", { duration: 2000 });
-      navigate("/admin/products");
+      navigate(-1);
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.message, { duration: 2000 });
@@ -505,11 +509,12 @@ export default function UpdateProduct() {
         </div>
       </div>
       <div className="flex gap-x-5 items-center mt-10">
-        <Link to={"/admin/products"}>
-          <button className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold">
-            Quay về
-          </button>
-        </Link>
+        <button
+          onClick={handleGoBack}
+          className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold"
+        >
+          Quay về
+        </button>
         <button
           className="px-6 py-2 rounded-lg bg-[#0A0A0A] text-white font-extrabold"
           onClick={handleUpdateProduct}
