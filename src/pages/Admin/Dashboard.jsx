@@ -16,7 +16,7 @@ import { getAllUsers, getUserById } from "../../data/users";
 
 import { formatDate, formatToVND, formatURL } from "../../utils/format";
 import { ORDER_STATUS } from "../../utils/Constants";
-import { getStatistics } from "../../data/statistic";
+import { getStatistics, getStatisticsOverview } from "../../data/statistic";
 import dayjs from "dayjs";
 import toast from "react-hot-toast";
 import AuthContext from "../../context/AuthContext";
@@ -26,8 +26,6 @@ import Pagination from "../../components/Pagination";
 
 export default function Dashboard() {
   const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [users, setUsers] = useState([]);
   const [statistics, setStatistics] = useState([]);
   const [bestSellerProducts, setBestSellerProducts] = useState([]);
   const [latestOrders, setLatestOrders] = useState([]);
@@ -35,7 +33,7 @@ export default function Dashboard() {
   const [yearRevenue, setYearRevenue] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const BEST_SELLER_PRODUCTS_PER_PAGE = 3;
-
+  const [statisticsOverview, setStatisticsOverview] = useState({});
   const { setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
 
@@ -68,20 +66,6 @@ export default function Dashboard() {
       setLatestOrders(sortedOrders.slice(0, 5));
     } catch (error) {}
   }
-
-  const fetchProduct = async () => {
-    try {
-      const data = await getAllProducts();
-      setProducts(data);
-    } catch (error) {}
-  };
-
-  const fetchUser = async () => {
-    try {
-      const data = await getAllUsers();
-      setUsers(data);
-    } catch (error) {}
-  };
 
   const fetchBestSellerProducts = async () => {
     try {
@@ -142,6 +126,14 @@ export default function Dashboard() {
     } catch (error) {}
   };
 
+  const fetchStatisticsOverview = async () => {
+    console.log("Fetching statistics overview");
+    try {
+      const data = await getStatisticsOverview();
+      setStatisticsOverview(data);
+    } catch (error) {}
+  };
+
   const getStatusClass = (status) => {
     switch (status) {
       case ORDER_STATUS.SHIPPED:
@@ -170,11 +162,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchOrders();
-    fetchProduct();
-    fetchUser();
     fetchBestSellerProducts();
     fetchStatistics();
     fetchYearStatistics();
+    fetchStatisticsOverview();
   }, []);
 
   const chartData = statistics.map((stat) => ({
@@ -199,7 +190,7 @@ export default function Dashboard() {
       <div className="flex flex-row gap-x-5 mt-10">
         <DashboardCard
           title={"Tổng đơn hàng"}
-          value={orders.length}
+          value={statisticsOverview.orderCount}
           description={"Số lượng đơn hàng đã đặt"}
           icon={
             <svg
@@ -243,7 +234,7 @@ export default function Dashboard() {
         />
         <DashboardCard
           title={"Tổng sản phẩm"}
-          value={products.length}
+          value={statisticsOverview.productCount}
           description={"Số lượng sản phẩm của cửa hàng"}
           icon={
             <svg
@@ -265,7 +256,7 @@ export default function Dashboard() {
         />
         <DashboardCard
           title={"Tổng người dùng"}
-          value={users.length}
+          value={statisticsOverview.userCount}
           description={"Số lượng người dùng của website"}
           icon={
             <svg
