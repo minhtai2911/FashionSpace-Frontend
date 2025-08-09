@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { getAllProducts } from "../../data/products";
 import Banner from "../../components/Banner";
@@ -38,6 +39,7 @@ function useDebounce(value, delay) {
 }
 
 function Shop() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [minPrice, setMinPrice] = useState(MIN_PRICE);
   const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
   const [tempMinPrice, setTempMinPrice] = useState(MIN_PRICE);
@@ -46,6 +48,7 @@ function Shop() {
   const [selectedCategoryNames, setSelectedCategoryNames] = useState([]);
   const [sortCriteria, setSortCriteria] = useState(SORT_BY[0].value);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
   const [productData, setProductData] = useState([]);
   const [categories, setCategories] = useState([]);
   const [categoryOffset, setCategoryOffset] = useState(0);
@@ -124,6 +127,27 @@ function Shop() {
     resetPrice();
     setSelectedCategoryIds([]);
     setSelectedCategoryNames([]);
+    clearSearchQuery();
+  };
+
+  const clearSearchQuery = () => {
+    setSearchQuery("");
+    // Update URL to remove q parameter
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete("q");
+    setSearchParams(newSearchParams);
+  };
+
+  const updateSearchQuery = (query) => {
+    setSearchQuery(query);
+    // Update URL with new search query
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (query && query.trim()) {
+      newSearchParams.set("q", encodeURIComponent(query.trim()));
+    } else {
+      newSearchParams.delete("q");
+    }
+    setSearchParams(newSearchParams);
   };
 
   useEffect(() => {
@@ -171,7 +195,7 @@ function Shop() {
       const result = await getAllProducts(
         currentPage,
         PRODUCTS_PER_PAGE,
-        null,
+        searchQuery || null,
         true,
         categoryIds,
         debouncedMinPrice !== MIN_PRICE ? debouncedMinPrice : undefined,
@@ -291,9 +315,29 @@ function Shop() {
     fetchCategories();
   }, []);
 
+  // Handle URL query parameter
+  useEffect(() => {
+    const qParam = searchParams.get("q");
+    if (qParam && qParam.trim()) {
+      setSearchQuery(decodeURIComponent(qParam).trim());
+    } else if (qParam !== null) {
+      // If q exists but is empty/whitespace, remove it from URL
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("q");
+      setSearchParams(newSearchParams, { replace: true });
+      setSearchQuery("");
+    }
+  }, [searchParams, setSearchParams]);
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategoryIds, debouncedMinPrice, debouncedMaxPrice, sortCriteria]);
+  }, [
+    selectedCategoryIds,
+    debouncedMinPrice,
+    debouncedMaxPrice,
+    sortCriteria,
+    searchQuery,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -303,6 +347,7 @@ function Shop() {
     debouncedMinPrice,
     debouncedMaxPrice,
     sortCriteria,
+    searchQuery,
   ]);
 
   if (user && (!permission || !permission.includes("SHOP"))) {
@@ -457,6 +502,13 @@ function Shop() {
                 >
                   <span className="mr-2">Bộ lọc hiện tại:</span>
                   <div className="flex gap-3 flex-wrap">
+                    {searchQuery && (
+                      <FilterItem
+                        key="search-query"
+                        name={`${searchQuery}`}
+                        onRemove={clearSearchQuery}
+                      />
+                    )}
                     {selectedCategoryNames.map((category, index) => (
                       <FilterItem
                         key={index}
@@ -474,7 +526,8 @@ function Shop() {
                       />
                     )}
                   </div>
-                  {(selectedCategoryIds.length > 0 ||
+                  {(searchQuery ||
+                    selectedCategoryIds.length > 0 ||
                     minPrice !== MIN_PRICE ||
                     maxPrice !== MAX_PRICE) && (
                     <div

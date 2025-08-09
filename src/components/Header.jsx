@@ -2,15 +2,29 @@ import { useContext, useState, useEffect, useRef } from "react";
 import AuthContext from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import Cookies from "js-cookie";
 
 import { getAllProducts } from "../data/products";
 import { formatToVND, formatURL } from "../utils/format";
 import { getUserById } from "../data/users";
-import { getCategoryById } from "../data/categories";
 import defaultAvatar from "../assets/avatars/default.png";
 
 import useSpeechToText from "react-hook-speech-to-text";
+
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 function Header() {
   const { auth, logout, user } = useContext(AuthContext);
@@ -20,12 +34,16 @@ function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [products, setProducts] = useState([]);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [searchMetadata, setSearchMetadata] = useState({ totalCount: 0 });
   const carts = useSelector((store) => store.cart.items);
   const modalRef = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const [isSpeechPopupOpen, setIsSpeechPopupOpen] = useState(false);
   const [speechTimeout, setSpeechTimeout] = useState(null);
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const {
     error,
@@ -45,11 +63,20 @@ function Header() {
   });
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const searchProducts = async () => {
+      if (!debouncedSearchQuery.trim()) {
+        setProducts([]);
+        setSearchMetadata({ totalCount: 0 });
+        setIsSearchLoading(false);
+        return;
+      }
+
+      setIsSearchLoading(true);
       try {
-        const result = await getAllProducts(1, 1000); // Get first 1000 products for search
-        // Handle both old format (direct array) and new format (object with data property)
+        const result = await getAllProducts(1, 10, debouncedSearchQuery, true);
         const fetchedProducts = result.data || result;
+        const metadata = result.meta || { totalCount: 0 };
+        setSearchMetadata(metadata);
 
         if (Array.isArray(fetchedProducts)) {
           const updatedProducts = await Promise.all(
@@ -69,12 +96,15 @@ function Header() {
           setProducts([]);
         }
       } catch (error) {
-        console.error("Error fetching products for search:", error);
+        console.error("Error searching products:", error);
         setProducts([]);
+      } finally {
+        setIsSearchLoading(false);
       }
     };
-    fetchProducts();
-  }, []);
+
+    searchProducts();
+  }, [debouncedSearchQuery]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -103,6 +133,9 @@ function Header() {
   const closeSearchModal = () => {
     setIsSearchModalOpen(false);
     setSearchQuery("");
+    setProducts([]);
+    setSearchMetadata({ totalCount: 0 });
+    setIsSearchLoading(false);
   };
 
   useEffect(() => {
@@ -139,17 +172,18 @@ function Header() {
     setSearchQuery(e.target.value);
   };
 
-  const filteredProducts = searchQuery
-    ? products.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : [];
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      e.preventDefault();
+      closeSearchModal();
+      navigate(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const filteredProducts = products;
 
   useEffect(() => {
     if (results.length > 0) {
-      // Use the most recent result
       const lastResult = results[results.length - 1];
       setSearchQuery(lastResult.transcript);
     }
@@ -158,6 +192,9 @@ function Header() {
   const handleSpeech = () => {
     setIsSpeechPopupOpen(true);
     setSearchQuery("");
+    setProducts([]);
+    setSearchMetadata({ totalCount: 0 });
+    setIsSearchLoading(false);
     stopSpeechToText();
     startSpeechToText();
   };
@@ -462,41 +499,71 @@ function Header() {
                   value={searchQuery}
                   placeholder="Tìm kiếm sản phẩm..."
                   onChange={handleSearchChange}
+                  onKeyDown={handleSearchKeyDown}
                   autoComplete="off"
                 />
               </div>
-              <div
-                className="absolute top-16 w-[80%] overflow-y-auto max-h-[300px] rounded-md bg-white"
-                style={{ boxShadow: "0 1rem 1rem rgba(0, 0, 0, .2)" }}
-              >
-                {filteredProducts.map((product) => (
-                  <div key={product._id}>
-                    <Link
-                      to={`/products/details/${product._id}`}
-                      onClick={closeSearchModal}
-                    >
-                      <div className="flex items-center px-3 py-2 hover:bg-gray-100">
-                        <img
-                          src={formatURL(product.imagePath)}
-                          alt={product.name}
-                          className="w-10 h-10 rounded-full"
-                        />
-                        <div className="ml-3">
-                          <p className="text-sm font-semibold">
-                            {product.name}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {formatToVND(product.price)}
-                          </p>
+              {searchQuery.trim() && (
+                <div
+                  className="absolute top-16 w-[80%] overflow-y-auto max-h-[300px] rounded-md bg-white"
+                  style={{ boxShadow: "0 1rem 1rem rgba(0, 0, 0, .2)" }}
+                >
+                  {isSearchLoading ? (
+                    <div className="flex items-center justify-center p-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                      <span className="ml-2 text-sm text-gray-600">
+                        Đang tìm kiếm...
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      {filteredProducts.map((product) => (
+                        <div key={product._id}>
+                          <Link
+                            to={`/products/details/${product._id}`}
+                            onClick={closeSearchModal}
+                          >
+                            <div className="flex items-center px-3 py-2 hover:bg-gray-100">
+                              <img
+                                src={formatURL(product.imagePath)}
+                                alt={product.name}
+                                className="w-10 h-10 rounded-full"
+                              />
+                              <div className="ml-3">
+                                <p className="text-sm font-semibold">
+                                  {product.name}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  {formatToVND(product.price)}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
                         </div>
-                      </div>
-                    </Link>
-                  </div>
-                ))}
-                {filteredProducts.length <= 0 && searchQuery != "" && (
-                  <p className="p-3">Không có sản phẩm phù hợp</p>
-                )}
-              </div>
+                      ))}
+                      {filteredProducts.length <= 0 &&
+                        debouncedSearchQuery.trim() && (
+                          <p className="p-3">Không có sản phẩm phù hợp</p>
+                        )}
+                      {searchMetadata.totalCount > 10 && (
+                        <div className="border-t p-3">
+                          <Link
+                            to={`/products?q=${encodeURIComponent(
+                              debouncedSearchQuery
+                            )}`}
+                            onClick={closeSearchModal}
+                            className="flex items-center justify-center w-full p-2 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+                            role="button"
+                            aria-label="Xem thêm kết quả tìm kiếm"
+                          >
+                            Xem thêm ({searchMetadata.totalCount} kết quả)
+                          </Link>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
               <button
                 className="mr-6 rounded-full disabled:cursor-not-allowed microphone-button"
                 disabled={isRecording}
