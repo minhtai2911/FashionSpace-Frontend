@@ -441,8 +441,11 @@ function Checkout() {
                         checked={userType === type}
                         onChange={() => setUserType(type)}
                         value={type}
+                        id={type}
                       />
-                      <label className="ml-2">{type}</label>
+                      <label className="ml-2" htmlFor={type}>
+                        {type}
+                      </label>
                     </div>
                   ))}
                 </div>
@@ -712,8 +715,11 @@ function Checkout() {
                       checked={paymentMethod === method.value}
                       onChange={() => setPaymentMethod(method.value)}
                       value={method.value}
+                      id={method.value}
                     />
-                    <label className="ml-2">{method.title}</label>
+                    <label className="ml-2" htmlFor={method.value}>
+                      {method.title}
+                    </label>
                   </div>
                 ))}
               </div>
@@ -754,15 +760,18 @@ function Checkout() {
                         setOpenSelectAddressModal(false);
                       }}
                       value={userAddress._id}
+                      id={userAddress._id}
                       className="mt-2 ml-2"
                     />
-                    <div className="flex flex-col gap-y-2">
-                      <p>Số điện thoại: {userAddress.phone}</p>
-                      <p>Tỉnh/Thành phố: {userAddress.city}</p>
-                      <p>Quận/Huyện: {userAddress.district}</p>
-                      <p>Xã: {userAddress.commune}</p>
-                      <p>Đường: {userAddress.street}</p>
-                    </div>
+                    <label htmlFor={userAddress._id}>
+                      <div className="flex flex-col gap-y-2">
+                        <p>Số điện thoại: {userAddress.phone}</p>
+                        <p>Tỉnh/Thành phố: {userAddress.city}</p>
+                        <p>Quận/Huyện: {userAddress.district}</p>
+                        <p>Xã: {userAddress.commune}</p>
+                        <p>Đường: {userAddress.street}</p>
+                      </div>
+                    </label>
                   </div>
                 ))
               ) : (

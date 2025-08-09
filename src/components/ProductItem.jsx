@@ -133,7 +133,7 @@ function ProductItem({
 
   return (
     <>
-      <div
+      <Link
         className={`relative grid w-full max-w-64 flex-col overflow-hidden place-items-center rounded-lg border border-gray-100 bg-white shadow-md 
             ${
               usage === "product"
@@ -145,11 +145,9 @@ function ProductItem({
                 ? "transform transition duration-500 hover:scale-105"
                 : ""
             }`}
+        to={`/products/details/${id}`}
       >
-        <Link
-          className="mx-2 mt-3 flex h-50 overflow-hidden rounded-xl relative z-10"
-          to={`/products/details/${id}`}
-        >
+        <div className="mx-2 mt-3 flex h-50 overflow-hidden rounded-xl relative z-10">
           {usage === "new-arrival" && (
             <img
               src={NewArrivalIcon}
@@ -175,7 +173,7 @@ function ProductItem({
             onLoad={handleImageLoad}
             defaultValue={"https://via.placeholder.com/800x600?text=Team+Image"}
           />
-        </Link>
+        </div>
 
         <div className="mt-2 px-4 pb-3 w-full z-10">
           <span>
@@ -263,7 +261,7 @@ function ProductItem({
             </button>
           </div>
         </div>
-      </div>
+      </Link>
       <Modal
         show={openModal}
         size="lg"
