@@ -252,7 +252,9 @@ function Checkout() {
       let userAddress;
       if (!selectedUserAddress) {
         const userAddressResponse = await axios.post(
-          "http://localhost:8000/api/v1/userAddress",
+          process.env.REACT_APP_BUILD_MODE === "production"
+            ? "https://fashionspace-api.onrender.com/api/v1/userAddress"
+            : "http://localhost:8000/api/v1/userAddress",
           {
             city: selectedCityName,
             district: selectedDistrictName,
@@ -285,7 +287,9 @@ function Checkout() {
         );
       } else {
         const orderResponse = await axios.post(
-          "http://localhost:8000/api/v1/order",
+          process.env.REACT_APP_BUILD_MODE === "production"
+            ? "https://fashionspace-api.onrender.com/api/v1/order"
+            : "http://localhost:8000/api/v1/order",
           {
             orderItems: orderDetails,
             discount: 0,

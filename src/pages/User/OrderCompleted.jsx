@@ -106,7 +106,9 @@ function OrderCompleted() {
 
           if (token) {
             const orderResponse = await axios.get(
-              `http://localhost:8000/api/v1/order/${orderId}`,
+              process.env.REACT_APP_BUILD_MODE === "production"
+                ? `https://fashionspace-api.onrender.com/api/v1/order/${orderId}`
+                : `http://localhost:8000/api/v1/order/${orderId}`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
 

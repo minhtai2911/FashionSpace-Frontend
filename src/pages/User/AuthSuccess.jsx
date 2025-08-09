@@ -51,7 +51,9 @@ function AuthSuccess() {
 
       try {
         const response = await instance.post(
-          "http://localhost:8000/api/v1/auth/loginGoogleSuccess",
+          process.env.REACT_APP_BUILD_MODE === "production"
+            ? "https://fashionspace-api.onrender.com/api/v1/auth/loginGoogleSuccess"
+            : "http://localhost:8000/api/v1/auth/loginGoogleSuccess",
           {
             token,
           }
