@@ -21,7 +21,6 @@ import AuthContext from "../../context/AuthContext";
 import Error from "../Error";
 import SkeletonItem from "../../components/Skeleton";
 
-// Add debounce hook
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -49,6 +48,9 @@ function Shop() {
   const [currentPage, setCurrentPage] = useState(1);
   const [productData, setProductData] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [categoryOffset, setCategoryOffset] = useState(0);
+  const [hasMoreCategories, setHasMoreCategories] = useState(true);
+  const [isLoadingMoreCategories, setIsLoadingMoreCategories] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [metadata, setMetadata] = useState({
@@ -57,7 +59,6 @@ function Shop() {
     totalPages: 1,
   });
 
-  // Debounce price filters to reduce API calls
   const debouncedMinPrice = useDebounce(minPrice, 500);
   const debouncedMaxPrice = useDebounce(maxPrice, 500);
 
@@ -148,20 +149,17 @@ function Shop() {
     setMaxPrice(tempMaxPrice);
   };
 
-  // Products are already paginated from server, no need for client-side slicing
   const currentProducts = productData;
 
   const fetchData = async () => {
     setIsLoading(true);
 
     try {
-      // Build query parameters for server-side filtering
       let categoryIds = undefined;
       if (selectedCategoryIds.length > 0) {
         categoryIds = selectedCategoryIds.join(",");
       }
 
-      // Convert sort criteria to backend format
       let sortBy = "name";
       let sortOrder = "asc";
       if (sortCriteria) {
@@ -170,20 +168,18 @@ function Shop() {
         sortOrder = order;
       }
 
-      // Get paginated products with server-side filtering
       const result = await getAllProducts(
         currentPage,
         PRODUCTS_PER_PAGE,
-        null, // search
-        true, // isActive
+        null,
+        true,
         categoryIds,
-        debouncedMinPrice !== MIN_PRICE ? debouncedMinPrice : undefined, // minPrice
-        debouncedMaxPrice !== MAX_PRICE ? debouncedMaxPrice : undefined, // maxPrice
-        sortBy, // sortBy
-        sortOrder // sortOrder
+        debouncedMinPrice !== MIN_PRICE ? debouncedMinPrice : undefined,
+        debouncedMaxPrice !== MAX_PRICE ? debouncedMaxPrice : undefined,
+        sortBy,
+        sortOrder
       );
 
-      // Handle both old format (direct array) and new format (object with data property)
       const fetchedProducts = result.data || result;
       const fetchedMetadata = result.meta || {
         totalCount: 0,
@@ -198,7 +194,6 @@ function Shop() {
         return;
       }
 
-      // Process products with category information (server already filtered and sorted)
       const updatedProducts = await Promise.all(
         fetchedProducts.map(async (product) => {
           const images = product.images;
@@ -234,35 +229,72 @@ function Shop() {
     }
   };
 
-  // Fetch categories separately (only once)
-  const fetchCategories = async () => {
+  const fetchCategories = async (isInitial = true) => {
     try {
-      const categoriesResult = await getAllCategories(1, 1000, undefined, true);
+      const page = isInitial ? 1 : Math.floor(categoryOffset / 10) + 1;
+      const categoriesResult = await getAllCategories(
+        page,
+        undefined,
+        undefined,
+        true
+      );
       const fetchedCategories = categoriesResult.data || categoriesResult;
 
       if (Array.isArray(fetchedCategories)) {
-        setCategories(fetchedCategories);
+        if (isInitial) {
+          setCategories(fetchedCategories);
+          setCategoryOffset(10);
+        } else {
+          // Concatenate and deduplicate
+          setCategories((prevCategories) => {
+            const combinedCategories = [
+              ...prevCategories,
+              ...fetchedCategories,
+            ];
+            const uniqueCategories = combinedCategories.filter(
+              (category, index, self) =>
+                index === self.findIndex((c) => c._id === category._id)
+            );
+            return uniqueCategories;
+          });
+          setCategoryOffset((prev) => prev + 10);
+        }
+
+        // Check if there are more categories to load
+        setHasMoreCategories(fetchedCategories.length === 10);
       } else {
         console.error("Invalid categories data:", fetchedCategories);
-        setCategories([]);
+        if (isInitial) {
+          setCategories([]);
+        }
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
-      setCategories([]);
+      if (isInitial) {
+        setCategories([]);
+      }
     }
   };
 
-  // Fetch categories on component mount
+  const loadMoreCategories = async () => {
+    if (isLoadingMoreCategories || !hasMoreCategories) return;
+
+    setIsLoadingMoreCategories(true);
+    try {
+      await fetchCategories(false);
+    } finally {
+      setIsLoadingMoreCategories(false);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategoryIds, debouncedMinPrice, debouncedMaxPrice, sortCriteria]);
 
-  // Fetch data when page or filters change
   useEffect(() => {
     fetchData();
   }, [
@@ -306,6 +338,29 @@ function Shop() {
                   <label className="">{`${category.name} [${category.gender}]`}</label>
                 </div>
               ))}
+              {hasMoreCategories && (
+                <div
+                  onClick={loadMoreCategories}
+                  disabled={isLoadingMoreCategories}
+                  className="font-medium flex items-center gap-x-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoadingMoreCategories ? "Đang tải..." : "Thêm"}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    className="size-4"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                    />
+                  </svg>
+                </div>
+              )}
             </div>
           </div>
           <div className="h-[1.5px] bg-[#C9C9C9] opacity-60"></div>
