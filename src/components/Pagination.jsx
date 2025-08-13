@@ -51,7 +51,6 @@ const Pagination = ({
         className="relative z-0 inline-flex rounded-md -space-x-px"
         aria-label="Pagination"
       >
-        {/* Previous button */}
         {currentPage === 1 ? (
           <a className="relative inline-flex items-center px-2 py-2 border-none bg-white text-sm font-bold text-gray-500 cursor-not-allowed">
             <svg
@@ -91,7 +90,6 @@ const Pagination = ({
           </a>
         )}
 
-        {/* Page numbers */}
         {getPageNumbers().map((page, index) => (
           <a
             key={index}
@@ -104,7 +102,6 @@ const Pagination = ({
           </a>
         ))}
 
-        {/* Next button */}
         {currentPage === totalPages ? (
           <a className="relative inline-flex items-center px-2 py-2 border-none bg-white text-sm font-bold text-gray-500 cursor-not-allowed">
             <svg

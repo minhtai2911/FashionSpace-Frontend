@@ -47,7 +47,7 @@ function Shop() {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [selectedCategoryNames, setSelectedCategoryNames] = useState([]);
   const [sortCriteria, setSortCriteria] = useState(SORT_BY[0].value);
-  const [currentPage, setCurrentPage] = useState(1);
+  const currentPage = parseInt(searchParams.get("page")) || 1;
   const [searchQuery, setSearchQuery] = useState("");
   const [productData, setProductData] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -68,6 +68,16 @@ function Shop() {
   const { auth, setHasError } = useContext(AuthContext);
   const permission = Cookies.get("permission") ?? null;
   const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")) : null;
+
+  const handlePageChange = (page) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (page === 1) {
+      newSearchParams.delete("page");
+    } else {
+      newSearchParams.set("page", page.toString());
+    }
+    setSearchParams(newSearchParams);
+  };
 
   const handleMinPriceChange = (e) => {
     const value = parseInt(e.target.value);
@@ -329,8 +339,14 @@ function Shop() {
     }
   }, [searchParams, setSearchParams]);
 
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useEffect(() => {
-    setCurrentPage(1);
+    if (hasInitialized && currentPage !== 1) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("page");
+      setSearchParams(newSearchParams);
+    }
   }, [
     selectedCategoryIds,
     debouncedMinPrice,
@@ -338,6 +354,10 @@ function Shop() {
     sortCriteria,
     searchQuery,
   ]);
+
+  useEffect(() => {
+    setHasInitialized(true);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -569,7 +589,7 @@ function Shop() {
                   <Pagination
                     currentPage={metadata.currentPage}
                     totalPages={metadata.totalPages}
-                    onPageChange={setCurrentPage}
+                    onPageChange={handlePageChange}
                     svgClassName={"w-6 h-6"}
                     textClassName={"text-xl px-4 py-2"}
                   />
