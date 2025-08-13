@@ -48,7 +48,10 @@ function Shop() {
   const [selectedCategoryNames, setSelectedCategoryNames] = useState([]);
   const [sortCriteria, setSortCriteria] = useState(SORT_BY[0].value);
   const currentPage = parseInt(searchParams.get("page")) || 1;
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(() => {
+    const qParam = searchParams.get("q");
+    return qParam && qParam.trim() ? decodeURIComponent(qParam).trim() : "";
+  });
   const [productData, setProductData] = useState([]);
   const [categories, setCategories] = useState([]);
   const [categoryOffset, setCategoryOffset] = useState(0);
@@ -142,7 +145,6 @@ function Shop() {
 
   const clearSearchQuery = () => {
     setSearchQuery("");
-    // Update URL to remove q parameter
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete("q");
     setSearchParams(newSearchParams);
@@ -150,7 +152,6 @@ function Shop() {
 
   const updateSearchQuery = (query) => {
     setSearchQuery(query);
-    // Update URL with new search query
     const newSearchParams = new URLSearchParams(searchParams);
     if (query && query.trim()) {
       newSearchParams.set("q", encodeURIComponent(query.trim()));
@@ -279,7 +280,6 @@ function Shop() {
           setCategories(fetchedCategories);
           setCategoryOffset(10);
         } else {
-          // Concatenate and deduplicate
           setCategories((prevCategories) => {
             const combinedCategories = [
               ...prevCategories,
@@ -294,7 +294,6 @@ function Shop() {
           setCategoryOffset((prev) => prev + 10);
         }
 
-        // Check if there are more categories to load
         setHasMoreCategories(fetchedCategories.length === 10);
       } else {
         console.error("Invalid categories data:", fetchedCategories);
@@ -325,19 +324,23 @@ function Shop() {
     fetchCategories();
   }, []);
 
-  // Handle URL query parameter
+  // Handle URL query parameter changes
   useEffect(() => {
     const qParam = searchParams.get("q");
-    if (qParam && qParam.trim()) {
-      setSearchQuery(decodeURIComponent(qParam).trim());
-    } else if (qParam !== null) {
-      // If q exists but is empty/whitespace, remove it from URL
+    const currentQuery =
+      qParam && qParam.trim() ? decodeURIComponent(qParam).trim() : "";
+
+    if (currentQuery !== searchQuery) {
+      setSearchQuery(currentQuery);
+    }
+
+    // Clean up empty q parameter from URL
+    if (qParam !== null && !qParam.trim()) {
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.delete("q");
       setSearchParams(newSearchParams, { replace: true });
-      setSearchQuery("");
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, searchQuery]);
 
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -563,26 +566,41 @@ function Shop() {
                 className="flex gap-x-5 gap-y-5 flex-wrap min-h-60"
                 id="product-container"
               >
-                {currentProducts.length > 0 && !isLoading ? (
-                  currentProducts.map((product) => (
-                    <ProductItem
-                      key={product._id}
-                      soldQuantity={product.soldQuantity}
-                      productName={product.name}
-                      rating={product.rating}
-                      image={
-                        product.images.length > 0 ? product.images[0].url : ""
-                      }
-                      category={product.category}
-                      price={product.price}
-                      id={product._id}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center w-full text-3xl font-bold">
-                    <p>Không có sản phẩm tương ứng với bộ lọc của bạn.</p>
-                  </div>
-                )}
+                {!isLoading ? (
+                  currentProducts.length > 0 ? (
+                    currentProducts.map((product) => (
+                      <ProductItem
+                        key={product._id}
+                        soldQuantity={product.soldQuantity}
+                        productName={product.name}
+                        rating={product.rating}
+                        image={
+                          product.images.length > 0 ? product.images[0].url : ""
+                        }
+                        category={product.category}
+                        price={product.price}
+                        id={product._id}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center w-full">
+                      {searchQuery ? (
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="text-3xl font-bold">
+                            <p>
+                              Không tìm thấy sản phẩm cho từ khóa "{searchQuery}
+                              ".
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-3xl font-bold">
+                          <p>Không có sản phẩm tương ứng với bộ lọc của bạn.</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                ) : null}
               </div>
               {metadata.totalPages > 1 && (
                 <div className="mt-5">
