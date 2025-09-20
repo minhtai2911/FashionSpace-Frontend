@@ -41,7 +41,7 @@ export default function Dashboard() {
     try {
       const fetchedOrders = await getAllOrders();
       const ordersWithDetails = await Promise.all(
-        fetchedOrders.map(async (order) => {
+        fetchedOrders.data.map(async (order) => {
           const user = order.userInfo;
           const paymentMethod = order.paymentMethod;
           const trackingData = order.deliveryInfo;
@@ -64,7 +64,9 @@ export default function Dashboard() {
         (a, b) => new Date(b.createdDate) - new Date(a.createdDate)
       );
       setLatestOrders(sortedOrders.slice(0, 5));
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   const fetchBestSellerProducts = async () => {

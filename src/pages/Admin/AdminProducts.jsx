@@ -1,13 +1,13 @@
 import { useState, useEffect, useContext } from "react";
-import { Link, Outlet, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Table, Modal, Button } from "flowbite-react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 import { archiveProductById, getAllProducts } from "../../data/products";
-import { getAllCategories, getCategoryById } from "../../data/categories";
+import { getAllCategories } from "../../data/categories";
 import Search from "../../components/Search";
 import GenericDropdown from "../../components/GenericDropdown";
-import { deleteProductVariantsByProductId } from "../../data/productVariant";
+import InfiniteScrollDropdown from "../../components/InfiniteScrollDropdown";
 import toast from "react-hot-toast";
 import { formatToVND } from "../../utils/format";
 import { ITEM_PER_PAGE, PRODUCT_STATUS } from "../../utils/Constants";
@@ -21,7 +21,7 @@ export default function Products() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [categories, setCategories] = useState([]);
+  const [allCategoriesForFilter, setAllCategoriesForFilter] = useState([]);
   const [metadata, setMetadata] = useState({
     totalCount: 0,
     currentPage: 1,
@@ -63,6 +63,25 @@ export default function Products() {
     }
   };
 
+  const fetchCategoriesForDropdown = async (page, limit, search = "") => {
+    try {
+      const result = await getAllCategories(page, limit, search, true);
+      let data = result.data || [];
+
+      if (page === 1 && !search) {
+        data = [{ _id: "All", name: "Tất cả", gender: "" }, ...data];
+      }
+
+      return {
+        data,
+        meta: result.meta || { totalPages: 1 },
+      };
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      return { data: [], meta: { totalPages: 1 } };
+    }
+  };
+
   async function fetchProducts() {
     try {
       setLoading(true);
@@ -76,12 +95,7 @@ export default function Products() {
 
       let categoryIds = undefined;
       if (selectedCategory !== "All") {
-        const selectedCategoryObj = categories.find(
-          (cat) => `${cat.name} [${cat.gender}]` === selectedCategory
-        );
-        if (selectedCategoryObj) {
-          categoryIds = selectedCategoryObj._id;
-        }
+        categoryIds = selectedCategory;
       }
 
       const result = await getAllProducts(
@@ -99,10 +113,12 @@ export default function Products() {
         return;
       }
 
+      console.log(result);
+
       const updatedProducts = await Promise.all(
         (result.data || []).map(async (product) => {
           try {
-            const category = await getCategoryById(product.categoryId._id);
+            const category = product.categoryId;
             return {
               ...product,
               category: `${category.name} [${category.gender}]`,
@@ -154,40 +170,24 @@ export default function Products() {
   }, []);
 
   useEffect(() => {
-    const loadCategories = async () => {
-      if (categories.length === 0) {
-        try {
-          const result = await getAllCategories(1, 1000, undefined, true);
-          const fetchedCategories = result.data || result;
-          if (Array.isArray(fetchedCategories)) {
-            setCategories(fetchedCategories);
-          } else {
-            console.error(
-              "Categories data is not an array:",
-              fetchedCategories
-            );
-            setCategories([]);
-          }
-        } catch (error) {
-          console.error("Error fetching categories:", error);
-          setCategories([]);
+    const loadCategoriesForFiltering = async () => {
+      try {
+        const result = await getAllCategories(1, 5, undefined, true);
+        const fetchedCategories = result.data || result;
+        if (Array.isArray(fetchedCategories)) {
+          setAllCategoriesForFilter(fetchedCategories);
         }
+      } catch (error) {
+        console.error("Error fetching categories for filtering:", error);
+        setAllCategoriesForFilter([]);
       }
     };
-    loadCategories();
+    loadCategoriesForFiltering();
   }, []);
 
   useEffect(() => {
-    if (categories.length > 0 || selectedCategory === "All") {
-      fetchProducts();
-    }
-  }, [
-    currentPage,
-    debouncedSearchTerm,
-    selectedStatus,
-    selectedCategory,
-    categories,
-  ]);
+    fetchProducts();
+  }, [currentPage, debouncedSearchTerm, selectedStatus, selectedCategory]);
 
   const currentProducts = products;
 
@@ -200,14 +200,9 @@ export default function Products() {
     })),
   ];
 
-  const categoryOptions = [
-    { key: "all", value: "All", label: "Tất cả" },
-    ...categories.map((category) => ({
-      key: category._id,
-      value: `${category.name} [${category.gender}]`,
-      label: `${category.name} [${category.gender}]`,
-    })),
-  ];
+  const handleCategoryChange = (value, option) => {
+    setSelectedCategory(value);
+  };
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -253,14 +248,29 @@ export default function Products() {
               />
             </div>
             <div className="w-fit">
-              <GenericDropdown
+              <InfiniteScrollDropdown
                 value={selectedCategory}
-                onChange={(value) => setSelectedCategory(value)}
-                options={categoryOptions}
+                onChange={handleCategoryChange}
+                fetchData={fetchCategoriesForDropdown}
                 placeholder="Chọn danh mục"
-                displayKey="label"
-                valueKey="value"
+                displayKey="name"
+                valueKey="_id"
+                renderOption={(category) => (
+                  <span className="font-medium font-manrope text-sm">
+                    {category._id === "All"
+                      ? category.name
+                      : `${category.name} [${category.gender}]`}
+                  </span>
+                )}
+                renderSelected={(category) =>
+                  category._id === "All"
+                    ? category.name
+                    : `${category.name} [${category.gender}]`
+                }
                 className="min-w-[160px]"
+                itemsPerPage={5}
+                searchable={true}
+                emptyMessage="Không có danh mục nào"
               />
             </div>
           </div>
