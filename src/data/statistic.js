@@ -27,7 +27,7 @@ export const getStatistics = async (day, month, year) => {
   }
 };
 
-export const getOverview = async () => {
+export const getStatisticsOverview = async () => {
   try {
     const response = await instance.get(`/statistic/overview`, {
       requireAuth: true,
