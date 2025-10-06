@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://fashion-space.com/sitemap.xml
+Sitemap: https://fashion-space.vercel.app/sitemap.xml
